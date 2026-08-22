@@ -11,8 +11,8 @@ export export export function useComposition<
     } = options;
 
     const c = useRef(false);
-    const timer = useRef < TimerResponse | null > (null);
-    const timer2 = useRef < TimerResponse | null > (null);
+    const timer = useRef<TimerResponse | null>(null);
+    const timer2 = useRef<TimerResponse | null>(null);
 
     const onCompositionStart = usePersistFn((e: React.CompositionEvent<T>) => {
         if (timer.current) {

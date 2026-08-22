@@ -1,11 +1,9 @@
-
-import { TooltipProvider } from 'radix-ui/tooltip'
-import './App.css'
-import Home from './Pages/Home'
-import { Toaster } from 'sonner'
+import { TooltipProvider } from "radix-ui/tooltip";
+import "./App.css";
+import Home from "./Pages/Home";
+import { Toaster } from "sonner";
 
 function App() {
-
   return (
     <>
       <TooltipProvider>
@@ -13,7 +11,7 @@ function App() {
         <Home />
       </TooltipProvider>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
