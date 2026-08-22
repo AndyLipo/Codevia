@@ -3,6 +3,7 @@ import {
   ArrowUpRight,
   LogOut,
   Settings2,
+  Sparkle,
   X,
 } from "lucide-react";
 import { modules } from "@/data/mockData";
@@ -20,7 +21,10 @@ export default function Sidebar({
     <aside className={`sidebar ${mobileOpen ? "is-open" : ""}`}>
       <div className="brand">
         <div className="brand-mark">
-          <img src="/manus-storage/brother-plast-mark_63a96de1.png" alt="" />
+          {/* <img src="" alt="" /> */}
+          <div>
+            <Sparkle />
+          </div>
         </div>
         <div>
           <strong>

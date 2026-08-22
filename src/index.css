@@ -400,7 +400,7 @@ button:active {
   cursor: pointer;
 }
 
-.mini-alert > div {
+.mini-alert>div {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -445,7 +445,7 @@ button:active {
   font-size: 11px;
 }
 
-.user-card > div:nth-child(2) {
+.user-card>div:nth-child(2) {
   flex: 1;
   min-width: 0;
 }
@@ -778,7 +778,7 @@ button:active {
   font-size: 11px;
 }
 
-.kpi > strong {
+.kpi>strong {
   display: block;
   font-family: "Barlow Condensed";
   font-size: 33px;
@@ -1260,7 +1260,7 @@ tbody tr:hover {
   border-top: 0;
 }
 
-.alert-item > div:nth-child(2) {
+.alert-item>div:nth-child(2) {
   flex: 1;
 }
 
@@ -1345,7 +1345,7 @@ tbody tr:hover {
   margin-bottom: 14px;
 }
 
-.dispatch-banner > div:first-child {
+.dispatch-banner>div:first-child {
   flex: 1;
 }
 
@@ -1462,7 +1462,7 @@ tbody tr:hover {
   margin-bottom: 14px;
 }
 
-.order-kpis > div {
+.order-kpis>div {
   background: #fff;
   border: 1px solid #e1e8ea;
   border-radius: 8px;
@@ -1719,7 +1719,7 @@ tbody tr:hover {
 
 .visual-copy {
   margin-top: auto;
-  margin-bottom: 70px;
+  margin-bottom: 10px;
   max-width: 470px;
 }
 
@@ -1780,6 +1780,7 @@ tbody tr:hover {
 .login-statline {
   display: flex;
   gap: 70px;
+  margin-bottom: 100px;
 }
 
 .login-statline strong,
@@ -1802,6 +1803,7 @@ tbody tr:hover {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  margin-bottom: 10px;
 }
 
 .login-panel-inner {
@@ -1832,12 +1834,12 @@ tbody tr:hover {
   padding: 10px 0;
 }
 
-.login-console > div {
+.login-console>div {
   padding: 0 9px;
   border-left: 1px solid #e7edef;
 }
 
-.login-console > div:first-child {
+.login-console>div:first-child {
   padding-left: 0;
   border-left: 0;
 }
@@ -1894,7 +1896,7 @@ tbody tr:hover {
   background: #f2f8f9;
 }
 
-.role-card > span:nth-child(2) {
+.role-card>span:nth-child(2) {
   flex: 1;
 }
 
@@ -1926,7 +1928,7 @@ tbody tr:hover {
   font-size: 12px;
 }
 
-.role-card.selected > svg {
+.role-card.selected>svg {
   color: #3f9d77;
 }
 
@@ -2039,7 +2041,7 @@ tbody tr:hover {
     font-size: 9px;
   }
 
-  .role-switcher > svg {
+  .role-switcher>svg {
     display: none;
   }
 
@@ -2107,7 +2109,7 @@ tbody tr:hover {
     gap: 18px;
   }
 
-  .dispatch-banner > div:first-child {
+  .dispatch-banner>div:first-child {
     flex-basis: 100%;
   }
 
@@ -2155,6 +2157,7 @@ tbody tr:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -2366,7 +2369,7 @@ tbody tr:hover {
 }
 
 .mock-title small,
-.mock-panel > small {
+.mock-panel>small {
   color: #82979e;
   font-size: 7px;
   font-weight: 800;
@@ -2764,7 +2767,7 @@ tbody tr:hover {
   padding: 11px 0;
 }
 
-.legend-item > span {
+.legend-item>span {
   width: 22px;
   height: 22px;
   display: grid;

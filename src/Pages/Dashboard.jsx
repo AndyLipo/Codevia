@@ -24,6 +24,7 @@ import {
   Route,
   Search,
   Settings2,
+  Sparkle,
   Truck,
   UserRound,
   UsersRound,
@@ -210,7 +211,8 @@ export default function Dashboard({ role, onLogout }) {
       <aside className={`sidebar ${mobileOpen ? "is-open" : ""}`}>
         <div className="brand">
           <div className="brand-mark">
-            <img src="/manus-storage/brother-plast-mark_63a96de1.png" alt="" />
+            {/* <img src="" alt="" /> */}
+            <Sparkle />
           </div>
           <div>
             <strong>
@@ -300,7 +302,7 @@ export default function Dashboard({ role, onLogout }) {
             </button>
             <div className="role-switcher">
               <div className="avatar small">{role.initials}</div>
-              <select value={role.id} onChange={() => {}}>
+              <select value={role.id} onChange={() => { }}>
                 <option>{role.label}</option>
               </select>
               <ChevronDown size={14} />
