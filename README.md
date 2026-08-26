@@ -5,7 +5,7 @@
 
 Proyecto desarrollado por **Codevia — Innovación, integración y desarrollo**, en el marco de la Práctica Profesionalizante de Integración de Sistemas — E.S.B.A. (Escuela Superior de Barrio Norte).
 
-🔗 **Demo en vivo:** [tu-url-de-netlify.netlify.app](https://brotherplast.netlify.app/)
+🔗 **Demo en vivo:** (https://brotherplast.netlify.app/)
 
 ---
 
