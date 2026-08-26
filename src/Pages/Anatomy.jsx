@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import Login from "@/pages/Login";
-import Dashboard from "@/pages/Dashboard";
-import Anatomy from "@/pages/Anatomy";
+import { Toaster } from "@/Components/ui/sonner";
+import { TooltipProvider } from "@/Components/ui/tooltip";
+import Login from "@/Pages/Login";
+import Dashboard from "@/Pages/Dashboard";
+import Anatomy from "@/Pages/Anatomy";
 import { roleOptions } from "@/data/mockData";
 
 export default function App() {

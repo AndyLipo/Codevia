@@ -1,7 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import { Sparkles } from 'lucide-react';
 
-import RoleGrid from "@/components/login/RoleGrid";
+import RoleGrid from "@/Components/login/RoleGrid";
 
 export default function Login({ role, setRole, setLogged }) {
   return (

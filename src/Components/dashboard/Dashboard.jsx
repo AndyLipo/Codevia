@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import AppShell from "@/components/layout/AppShell";
-import Overview from "@/components/dashboard/Overview";
-import Production from "@/components/dashboard/Production";
-import Warehouse from "@/components/dashboard/Warehouse";
-import Dispatch from "@/components/dashboard/Dispatch";
-import Orders from "@/components/dashboard/Orders";
-import Reports from "@/components/dashboard/Reports";
+import AppShell from "@/Components/layout/AppShell";
+import Overview from "@/Components/dashboard/Overview";
+import Production from "@/Components/dashboard/Production";
+import Warehouse from "@/Components/dashboard/Warehouse";
+import Dispatch from "@/Components/dashboard/Dispatch";
+import Orders from "@/Components/dashboard/Orders";
+import Reports from "@/Components/dashboard/Reports";
 
 export default function Dashboard({ role, setRole, setLogged }) {
   const [active, setActive] = useState("overview");

@@ -1,7 +1,7 @@
 import { Plus, Search, FileText } from "lucide-react";
-import SectionTitle from "@/components/common/SectionTitle";
-import Table from "@/components/common/Table";
-import Badge from "@/components/common/Badge";
+import SectionTitle from "@/Components/common/SectionTitle";
+import Table from "@/Components/common/Table";
+import Badge from "@/Components/common/Badge";
 import { productionRows } from "@/data/mockData";
 
 export default function Production({ fakeAction }) {

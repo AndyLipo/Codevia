@@ -1,5 +1,5 @@
 import { Truck } from "lucide-react";
-import Badge from "@/components/common/Badge";
+import Badge from "@/Components/common/Badge";
 
 export default function YardRow({ code, client, status, tone, progress }) {
   return (

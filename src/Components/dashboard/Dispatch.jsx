@@ -1,7 +1,7 @@
 import { ArrowUpRight, Plus, RefreshCw, Route } from "lucide-react";
-import SectionTitle from "@/components/common/SectionTitle";
-import Table from "@/components/common/Table";
-import Badge from "@/components/common/Badge";
+import SectionTitle from "@/Components/common/SectionTitle";
+import Table from "@/Components/common/Table";
+import Badge from "@/Components/common/Badge";
 import RouteStep from "./RouteStep";
 import { dispatchRows } from "@/data/mockData";
 

@@ -6,10 +6,10 @@ import {
   RefreshCw,
   Truck,
 } from "lucide-react";
-import SectionTitle from "@/components/common/SectionTitle";
-import Kpi from "@/components/common/Kpi";
-import Table from "@/components/common/Table";
-import Badge from "@/components/common/Badge";
+import SectionTitle from "@/Components/common/SectionTitle";
+import Kpi from "@/Components/common/Kpi";
+import Table from "@/Components/common/Table";
+import Badge from "@/Components/common/Badge";
 import YardRow from "./YardRow";
 
 export default function Overview({ navigate, fakeAction }) {

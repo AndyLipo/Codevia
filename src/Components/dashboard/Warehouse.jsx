@@ -1,8 +1,8 @@
 import { AlertTriangle, Clock3, MapPin, Plus } from "lucide-react";
-import SectionTitle from "@/components/common/SectionTitle";
-import Table from "@/components/common/Table";
-import Badge from "@/components/common/Badge";
-import IconBox from "@/components/common/IconBox";
+import SectionTitle from "@/Components/common/SectionTitle";
+import Table from "@/Components/common/Table";
+import Badge from "@/Components/common/Badge";
+import IconBox from "@/Components/common/IconBox";
 import { stockRows } from "@/data/mockData";
 
 export default function Warehouse({ fakeAction }) {

@@ -1,7 +1,7 @@
 import { Plus, Search, UsersRound } from "lucide-react";
-import SectionTitle from "@/components/common/SectionTitle";
-import Table from "@/components/common/Table";
-import Badge from "@/components/common/Badge";
+import SectionTitle from "@/Components/common/SectionTitle";
+import Table from "@/Components/common/Table";
+import Badge from "@/Components/common/Badge";
 
 const allOrders = [
   [

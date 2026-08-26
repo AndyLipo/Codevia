@@ -7,8 +7,8 @@ import {
   Warehouse,
   Zap,
 } from "lucide-react";
-import SectionTitle from "@/components/common/SectionTitle";
-import IconBox from "@/components/common/IconBox";
+import SectionTitle from "@/Components/common/SectionTitle";
+import IconBox from "@/Components/common/IconBox";
 
 const reportCards = [
   {
