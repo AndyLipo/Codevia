@@ -42,7 +42,7 @@ export default function AppShell({
           fakeAction={fakeAction}
         />
 
-        <div className="mx-auto max-w-[1440px] px-[38px] pb-4 pt-[34px]">
+        <div className="mx-auto max-w-[1440px] px-6 pb-4 pt-[34px] max-md:px-4 max-md:pt-6">
           {children}
         </div>
 

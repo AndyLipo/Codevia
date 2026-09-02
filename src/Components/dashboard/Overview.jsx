@@ -26,12 +26,24 @@ export default function Overview({ navigate, fakeAction }) {
       />
 
       <div className="mb-[19px] flex items-center gap-3 rounded-[7px] border border-[#f1dfbc] bg-[#fff8e9] px-[15px] py-3">
-        <div className="text-[#c4811f]"><AlertTriangle size={18} /></div>
-        <div className="flex-1">
-          <strong className="block text-xs text-[#815714]">2 materiales biodegradables requieren atención</strong>
-          <span className="mt-[3px] block text-[11px] text-[#ad8951]">El lote PLA-014 vence en 25 días y el stock está por debajo del mínimo operativo.</span>
+        <div className="text-[#c4811f]">
+          <AlertTriangle size={18} />
         </div>
-        <button onClick={() => navigate("warehouse")} className="flex items-center gap-1.5 text-[10px] font-bold text-[#a46e1c]">
+
+        <div className="flex-1">
+          <strong className="block text-xs text-[#815714]">
+            2 materiales biodegradables requieren atención
+          </strong>
+
+          <span className="mt-[3px] block text-[11px] text-[#ad8951]">
+            El lote PLA-014 vence en 25 días y el stock está por debajo del mínimo operativo.
+          </span>
+        </div>
+
+        <button
+          onClick={() => navigate("warehouse")}
+          className="flex items-center gap-1.5 text-[10px] font-bold text-[#a46e1c] max-md:hidden"
+        >
           Revisar alertas <ArrowUpRight size={15} />
         </button>
       </div>

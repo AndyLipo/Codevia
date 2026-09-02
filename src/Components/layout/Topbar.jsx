@@ -18,37 +18,40 @@ export default function Topbar({
   const currentModule = modules.find((m) => m.id === active);
 
   return (
-    <header className="sticky top-0 z-10 flex h-[72px] items-center justify-between border-b border-[#dfe7e9] bg-white px-[34px]">
+    <header className="sticky top-0 z-10 flex h-[72px] items-center justify-between border-b border-[#dfe7e9] bg-white px-4 lg:px-[34px]">
+
       {/* Menú mobile */}
       <button
         type="button"
         onClick={() => setMobileOpen(true)}
         aria-label="Abrir menú"
-        className="hidden border-0 bg-transparent text-brand lg:hidden"
+        className="grid h-8 w-8 place-items-center border-0 bg-transparent text-brand lg:hidden"
       >
-        <Menu size={20} />
+        <Menu size={21} />
       </button>
 
       {/* Breadcrumbs */}
       <div className="flex items-center gap-2.5 text-[12px] text-[#9aa8ad]">
-        <span>Brother Plast</span>
-        <span>/</span>
+        <span className="hidden sm:inline">Brother Plast</span>
+        <span className="hidden sm:inline">/</span>
+
         <strong className="font-semibold text-[#345460]">
           {currentModule?.label ?? "Vista general"}
         </strong>
       </div>
 
       {/* Acciones */}
-      <div className="flex items-center gap-3.5">
+      <div className="flex items-center gap-2.5 lg:gap-3.5">
+
         {/* Buscador */}
-        <div className="flex w-[230px] items-center gap-[9px] rounded-[6px] bg-[#f5f7f8] px-[11px] py-2 text-[#9aa9af]">
+        <div className="flex h-8 w-8 items-center justify-center rounded-[6px] bg-[#f5f7f8] text-[#9aa9af] lg:h-auto lg:w-[230px] lg:justify-start lg:gap-[9px] lg:px-[11px] lg:py-2">
           <Search size={17} />
 
           <input
             type="text"
             placeholder="Buscar orden, lote o cliente"
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full border-0 bg-transparent text-[11px] text-ink outline-none placeholder:text-[#9aa9af]"
+            className="hidden w-full border-0 bg-transparent text-[11px] text-ink outline-none placeholder:text-[#9aa9af] lg:block"
           />
         </div>
 
@@ -68,11 +71,14 @@ export default function Topbar({
 
         {/* Selector de rol */}
         <div className="flex items-center gap-[7px] border-l border-[#e6ecee] pl-3.5">
+
+          {/* Avatar */}
           <div className="grid h-7 w-7 place-items-center rounded-full bg-brand font-barlow text-[11px] font-bold text-white">
             {role?.initials ?? "AL"}
           </div>
 
-          <div className="relative flex items-center">
+          {/* Selector — solo desktop */}
+          <div className="relative hidden items-center lg:flex">
             <select
               value={role?.id ?? ""}
               onChange={(e) => {
