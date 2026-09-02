@@ -3,7 +3,7 @@ import { roleOptions } from "@/data/mockData";
 
 export default function RoleGrid({ role, setRole }) {
   return (
-    <div className="role-grid">
+    <div className="grid gap-2 mb-[18px]">
       {roleOptions.map((r) => (
         <RoleCard
           key={r.id}
