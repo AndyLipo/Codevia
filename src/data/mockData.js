@@ -5,6 +5,7 @@ import {
   Truck,
   ClipboardList,
   BarChart3,
+  ShieldCheck
 } from "lucide-react";
 
 export const roleOptions = [
@@ -32,17 +33,23 @@ export const roleOptions = [
     initials: "CL",
     note: "Ubicaciones y carga",
   },
-  {
-    id: "driver",
-    label: "Chofer",
-    initials: "CH",
-    note: "Hoja de ruta y entregas",
-  },
+  // {
+  //   id: "driver",
+  //   label: "Chofer",
+  //   initials: "CH",
+  //   note: "Hoja de ruta y entregas",
+  // },
   {
     id: "admin",
     label: "Administración y Ventas",
     initials: "AV",
     note: "Pedidos y reportes",
+  },
+  {
+    id: "it",
+    label: "IT / Sistemas",
+    initials: "IT",
+    note: "Usuarios, config y auditoría"
   },
 ];
 
@@ -53,6 +60,7 @@ export const modules = [
   { id: "dispatch", label: "Expedición", icon: Truck },
   { id: "orders", label: "Pedidos", icon: ClipboardList },
   { id: "reports", label: "Reportes", icon: BarChart3 },
+  { id: "it-admin", label: "IT / Sistemas", icon: ShieldCheck },
 ];
 
 export const productionRows = [
@@ -150,4 +158,44 @@ export const dispatchRows = [
     "4 / 4",
     "Despachado",
   ],
+];
+
+// El resto de los roles sigue viendo todo el menú, salvo "it-admin".
+export function getModulesForRole(roleId) {
+  if (roleId === "it") {
+    return modules.filter((m) => m.id === "overview" || m.id === "it-admin");
+  }
+  return modules.filter((m) => m.id !== "it-admin");
+}
+
+// ── Datos mock del panel de IT ──────────────────────────────
+
+export const itUsersRows = [
+  ["Martín Acosta", "martin.acosta@brotherplast.com", "Jefe de Producción", "Activo"],
+  ["Laura Giménez", "laura.gimenez@brotherplast.com", "Jefe de Producción", "Activo"],
+  ["Carlos Núñez", "carlos.nunez@brotherplast.com", "Chofer", "Activo"],
+  ["Sofía Ramos", "sofia.ramos@brotherplast.com", "Administración y Ventas", "Inactivo"],
+];
+
+export const itRolesRows = [
+  ["Jefe de Producción", "Turnos, lotes y calidad", "2 usuarios"],
+  ["Depósito y Expedición", "Stock, cargas y rutas", "3 usuarios"],
+  ["Operario de Extrusión", "Registro de turno", "8 usuarios"],
+  ["Clarkista", "Ubicaciones y carga", "4 usuarios"],
+  ["Chofer", "Hoja de ruta y entregas", "5 usuarios"],
+  ["Administración y Ventas", "Pedidos y reportes", "3 usuarios"],
+  ["IT / Sistemas", "Usuarios, config y auditoría", "1 usuario"],
+];
+
+export const auditLogRows = [
+  ["18 ago · 14:02", "L. Giménez", "Actualizó stock Sector B", "Depósito"],
+  ["18 ago · 11:40", "Sistema", "Alerta de vencimiento generada (PLA-014)", "Depósito"],
+  ["18 ago · 09:15", "C. Núñez", "Cerró hoja de ruta EXP-00839", "Expedición"],
+  ["17 ago · 22:03", "P. Suárez", "Cerró turno noche", "Producción"],
+];
+
+export const integrationsRows = [
+  ["ERP Contable", "Sincronización de facturación", "Conectado"],
+  ["Google Maps", "Cálculo de rutas de entrega", "Conectado"],
+  ["Servicio de alertas SMS", "Notificaciones a choferes", "Pendiente"],
 ];

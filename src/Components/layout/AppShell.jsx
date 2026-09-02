@@ -21,7 +21,7 @@ export default function AppShell({
   };
 
   return (
-    <div className="app-shell">
+    <div className="min-h-screen bg-[#f4f6f7]">
       <Sidebar
         active={active}
         navigate={handleNavigate}
@@ -31,10 +31,8 @@ export default function AppShell({
         setLogged={setLogged}
         fakeAction={fakeAction}
       />
-      {mobileOpen && (
-        <div className="scrim" onClick={() => setMobileOpen(false)} />
-      )}
-      <main className="main-area">
+
+      <main className="ml-[248px] min-h-screen min-w-0 max-lg:ml-0">
         <Topbar
           active={active}
           role={role}
@@ -43,7 +41,11 @@ export default function AppShell({
           setQuery={setQuery}
           fakeAction={fakeAction}
         />
-        <div className="content">{children}</div>
+
+        <div className="mx-auto max-w-[1440px] px-[38px] pb-4 pt-[34px]">
+          {children}
+        </div>
+
         <Footer />
       </main>
     </div>
