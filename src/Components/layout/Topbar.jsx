@@ -90,7 +90,7 @@ export default function Topbar({
                   setRole(selectedRole);
                 }
               }}
-              className="max-w-[150px] appearance-none border-0 bg-transparent pr-5 text-[11px] font-semibold text-[#49636c] outline-none"
+              className="max-w-[150px] appearance-none border-0 bg-transparent pr-5 text-[11px] font-semibold text-[#49636c] outline-none cursor-pointer"
             >
               {roleOptions.map((r) => (
                 <option key={r.id} value={r.id}>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ArrowUpRight, Plus, RefreshCw, Route } from "lucide-react";
 import SectionTitle from "@/components/common/SectionTitle";
 import Table from "@/components/common/Table";
@@ -5,15 +6,28 @@ import Badge from "@/components/common/Badge";
 import ActionButton from "@/components/common/ActionButton";
 import RouteStep from "./RouteStep";
 import { dispatchRows } from "@/data/mockData";
+import CreateRouteSheetModal from "./modals/CreateRouteSheetModal";
 
 export default function Dispatch({ fakeAction }) {
+  const [routeModalOpen, setRouteModalOpen] = useState(false);
+
+  const handleCreateRouteSheet = (routeSheet) => {
+    console.log("Nueva hoja de ruta:", routeSheet);
+
+    fakeAction?.(`${routeSheet.numero} creada correctamente`);
+  };
   return (
     <>
       <SectionTitle
         eyebrow="04 · EXPEDICIÓN"
         title="Playa y hojas de ruta"
         description="Coordiná la carga de camiones y seguí cada despacho en tiempo real."
-        action={<ActionButton onClick={() => fakeAction("Nueva hoja de ruta en preparación")}><Plus size={17} /> Armar hoja de ruta</ActionButton>}
+        action={
+          <ActionButton onClick={() => setRouteModalOpen(true)}>
+            <Plus size={17} />
+            Armar hoja de ruta
+          </ActionButton>
+        }
       />
 
       <div className="mb-3.5 flex items-center gap-8 rounded-lg bg-brand px-[23px] py-5 text-white max-[760px]:flex-wrap max-[760px]:gap-[18px]">
@@ -57,6 +71,11 @@ export default function Dispatch({ fakeAction }) {
           <ActionButton full onClick={() => fakeAction("Hoja de ruta abierta")}>Ver hoja completa <ArrowUpRight size={16} /></ActionButton>
         </div>
       </div>
+      <CreateRouteSheetModal
+        open={routeModalOpen}
+        onOpenChange={setRouteModalOpen}
+        onCreate={handleCreateRouteSheet}
+      />
     </>
   );
 }

@@ -199,3 +199,17 @@ export const integrationsRows = [
   ["Google Maps", "Cálculo de rutas de entrega", "Conectado"],
   ["Servicio de alertas SMS", "Notificaciones a choferes", "Pendiente"],
 ];
+export const clients = [
+  {
+    id: "CLI-001",
+    name: "Plásticos del Sur",
+  },
+  {
+    id: "CLI-002",
+    name: "Mayorista Centro",
+  },
+  {
+    id: "CLI-003",
+    name: "Distribuidora Norte",
+  },
+];

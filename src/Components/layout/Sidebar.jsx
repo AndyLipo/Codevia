@@ -7,6 +7,7 @@ import {
   BarChart3,
   Settings,
   X,
+  SparkleIcon,
   AlertTriangle,
   LogOut,
 } from "lucide-react";
@@ -71,11 +72,12 @@ export default function Sidebar({
         {/* Brand */}
         <div className="relative flex items-center gap-2.5 px-2.5 pb-[25px]">
           <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-soft">
-            <img
-              src="/manus-storage/brother-plast-mark_63a96de1.png"
+            <SparkleIcon className="h-6 w-6 object-contain" />
+            {/* <img
+              src=""
               alt=""
               className="h-6 w-6 object-contain"
-            />
+            /> */}
           </div>
 
           <div>
@@ -98,18 +100,6 @@ export default function Sidebar({
             <X size={17} />
           </button>
         </div>
-
-        {/* Estado de planta */}
-        <div className="flex items-center border-y border-[#e4eaec] px-2.5 py-3 text-[11px] uppercase tracking-[0.08em] text-[#52717b]">
-          <span className="mr-[9px] h-[7px] w-[7px] rounded-full bg-[#4fb288] shadow-[0_0_0_3px_#e6f5ee]" />
-
-          <span>Planta activa</span>
-
-          <span className="ml-auto text-[9px] text-[#9aabb0]">
-            BP-01
-          </span>
-        </div>
-
         {/* Navegación */}
         <nav className="flex flex-col gap-1 pt-[17px]">
           {navItems.map((item) => {
@@ -121,9 +111,9 @@ export default function Sidebar({
                 key={item.id}
                 type="button"
                 onClick={() => navigate(item.id)}
-                className={`flex w-full items-center gap-[11px] rounded-[7px] border-0 px-3 py-[11px] text-left text-[11px] transition-all duration-150 ${isActive
-                    ? "bg-brand-soft font-semibold text-brand shadow-[inset_3px_0_0_#145c73]"
-                    : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                className={`flex w-full items-center gap-[11px] rounded-[7px] border-0 px-3 py-[11px] text-left text-[15px] transition-all duration-150 ${isActive
+                  ? "bg-brand-soft font-semibold text-brand shadow-[inset_3px_0_0_#145c73]"
+                  : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
                   }`}
               >
                 <Icon size={16} strokeWidth={1.8} />
@@ -155,11 +145,11 @@ export default function Sidebar({
 
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
               <strong className="text-[11px] text-[#8a5812]">
-                3 excepciones
+                3 alertas críticas
               </strong>
 
               <span className="text-[10px] text-[#b89054]">
-                Requieren atención
+                Requieren atención hoy
               </span>
             </div>
           </button>

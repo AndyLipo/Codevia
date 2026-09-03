@@ -1,4 +1,4 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Sparkles } from "lucide-react";
 import RoleGrid from "@/components/login/RoleGrid";
 
 export default function Login({ role, setRole, setLogged }) {
@@ -22,7 +22,7 @@ export default function Login({ role, setRole, setLogged }) {
         <div className="relative z-10 mx-auto flex h-full max-w-[620px] flex-col px-[8vw] py-[42px] max-[760px]:px-7 max-[760px]:py-[27px]">
           <div className="flex items-center gap-2.5">
             <div className="grid h-8 w-8 place-items-center rounded-lg bg-white/15">
-              <img src="/manus-storage/brother-plast-mark_63a96de1.png" alt="" className="h-6 w-6 object-contain" />
+              <Sparkles alt="" className="h-6 w-6 object-contain" />
             </div>
             <div>
               <strong className="block font-barlow text-[22px] leading-[18px] tracking-[-0.3px] text-white">
