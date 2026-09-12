@@ -1,0 +1,2 @@
+ALTER TABLE deposito.configuracion_zona
+ADD COLUMN posiciones_por_pasillo INTEGER;
