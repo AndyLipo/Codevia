@@ -30,13 +30,13 @@ export default function ITAdmin({ fakeAction }) {
                 }
             />
 
-            <div className="mb-[18px] mt-[-4px] flex gap-5 border-b border-[#dce5e7]">
+            <div className="mb-4.5 -mt-1 flex gap-5 border-b border-[#dce5e7]">
                 {tabs.map((t) => (
                     <button
                         key={t.id}
                         onClick={() => setTab(t.id)}
                         className={`relative pb-3 text-[11px] font-semibold ${tab === t.id
-                            ? "text-brand after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-0.5 after:bg-brand"
+                            ? "text-brand after:absolute after:-bottom-px after:left-0 after:right-0 after:h-0.5 after:bg-brand"
                             : "text-[#82949a]"
                             }`}
                     >

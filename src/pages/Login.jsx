@@ -5,7 +5,7 @@ export default function Login({ role, setRole, setLogged }) {
   return (
     <div className="grid min-h-screen grid-cols-[1.08fr_0.92fr] bg-[#f4f6f7] max-[760px]:grid-cols-1">
       {/* Panel visual izquierdo */}
-      <div className="relative overflow-hidden bg-brand text-white max-[760px]:min-h-[390px]">
+      <div className="relative overflow-hidden bg-brand text-white max-[760px]:min-h-97.5">
         <div
           className="absolute inset-0 opacity-65"
           style={{
@@ -15,11 +15,11 @@ export default function Login({ role, setRole, setLogged }) {
           }}
         />
         <div
-          className="absolute -bottom-30 -right-[170px] h-[580px] w-[580px] rounded-full border border-white/15"
+          className="absolute -bottom-30 -right-42.5 h-145 w-145 rounded-full border border-white/15"
           style={{ boxShadow: "0 0 0 44px rgba(255,255,255,0.025), 0 0 0 90px rgba(255,255,255,0.025)" }}
         />
 
-        <div className="relative z-10 mx-auto flex h-full max-w-[620px] flex-col px-[8vw] py-[42px] max-[760px]:px-7 max-[760px]:py-[27px]">
+        <div className="relative z-10 mx-auto flex h-full max-w-155 flex-col px-[8vw] py-10.5 max-[760px]:px-7 max-[760px]:py-6.75">
           <div className="flex items-center gap-2.5">
             <div className="grid h-8 w-8 place-items-center rounded-lg bg-white/15">
               <Sparkles alt="" className="h-6 w-6 object-contain" />
