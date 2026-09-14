@@ -1,0 +1,3 @@
+CREATE SEQUENCE produccion.seq_codigo_lote
+START WITH 1
+INCREMENT BY 1;
