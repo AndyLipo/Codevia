@@ -7,7 +7,7 @@ const variants = {
 export default function ActionButton({ variant = "primary", full = false, className = "", children, ...props }) {
     return (
         <button
-            className={`inline-flex items-center justify-center gap-[7px] rounded-md text-[11px] font-bold transition-all duration-150 active:scale-[0.98] ${variant === "link" ? "" : "px-[14px] py-[10px]"
+            className={`inline-flex items-center justify-center gap-1.75 rounded-md text-[11px] font-bold transition-all duration-150 active:scale-[0.98] ${variant === "link" ? "" : "px-[14px] py-[10px]"
                 } ${variants[variant]} ${full ? "w-full" : ""} ${className}`}
             {...props}
         >

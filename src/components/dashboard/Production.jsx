@@ -4,8 +4,19 @@ import Table from "@/components/common/Table";
 import Badge from "@/components/common/Badge";
 import ActionButton from "@/components/common/ActionButton";
 import { productionRows } from "@/data/mockData";
+import { useState } from "react";
+import CreateFabricModal from "./modals/CreateFabricModal";
+
 
 export default function Production({ fakeAction }) {
+  const [registFab, setRegistFab] = useState(false)
+
+  const handlRegistFab = (regisMod) => {
+    console.log("Nueva hoja de ruta:", regisMod);
+
+    fakeAction?.(`${regisMod.numero} creada correctamente`);
+  }
+
   return (
     <>
       <SectionTitle
@@ -13,7 +24,8 @@ export default function Production({ fakeAction }) {
         title="Turnos y fabricación"
         description="Planificación de extrusión, lotes activos y controles de calidad."
         action={
-          <ActionButton onClick={() => fakeAction("Nuevo lote en preparación")}>
+          <ActionButton onClick={() => setRegistFab(true)}
+            className="cursor-pointer">
             <Plus size={17} /> Registrar fabricación
           </ActionButton>
         }
@@ -89,6 +101,11 @@ export default function Production({ fakeAction }) {
           renderCell={(cell, j) =>
             j === 4 ? <Badge tone={cell === "Liberado" ? "green" : cell === "En proceso" ? "blue" : cell === "Control de calidad" ? "amber" : "slate"}>{cell}</Badge> : cell
           }
+        />
+        <CreateFabricModal
+          open={registFab}
+          onOpenChange={setRegistFab}
+          onCreate={handlRegistFab}
         />
       </div>
     </>

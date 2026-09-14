@@ -2,9 +2,9 @@ import { CheckCircle2, Truck } from "lucide-react";
 
 export default function RouteStep({ label, detail, done, current }) {
   return (
-    <div className="relative flex gap-[13px] pb-[22px] last:pb-0">
+    <div className="relative flex gap-3.25 pb-5.5 last:pb-0">
       <div
-        className={`z-[1] grid h-[17px] w-[17px] place-items-center rounded-full ${done ? "bg-green-soft text-green" : current ? "bg-brand-soft text-brand shadow-[0_0_0_4px_#f1f7f8]" : "bg-slate-soft text-[#9aabb0]"
+        className={`z-1 grid h-4.25 w-4.25 place-items-center rounded-full ${done ? "bg-green-soft text-green" : current ? "bg-brand-soft text-brand shadow-[0_0_0_4px_#f1f7f8]" : "bg-slate-soft text-[#9aabb0]"
           }`}
       >
         {done ? <CheckCircle2 size={15} /> : current ? <Truck size={14} /> : <span />}

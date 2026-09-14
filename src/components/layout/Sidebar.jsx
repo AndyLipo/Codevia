@@ -66,11 +66,11 @@ export default function Sidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-20 flex w-[248px] flex-col border-r border-[#dbe3e6] bg-white px-[15px] pb-4 pt-[25px] transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-20 flex w-62 flex-col border-r border-[#dbe3e6] bg-white px-3.75 pb-4 pt-6.25 transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
         {/* Brand */}
-        <div className="relative flex items-center gap-2.5 px-2.5 pb-[25px]">
+        <div className="relative flex items-center gap-2.5 px-2.5 pb-6.25">
           <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-soft">
             <SparkleIcon className="h-6 w-6 object-contain" />
             {/* <img
@@ -81,11 +81,11 @@ export default function Sidebar({
           </div>
 
           <div>
-            <strong className="block font-barlow text-[22px] leading-[18px] tracking-[-0.3px] text-[#153d4c]">
+            <strong className="block font-barlow text-[22px] leading-4.5 tracking-[-0.3px] text-[#153d4c]">
               brother<span className="text-amber">plast</span>
             </strong>
 
-            <small className="mt-[3px] block text-[8px] uppercase tracking-[0.12em] text-[#84939a]">
+            <small className="mt-0.75 block text-[8px] uppercase tracking-[0.12em] text-[#84939a]">
               gestión industrial
             </small>
           </div>
@@ -101,7 +101,7 @@ export default function Sidebar({
           </button>
         </div>
         {/* Navegación */}
-        <nav className="flex flex-col gap-1 pt-[17px]">
+        <nav className="flex flex-col gap-1 pt-4.25">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = active === item.id;
@@ -111,7 +111,7 @@ export default function Sidebar({
                 key={item.id}
                 type="button"
                 onClick={() => navigate(item.id)}
-                className={`flex w-full items-center gap-[11px] rounded-[7px] border-0 px-3 py-[11px] text-left text-[15px] transition-all duration-150 ${isActive
+                className={`flex w-full items-center gap-2.75 rounded-[7px] border-0 px-3 py-2.75 text-left text-[15px] transition-all duration-150 cursor-pointer ${isActive
                   ? "bg-brand-soft font-semibold text-brand shadow-[inset_3px_0_0_#145c73]"
                   : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
                   }`}
@@ -136,7 +136,7 @@ export default function Sidebar({
           <button
             type="button"
             onClick={() => fakeAction?.("Hay 3 excepciones que requieren atención")}
-            className="flex w-full cursor-pointer items-center gap-[9px] rounded-[7px] border border-[#f6e2bc] bg-[#fff7e9] px-2.5 py-[11px] text-left"
+            className="flex w-full cursor-pointer items-center gap-2.25 rounded-[7px] border border-[#f6e2bc] bg-[#fff7e9] px-2.5 py-2.75 text-left"
           >
             <AlertTriangle
               size={16}
@@ -158,7 +158,7 @@ export default function Sidebar({
           <button
             type="button"
             onClick={() => navigate("settings")}
-            className="mt-2 flex w-full items-center gap-[11px] rounded-[7px] border-0 bg-transparent px-3 py-[11px] text-left text-[11px] text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+            className="mt-2 flex w-full items-center gap-2.75 rounded-[7px] border-0 bg-transparent px-3 py-2.75 text-left text-[11px] text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
           >
             <Settings size={16} strokeWidth={1.8} />
 
@@ -166,8 +166,8 @@ export default function Sidebar({
           </button>
 
           {/* Usuario */}
-          <div className="mt-[15px] flex items-center gap-[9px] border-t border-[#e4eaec] px-2 pt-[15px]">
-            <div className="grid h-[31px] w-[31px] shrink-0 place-items-center rounded-full bg-brand font-barlow text-[12px] font-bold text-white">
+          <div className="mt-3.75 flex items-center gap-2.25 border-t border-[#e4eaec] px-2 pt-3.75">
+            <div className="grid h-7.75 w-7.75 shrink-0 place-items-center rounded-full bg-brand font-barlow text-[12px] font-bold text-white">
               AL
             </div>
 

@@ -70,7 +70,7 @@ export default function Topbar({
         </button>
 
         {/* Selector de rol */}
-        <div className="flex items-center gap-[7px] border-l border-[#e6ecee] pl-3.5">
+        <div className="flex items-center gap-1.75 border-l border-[#e6ecee] pl-3.5">
 
           {/* Avatar */}
           <div className="grid h-7 w-7 place-items-center rounded-full bg-brand font-barlow text-[11px] font-bold text-white">

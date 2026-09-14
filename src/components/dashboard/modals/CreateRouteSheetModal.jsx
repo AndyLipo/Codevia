@@ -118,8 +118,8 @@ export default function CreateRouteSheetModal({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-[500px] border border-[#e1e8ea] bg-white p-0 shadow-card">
-                <DialogHeader className="border-b border-[#edf1f2] bg-white px-6 py-5">
+            <DialogContent className="max-w-125 border border-[#e1e8ea] bg-white p-0 shadow-card">
+                <DialogHeader className="border-b border-slate-soft bg-white px-6 py-5">
                     <DialogTitle className="font-barlow text-[25px] font-normal text-ink">
                         Nueva hoja de ruta
                     </DialogTitle>
@@ -133,7 +133,7 @@ export default function CreateRouteSheetModal({
                     <div className="space-y-5 bg-white px-6 py-5">
                         {/* Número */}
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-ink">
+                            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                 Hoja
                             </Label>
 
@@ -148,7 +148,7 @@ export default function CreateRouteSheetModal({
 
                         {/* Cliente */}
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-ink">
+                            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                 Cliente
                             </Label>
 
@@ -170,7 +170,7 @@ export default function CreateRouteSheetModal({
                                         <SelectItem
                                             key={client.id}
                                             value={client.id}
-                                            className="text-[11px]"
+                                            className="text-[11px] bg-white"
                                         >
                                             {client.name}
                                         </SelectItem>
@@ -182,7 +182,7 @@ export default function CreateRouteSheetModal({
                         {/* Camión + Chofer */}
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-ink">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     Camión
                                 </Label>
 
@@ -204,7 +204,7 @@ export default function CreateRouteSheetModal({
                                             <SelectItem
                                                 key={truck.id}
                                                 value={truck.id}
-                                                className="text-[11px]"
+                                                className="text-[11px] bg-white"
                                             >
                                                 {truck.label}
                                             </SelectItem>
@@ -214,7 +214,7 @@ export default function CreateRouteSheetModal({
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-ink">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     Chofer
                                 </Label>
 
@@ -236,7 +236,7 @@ export default function CreateRouteSheetModal({
                                             <SelectItem
                                                 key={driver.id}
                                                 value={driver.id}
-                                                className="text-[11px]"
+                                                className="text-[11px] bg-white"
                                             >
                                                 {driver.name}
                                             </SelectItem>
@@ -248,7 +248,7 @@ export default function CreateRouteSheetModal({
 
                         {/* Picking */}
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-ink">
+                            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                 Picking
                             </Label>
 
@@ -270,7 +270,7 @@ export default function CreateRouteSheetModal({
                                         <SelectItem
                                             key={state.value}
                                             value={state.value}
-                                            className="text-[11px]"
+                                            className="text-[11px] bg-white"
                                         >
                                             {state.label}
                                         </SelectItem>
@@ -280,7 +280,7 @@ export default function CreateRouteSheetModal({
                         </div>
                     </div>
 
-                    <DialogFooter className="border-t border-[#edf1f2] bg-white px-6 py-4">
+                    <DialogFooter className="border-t border-slate-soft bg-white px-6 py-4">
                         <Button
                             type="button"
                             variant="outline"

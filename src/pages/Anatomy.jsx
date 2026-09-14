@@ -17,7 +17,7 @@ const notes = [
 export default function Anatomy({ onBack }) {
   return (
     <div className="min-h-screen bg-[#edf2f3] p-[34px_42px_48px] font-['DM_Sans',sans-serif] text-ink max-[900px]:p-[22px_16px_34px]">
-      <header className="mx-auto mb-[26px] flex max-w-[1500px] items-end justify-between gap-6">
+      <header className="mx-auto mb-6.5 flex max-w-375 items-end justify-between gap-6">
         <div>
           <div className="text-[9px] font-extrabold tracking-[0.16em] text-[#82979e]">DOCUMENTACIÓN VISUAL · UI KIT</div>
           <h1 className="m-0 font-barlow text-[42px] leading-[0.95] tracking-[-0.5px] text-[#173c4b]">Anatomía del sistema</h1>
@@ -25,15 +25,15 @@ export default function Anatomy({ onBack }) {
         </div>
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-[7px] rounded-md border border-[#d9e3e6] bg-white px-3 py-[9px] text-[11px] font-semibold text-[#5e747c] hover:border-[#9ebbc5] hover:text-brand"
+          className="inline-flex items-center gap-1.75 rounded-md border border-[#d9e3e6] bg-white px-3 py-2.25 text-[11px] font-semibold text-[#5e747c] hover:border-[#9ebbc5] hover:text-brand"
         >
           <ArrowLeft size={15} /> Volver al prototipo
         </button>
       </header>
 
-      <div className="mx-auto grid max-w-[1500px] grid-cols-[minmax(0,1fr)_330px] items-start gap-[22px] max-[900px]:grid-cols-1">
-        <section className="min-w-0 rounded-xl border border-[#ccdadd] bg-[#dfe7e9] p-[23px] shadow-[0_16px_45px_rgba(24,49,58,0.08)] max-[900px]:overflow-x-auto">
-          <div className="mb-[13px] text-[9px] font-extrabold tracking-[0.16em] text-[#779099]">FRAME · DASHBOARD / 1440 × 900</div>
+      <div className="mx-auto grid max-w-375 grid-cols-[minmax(0,1fr)_330px] items-start gap-5.5 max-[900px]:grid-cols-1">
+        <section className="min-w-0 rounded-xl border border-[#ccdadd] bg-[#dfe7e9] p-5.75 shadow-[0_16px_45px_rgba(24,49,58,0.08)] max-[900px]:overflow-x-auto">
+          <div className="mb-3.25 text-[9px] font-extrabold tracking-[0.16em] text-[#779099]">FRAME · DASHBOARD / 1440 × 900</div>
           <MockApp />
         </section>
 
@@ -56,7 +56,7 @@ export default function Anatomy({ onBack }) {
             </div>
           ))}
 
-          <div className="mt-[9px] flex flex-col gap-[7px] rounded-md border border-[#e5edef] bg-[#f5f8f8] p-3 text-[8px] text-[#74878e]">
+          <div className="mt-[9px] flex flex-col gap-1.75 rounded-md border border-[#e5edef] bg-[#f5f8f8] p-3 text-[8px] text-[#74878e]">
             <strong className="mb-0.5 text-[9px] text-[#45636c]">Origen visual</strong>
             <span><i className="mr-[5px] inline-block h-1.5 w-1.5 rounded-full bg-[#61dafb]" /> React + JSX: composición y estados</span>
             <span><i className="mr-[5px] inline-block h-1.5 w-1.5 rounded-full bg-brand" /> CSS propio: layout, colores y contenedores</span>
@@ -131,9 +131,9 @@ function MockApp() {
             <span className="text-[8px] font-extrabold text-[#a46e1c]">Revisar</span>
           </div>
 
-          <div className="mb-[11px] grid grid-cols-4 gap-2">
+          <div className="mb-2.75 grid grid-cols-4 gap-2">
             <div className="relative rounded-[5px] border border-[#e1e8ea] bg-white p-2.5">
-              <span className="mb-2 grid h-5 w-5 place-items-center rounded-[4px] bg-brand-soft text-brand"><ClipboardList size={12} /></span>
+              <span className="mb-2 grid h-5 w-5 place-items-center rounded-sm bg-brand-soft text-brand"><ClipboardList size={12} /></span>
               <small className="block truncate text-[7px] text-[#778b92]">Pedidos pendientes</small>
               <strong className="mt-1 block font-barlow text-[22px] text-[#173d4b]">24</strong>
               <em className="text-[7px] not-italic text-green">+8,2%</em>
@@ -171,40 +171,40 @@ function MockApp() {
                   ))}
                 </div>
               </div>
-              <Callout className="left-[-8px] top-5">05</Callout>
+              <Callout className="-left-2 top-5">05</Callout>
             </div>
 
-            <div className="relative min-h-[150px] rounded-[5px] border border-[#e1e8ea] bg-white p-3">
+            <div className="relative min-h-37.5 rounded-[5px] border border-[#e1e8ea] bg-white p-3">
               <small className="text-[7px] font-extrabold tracking-[0.15em] text-[#82979e]">EXPEDICIÓN</small>
               <h3 className="my-1.5 font-barlow text-base text-[#214451]">Actividad en playa</h3>
               <div className="my-3.5 flex flex-col gap-3">
-                <span className="block h-1 w-[74%] rounded-[4px] bg-brand" />
-                <span className="block h-1 w-[43%] rounded-[4px] bg-[#d49a43]" />
-                <span className="block h-1 w-full rounded-[4px] bg-green" />
+                <span className="block h-1 w-[74%] rounded-sm bg-brand" />
+                <span className="block h-1 w-[43%] rounded-sm bg-[#d49a43]" />
+                <span className="block h-1 w-full rounded-sm bg-green" />
               </div>
               <div className="flex items-center justify-between text-[8px] text-[#48636c]">
-                <b>CAM-12</b><label className="rounded-lg bg-brand-soft px-[5px] py-[3px] text-[7px] text-brand"> Cargando </label>
+                <b>CAM-12</b><label className="rounded-lg bg-brand-soft px-1.25 py-0.75 text-[7px] text-brand"> Cargando </label>
               </div>
-              <Callout className="right-[-8px] bottom-[31px]">07</Callout>
+              <Callout className="-right-2 bottom-7.75">07</Callout>
             </div>
           </div>
 
-          <div className="relative min-h-[142px] rounded-[5px] border border-[#e1e8ea] bg-white p-3">
+          <div className="relative min-h-35.5 rounded-[5px] border border-[#e1e8ea] bg-white p-3">
             <small className="text-[7px] font-extrabold tracking-[0.15em] text-[#82979e]">ÚLTIMOS MOVIMIENTOS</small>
             <h3 className="my-1.5 font-barlow text-base text-[#214451]">Pedidos para preparar</h3>
-            <div className="mb-1.5 mt-[13px] grid grid-cols-[1.1fr_1.6fr_1fr_1.2fr] items-center gap-2 text-[6px] tracking-[0.09em] text-[#8a9ba0]">
+            <div className="mb-1.5 mt-3.25 grid grid-cols-[1.1fr_1.6fr_1fr_1.2fr] items-center gap-2 text-[6px] tracking-[0.09em] text-[#8a9ba0]">
               <span>PEDIDO</span><span>CLIENTE</span><span>ENTREGA</span><span>ESTADO</span>
             </div>
-            <div className="grid grid-cols-[1.1fr_1.6fr_1fr_1.2fr] items-center gap-2 border-t border-[#edf1f2] py-[7px] text-[7px] text-[#587078]">
+            <div className="grid grid-cols-[1.1fr_1.6fr_1fr_1.2fr] items-center gap-2 border-t border-slate-soft py-1.75 text-[7px] text-ink-soft">
               <b className="text-[#48636c]">PED-10492</b><span>Plásticos del Sur</span><span>Hoy · 14:00</span>
-              <label className="justify-self-start whitespace-nowrap rounded-lg bg-brand-soft px-[5px] py-[3px] text-brand">Listo para picking</label>
+              <label className="justify-self-start whitespace-nowrap rounded-lg bg-brand-soft px-1.25 py-0.75 text-brand">Listo para picking</label>
             </div>
-            <div className="grid grid-cols-[1.1fr_1.6fr_1fr_1.2fr] items-center gap-2 border-t border-[#edf1f2] py-[7px] text-[7px] text-[#587078]">
+            <div className="grid grid-cols-[1.1fr_1.6fr_1fr_1.2fr] items-center gap-2 border-t border-slate-soft py-1.75 text-[7px] text-ink-soft">
               <b className="text-[#48636c]">PED-10488</b><span>Mayorista Centro</span><span>Hoy · 16:30</span>
-              <label className="justify-self-start whitespace-nowrap rounded-lg bg-amber-soft px-[5px] py-[3px] text-[#a76e1a]">En preparación</label>
+              <label className="justify-self-start whitespace-nowrap rounded-lg bg-amber-soft px-1.25 py-0.75 text-[#a76e1a]">En preparación</label>
             </div>
-            <Callout className="left-[-8px] top-[26px]">06</Callout>
-            <Callout className="right-[-8px] bottom-[26px]">08</Callout>
+            <Callout className="-left-2 top-6.5">06</Callout>
+            <Callout className="-right-2 bottom-6.5">08</Callout>
           </div>
         </div>
       </div>

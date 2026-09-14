@@ -23,14 +23,14 @@ export default function Dispatch({ fakeAction }) {
         title="Playa y hojas de ruta"
         description="Coordiná la carga de camiones y seguí cada despacho en tiempo real."
         action={
-          <ActionButton onClick={() => setRouteModalOpen(true)}>
+          <ActionButton onClick={() => setRouteModalOpen(true)} className="cursor-pointer">
             <Plus size={17} />
             Armar hoja de ruta
           </ActionButton>
         }
       />
 
-      <div className="mb-3.5 flex items-center gap-8 rounded-lg bg-brand px-[23px] py-5 text-white max-[760px]:flex-wrap max-[760px]:gap-[18px]">
+      <div className="mb-3.5 flex items-center gap-8 rounded-lg bg-brand px-5.75 py-5 text-white max-[760px]:flex-wrap max-[760px]:gap-4.5">
         <div className="flex-1 max-[760px]:basis-full">
           <div className="text-[9px] tracking-[0.16em] text-[#b6d0d8]">OPERACIÓN DE HOY · MARTES 18 AGO</div>
           <h3 className="m-0 font-barlow text-[25px] font-semibold">7 camiones programados <span className="mx-1.5 text-[#76a4b0]">·</span> 4 en playa <span className="mx-1.5 text-[#76a4b0]">·</span> 2 despachados</h3>
@@ -47,7 +47,7 @@ export default function Dispatch({ fakeAction }) {
 
       <div className="grid grid-cols-[1.45fr_0.7fr] gap-3.5 max-[1100px]:grid-cols-1">
         <div className="rounded-lg border border-[#e1e8ea] bg-white p-5 shadow-card">
-          <div className="mb-[18px] flex items-start justify-between gap-3">
+          <div className="mb-4.5 flex items-start justify-between gap-3">
             <div><div className="mb-2 text-[9px] font-bold uppercase tracking-[0.16em] text-[#82979e]">SEGUIMIENTO DE CARGAS</div><h3 className="m-0 font-barlow text-[21px] text-[#214451]">Camiones en operación</h3></div>
             <ActionButton variant="secondary" onClick={() => fakeAction("Tablero actualizado")}><RefreshCw size={15} /> Actualizar</ActionButton>
           </div>
@@ -59,11 +59,11 @@ export default function Dispatch({ fakeAction }) {
         </div>
 
         <div className="rounded-lg border border-[#e1e8ea] bg-white p-5 shadow-card">
-          <div className="mb-[18px] flex items-start justify-between gap-3">
+          <div className="mb-4.5 flex items-start justify-between gap-3">
             <div><div className="mb-2 text-[9px] font-bold uppercase tracking-[0.16em] text-[#82979e]">RUTA DESTACADA</div><h3 className="m-0 font-barlow text-[21px] text-[#214451]">EXP-00841</h3></div>
             <Route size={18} className="text-brand" />
           </div>
-          <div className="relative py-1 pb-3.5 pl-[3px] before:absolute before:bottom-[30px] before:left-[10px] before:top-3.5 before:border-l before:border-dashed before:border-[#cbdde1]">
+          <div className="relative py-1 pb-3.5 pl-0.75 before:absolute before:bottom-7.5 before:left-2.5 before:top-3.5 before:border-l before:border-dashed before:border-[#cbdde1]">
             <RouteStep label="Planta Brother Plast" detail="08:10 · Carga iniciada" done />
             <RouteStep label="Plásticos del Sur" detail="Parque Industrial · 14:00" current />
             <RouteStep label="Mayorista Centro" detail="Ruta 5 · 16:30" />
