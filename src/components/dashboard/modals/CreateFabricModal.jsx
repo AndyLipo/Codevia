@@ -20,20 +20,54 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
-const clients = [
+const sector = [
     {
-        id: "CLI-001",
-        name: "Plásticos del Sur",
+        id: "Sect-001",
+        name: "Pasillo A",
     },
     {
-        id: "CLI-002",
-        name: "Mayorista Centro",
+        id: "Sect-002",
+        name: "Pasillo B",
     },
     {
-        id: "CLI-003",
-        name: "Distribuidora Norte",
+        id: "Sect-003",
+        name: "Pasillo C",
     },
+];
+
+const turnos = [
+    {
+        value: "Maniana",
+        label: "Maniana",
+    },
+    {
+        value: "Tarde",
+        label: "Tarde",
+    },
+    {
+        value: "Noche",
+        label: "Noche",
+    }
+];
+const levels = [
+    {
+        value: "En Proceso",
+        label: "En Proceso",
+    },
+    {
+        value: "Control de Calidad",
+        label: "Control de Calidad",
+    },
+    {
+        value: "Liberado",
+        label: "Liberado",
+    },
+    {
+        value: "Pendiente",
+        label: "Pendiente",
+    }
 ];
 
 const units = [
@@ -55,7 +89,7 @@ const units = [
     },
 ];
 
-export default function CreateOrderModal({
+export default function CreateFabricModal({
     open,
     onOpenChange,
     onCreate,
@@ -71,7 +105,7 @@ export default function CreateOrderModal({
         e.preventDefault();
 
         const newOrder = {
-            numero: "PBP-00001",
+            numero: "EXP-00001",
             idCliente: form.clientId,
             volumen: Number(form.volume),
             unidad: form.unit,
@@ -96,7 +130,7 @@ export default function CreateOrderModal({
             <DialogContent className="max-w-125 border border-[#e1e8ea] bg-white p-0 shadow-card">
                 <DialogHeader className="border-b border-slate-soft bg-white px-6 py-5">
                     <DialogTitle className="font-barlow text-[25px] font-normal text-ink">
-                        Nuevo pedido
+                        Registrar Fabricacion
                     </DialogTitle>
 
                     <DialogDescription className="text-[12px] text-muted-ink">
@@ -109,11 +143,11 @@ export default function CreateOrderModal({
                         {/* Número de pedido */}
                         <div className="space-y-2">
                             <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
-                                Pedido
+                                Lote
                             </Label>
 
                             <div className="flex h-9 items-center rounded-md border border-[#e1e8ea] bg-slate-soft px-3 font-barlow text-[15px] text-ink-soft">
-                                PBP-00001
+                                EXP-00001
                             </div>
 
                             <p className="text-[10px] text-[#98a6aa]">
@@ -122,39 +156,118 @@ export default function CreateOrderModal({
                         </div>
 
                         {/* Cliente */}
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
-                                Cliente
-                            </Label>
+                        {/* Cliente + Ubicación física */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
+                                    Producto
+                                </Label>
 
-                            <Select
-                                value={form.clientId}
-                                onValueChange={(value) =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        clientId: value,
-                                    }))
-                                }
-                            >
-                                <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
-                                    <SelectValue placeholder="Seleccionar cliente" />
-                                </SelectTrigger>
+                                <Textarea>
+                                </Textarea>
+                            </div>
+                            {/* Linea */}
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
+                                    Linea
+                                </Label>
 
-                                <SelectContent>
-                                    {clients.map((client) => (
-                                        <SelectItem
-                                            key={client.id}
-                                            value={client.id}
-                                            className="text-[11px] bg-white"
-                                        >
-                                            {client.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                <Select
+                                    value={form.sectorId}
+                                    onValueChange={(value) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            sectorId: value,
+                                        }))
+                                    }
+                                >
+                                    <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
+                                        <SelectValue placeholder="Seleccionar ubicación" />
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                        {sector.map((client) => (
+                                            <SelectItem
+                                                key={client.id}
+                                                value={client.id}
+                                                className="text-[11px] bg-white"
+                                            >
+                                                {client.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
+                        {/* Turno y estado */}
+                        <div className="grid grid-cols-[1fr_150px] gap-3">
+                            {/* Turno */}
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
+                                    Turno
+                                </Label>
 
-                        {/* Volumen + Unidad */}
+                                <Select
+                                    value={form.turno}
+                                    onValueChange={(value) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            turno: value,
+                                        }))
+                                    }
+                                >
+                                    <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
+                                        <SelectValue placeholder="Turno" />
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                        {turnos.map((turno) => (
+                                            <SelectItem
+                                                key={turno.value}
+                                                value={turno.value}
+                                                className="text-[11px]"
+                                            >
+                                                {turno.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Estado */}
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
+                                    Estado
+                                </Label>
+
+                                <Select
+                                    value={form.level}
+                                    onValueChange={(value) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            level: value,
+                                        }))
+                                    }
+                                >
+                                    <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
+                                        <SelectValue placeholder="Estado" />
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                        {levels.map((level) => (
+                                            <SelectItem
+                                                key={level.value}
+                                                value={level.value}
+                                                className="text-[11px]"
+                                            >
+                                                {level.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        {/* Fecha */}
                         <div className="grid grid-cols-[1fr_150px] gap-3">
                             <div className="space-y-2">
                                 <Label
@@ -213,31 +326,7 @@ export default function CreateOrderModal({
                                 </Select>
                             </div>
                         </div>
-
-                        {/* Fecha */}
-                        <div className="space-y-2">
-                            <Label
-                                htmlFor="deliveryDate"
-                                className="text-[10px] font-bold uppercase tracking-widest text-muted-ink"
-                            >
-                                Fecha de entrega
-                            </Label>
-
-                            <Input
-                                id="deliveryDate"
-                                type="date"
-                                value={form.deliveryDate}
-                                onChange={(e) =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        deliveryDate: e.target.value,
-                                    }))
-                                }
-                                className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
-                            />
-                        </div>
                     </div>
-
                     <DialogFooter className="border-t border-slate-soft bg-white px-6 py-4">
                         <Button
                             type="button"

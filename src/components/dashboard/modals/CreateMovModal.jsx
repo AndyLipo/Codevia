@@ -54,8 +54,22 @@ const units = [
         label: "m²",
     },
 ];
+const levels = [
+    {
+        value: "Critico",
+        label: "Critico",
+    },
+    {
+        value: "Normal",
+        label: "Normal",
+    },
+    {
+        value: "Atencion",
+        label: "Atencion",
+    }
+];
 
-export default function CreateOrderModal({
+export default function CreateMovModal({
     open,
     onOpenChange,
     onCreate,
@@ -71,7 +85,7 @@ export default function CreateOrderModal({
         e.preventDefault();
 
         const newOrder = {
-            numero: "PBP-00001",
+            numero: "EXP-00001",
             idCliente: form.clientId,
             volumen: Number(form.volume),
             unidad: form.unit,
@@ -96,7 +110,7 @@ export default function CreateOrderModal({
             <DialogContent className="max-w-125 border border-[#e1e8ea] bg-white p-0 shadow-card">
                 <DialogHeader className="border-b border-slate-soft bg-white px-6 py-5">
                     <DialogTitle className="font-barlow text-[25px] font-normal text-ink">
-                        Nuevo pedido
+                        Nuevo Stock
                     </DialogTitle>
 
                     <DialogDescription className="text-[12px] text-muted-ink">
@@ -113,7 +127,7 @@ export default function CreateOrderModal({
                             </Label>
 
                             <div className="flex h-9 items-center rounded-md border border-[#e1e8ea] bg-slate-soft px-3 font-barlow text-[15px] text-ink-soft">
-                                PBP-00001
+                                EXP-00001
                             </div>
 
                             <p className="text-[10px] text-[#98a6aa]">
@@ -122,46 +136,80 @@ export default function CreateOrderModal({
                         </div>
 
                         {/* Cliente */}
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
-                                Cliente
-                            </Label>
+                        {/* Cliente + Ubicación física */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
+                                    Cliente
+                                </Label>
 
-                            <Select
-                                value={form.clientId}
-                                onValueChange={(value) =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        clientId: value,
-                                    }))
-                                }
-                            >
-                                <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
-                                    <SelectValue placeholder="Seleccionar cliente" />
-                                </SelectTrigger>
+                                <Select
+                                    value={form.clientId}
+                                    onValueChange={(value) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            clientId: value,
+                                        }))
+                                    }
+                                >
+                                    <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
+                                        <SelectValue placeholder="Seleccionar cliente" />
+                                    </SelectTrigger>
 
-                                <SelectContent>
-                                    {clients.map((client) => (
-                                        <SelectItem
-                                            key={client.id}
-                                            value={client.id}
-                                            className="text-[11px] bg-white"
-                                        >
-                                            {client.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                    <SelectContent>
+                                        {clients.map((client) => (
+                                            <SelectItem
+                                                key={client.id}
+                                                value={client.id}
+                                                className="text-[11px] bg-white"
+                                            >
+                                                {client.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
+                                    Ubicación física
+                                </Label>
+
+                                <Select
+                                    value={form.clientId}
+                                    onValueChange={(value) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            clientId: value,
+                                        }))
+                                    }
+                                >
+                                    <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
+                                        <SelectValue placeholder="Seleccionar ubicación" />
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                        {clients.map((client) => (
+                                            <SelectItem
+                                                key={client.id}
+                                                value={client.id}
+                                                className="text-[11px] bg-white"
+                                            >
+                                                {client.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
-
-                        {/* Volumen + Unidad */}
+                        {/* Stock y unidad */}
                         <div className="grid grid-cols-[1fr_150px] gap-3">
                             <div className="space-y-2">
                                 <Label
                                     htmlFor="volume"
                                     className="text-[10px] font-bold uppercase tracking-widest text-muted-ink"
                                 >
-                                    Volumen
+                                    Stock
                                 </Label>
 
                                 <Input
@@ -180,7 +228,7 @@ export default function CreateOrderModal({
                                     className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
                                 />
                             </div>
-
+                            {/* Nivel */}
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     Unidad
@@ -213,6 +261,37 @@ export default function CreateOrderModal({
                                 </Select>
                             </div>
                         </div>
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
+                                Nivel
+                            </Label>
+
+                            <Select
+                                value={form.level}
+                                onValueChange={(value) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        level: value,
+                                    }))
+                                }
+                            >
+                                <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
+                                    <SelectValue placeholder="Nivel" />
+                                </SelectTrigger>
+
+                                <SelectContent>
+                                    {levels.map((level) => (
+                                        <SelectItem
+                                            key={level.value}
+                                            value={level.value}
+                                            className="text-[11px]"
+                                        >
+                                            {level.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
                         {/* Fecha */}
                         <div className="space-y-2">
@@ -237,7 +316,6 @@ export default function CreateOrderModal({
                             />
                         </div>
                     </div>
-
                     <DialogFooter className="border-t border-slate-soft bg-white px-6 py-4">
                         <Button
                             type="button"

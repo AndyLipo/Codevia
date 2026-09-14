@@ -64,7 +64,7 @@ export default function Login({ role, setRole, setLogged }) {
           <RoleGrid role={role} setRole={setRole} />
 
           <button
-            className="flex w-full items-center justify-center gap-[7px] rounded-md bg-brand py-[10px] text-[11px] font-bold text-white shadow-[0_4px_10px_rgba(20,92,115,0.16)] transition-all hover:-translate-y-px hover:bg-brand-dark active:scale-[0.98] cursor-pointer"
+            className="flex w-full items-center justify-center gap-1.75 rounded-md bg-brand py-[10px] text-[11px] font-bold text-white shadow-[0_4px_10px_rgba(20,92,115,0.16)] transition-all hover:-translate-y-px hover:bg-brand-dark active:scale-[0.98] cursor-pointer"
             onClick={() => setLogged(true)}
           >
             Entrar al puesto <ArrowUpRight size={18} />
