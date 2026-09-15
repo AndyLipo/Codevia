@@ -8,4 +8,8 @@ const pool = new Pool({
     }
 });
 
+pool.query("SHOW client_encoding")
+    .then(result => console.log("CLIENT ENCODING:", result.rows))
+    .catch(error => console.error("ERROR ENCODING:", error));
+
 module.exports = pool;

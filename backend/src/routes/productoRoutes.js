@@ -5,12 +5,21 @@ const {
     obtenerProductoPorId,
     crearProducto,
     actualizarProducto,
-    eliminarProducto
+    eliminarProducto,
+    obtenerTiposProducto,
+    obtenerMateriales,
+    obtenerUnidadesMedida
 } = require('../controllers/productoController');
 
 const router = express.Router();
 
 router.get('/', obtenerProductos);
+
+router.get('/tipos-producto', obtenerTiposProducto);
+
+router.get('/materiales', obtenerMateriales);
+
+router.get('/unidades-medida', obtenerUnidadesMedida);
 
 router.get('/:id', obtenerProductoPorId);
 
