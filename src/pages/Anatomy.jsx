@@ -37,31 +37,31 @@ export default function Anatomy({ onBack }) {
           <MockApp />
         </section>
 
-        <aside className="rounded-[10px] border border-[#dce5e7] bg-white p-[22px_19px] shadow-[0_10px_28px_rgba(24,49,58,0.06)] max-[900px]:order-[-1]">
+        <aside className="rounded-[10px] border border-[#dce5e7] bg-white p-[22px_19px] shadow-[0_10px_28px_rgba(24,49,58,0.06)] max-[900px]:-order-1">
           <div className="text-[8px] font-extrabold tracking-[0.16em] text-[#82979e]">COMPONENT INVENTORY</div>
           <h2 className="my-1.5 font-barlow text-[29px] text-[#173c4b]">Qué estás viendo</h2>
-          <p className="mb-[15px] text-[10px] leading-relaxed text-[#829298]">
+          <p className="mb-3.75 text-[10px] leading-relaxed text-[#829298]">
             Cada número corresponde a una pieza visual del dashboard y a un componente o patrón de React.
           </p>
 
           {notes.map(([number, title, description]) => (
-            <div key={number} className="flex gap-2.5 border-t border-[#edf1f2] py-[11px] first:border-0">
-              <span className="grid h-[22px] w-[22px] flex-none place-items-center rounded-full bg-[#fff0d7] text-[8px] font-extrabold text-[#b87318]">
+            <div key={number} className="flex gap-2.5 border-t border-slate-soft py-2.75 first:border-0">
+              <span className="grid h-5.5 w-5.5 flex-none place-items-center rounded-full bg-[#fff0d7] text-[8px] font-extrabold text-[#b87318]">
                 {number}
               </span>
               <div>
                 <strong className="block text-[10px] text-[#42616b]">{title}</strong>
-                <p className="mt-[3px] text-[9px] leading-snug text-[#87989d]">{description}</p>
+                <p className="mt-0.75 text-[9px] leading-snug text-[#87989d]">{description}</p>
               </div>
             </div>
           ))}
 
-          <div className="mt-[9px] flex flex-col gap-1.75 rounded-md border border-[#e5edef] bg-[#f5f8f8] p-3 text-[8px] text-[#74878e]">
+          <div className="mt-2.25 flex flex-col gap-1.75 rounded-md border border-[#e5edef] bg-[#f5f8f8] p-3 text-[8px] text-[#74878e]">
             <strong className="mb-0.5 text-[9px] text-[#45636c]">Origen visual</strong>
-            <span><i className="mr-[5px] inline-block h-1.5 w-1.5 rounded-full bg-[#61dafb]" /> React + JSX: composición y estados</span>
-            <span><i className="mr-[5px] inline-block h-1.5 w-1.5 rounded-full bg-brand" /> CSS propio: layout, colores y contenedores</span>
-            <span><i className="mr-[5px] inline-block h-1.5 w-1.5 rounded-full bg-amber" /> Lucide React: íconos</span>
-            <span><i className="mr-[5px] inline-block h-1.5 w-1.5 rounded-full bg-[#8b7be8]" /> Radix/shadcn: componentes base disponibles</span>
+            <span><i className="mr-1.25 inline-block h-1.5 w-1.5 rounded-full bg-[#61dafb]" /> React + JSX: composición y estados</span>
+            <span><i className="mr-1.25 inline-block h-1.5 w-1.5 rounded-full bg-brand" /> CSS propio: layout, colores y contenedores</span>
+            <span><i className="mr-1.25 inline-block h-1.5 w-1.5 rounded-full bg-amber" /> Lucide React: íconos</span>
+            <span><i className="mr-1.25 inline-block h-1.5 w-1.5 rounded-full bg-[#8b7be8]" /> Radix/shadcn: componentes base disponibles</span>
           </div>
         </aside>
       </div>
@@ -71,58 +71,59 @@ export default function Anatomy({ onBack }) {
 
 function Callout({ children, className = "" }) {
   return (
-    <span className={`absolute z-[3] grid h-5 w-5 place-items-center rounded-full bg-amber text-[9px] font-extrabold text-white shadow-[0_0_0_3px_rgba(213,139,39,0.2)] ${className}`}>
+    <span className={`absolute z-3 grid h-5 w-5 place-items-center rounded-full bg-amber text-[9px] font-extrabold text-white shadow-[0_0_0_3px_rgba(213,139,39,0.2)] ${className}`}>
       {children}
     </span>
   );
 }
 
 function MockApp() {
+  const newLocal = "relative flex h-13.25 items-center justify-between gap-3 border-b border-[#dfe7e9] bg-white px-5 text-[9px] text-[#9aa8ad]";
   return (
-    <div className="relative flex min-h-[665px] overflow-hidden rounded-[7px] border border-[#cbdadd] bg-[#f4f6f7] shadow-[0_12px_26px_rgba(24,49,58,0.12)] max-[900px]:min-w-[720px]">
-      <aside className="relative w-[155px] flex-none border-r border-[#d8e1e3] bg-white p-[18px_9px]">
-        <div className="flex items-center gap-1.5 px-[5px] pb-4 font-barlow text-[15px] text-[#153d4c]">
-          <span className="grid h-[21px] w-[21px] place-items-center rounded-[5px] bg-brand-soft text-[13px] text-brand">B</span>
+    <div className="relative flex min-h-166.25 overflow-hidden rounded-[7px] border border-[#cbdadd] bg-[#f4f6f7] shadow-[0_12px_26px_rgba(24,49,58,0.12)] max-[900px]:min-w-180">
+      <aside className="relative w-38.75 flex-none border-r border-[#d8e1e3] bg-white p-[18px_9px]">
+        <div className="flex items-center gap-1.5 px-1.25 pb-4 font-barlow text-[15px] text-[#153d4c]">
+          <span className="grid h-5.25 w-5.25 place-items-center rounded-[5px] bg-brand-soft text-[13px] text-brand">B</span>
           <strong className="font-normal">brother<span className="text-amber">plast</span></strong>
         </div>
-        <div className="mx-1 mb-3 border-t border-[#edf1f2]" />
-        <div className="mb-0.5 flex items-center gap-1.5 rounded-[5px] bg-brand-soft px-[7px] py-[9px] text-[9px] font-bold text-brand" style={{ boxShadow: "inset 2px 0 var(--color-brand)" }}>
+        <div className="mx-1 mb-3 border-t border-slate-soft" />
+        <div className="mb-0.5 flex items-center gap-1.5 rounded-[5px] bg-brand-soft px-1.75 py-2.25 text-[9px] font-bold text-brand" style={{ boxShadow: "inset 2px 0 var(--color-brand)" }}>
           <LayoutDashboard size={13} /> Vista general
         </div>
-        <div className="flex items-center gap-1.5 px-[7px] py-[9px] text-[9px] text-[#74878e]"><Factory size={13} /> Producción</div>
-        <div className="flex items-center gap-1.5 px-[7px] py-[9px] text-[9px] text-[#74878e]">
+        <div className="flex items-center gap-1.5 px-1.75 py-2.25 text-[9px] text-[#74878e]"><Factory size={13} /> Producción</div>
+        <div className="flex items-center gap-1.5 px-1.75 py-2.25 text-[9px] text-[#74878e]">
           <Warehouse size={13} /> Depósito <b className="ml-auto rounded-full bg-[#fff0d7] px-1 py-0.5 text-[8px] font-normal text-[#b87318]">2</b>
         </div>
-        <div className="flex items-center gap-1.5 px-[7px] py-[9px] text-[9px] text-[#74878e]"><Truck size={13} /> Expedición</div>
-        <div className="flex items-center gap-1.5 px-[7px] py-[9px] text-[9px] text-[#74878e]"><ClipboardList size={13} /> Pedidos</div>
-        <div className="flex items-center gap-1.5 px-[7px] py-[9px] text-[9px] text-[#74878e]"><BarChart3 size={13} /> Reportes</div>
-        <Callout className="right-[-10px] top-[122px]">01</Callout>
+        <div className="flex items-center gap-1.5 px-1.75 py-2.25 text-[9px] text-[#74878e]"><Truck size={13} /> Expedición</div>
+        <div className="flex items-center gap-1.5 px-1.75 py-2.25 text-[9px] text-[#74878e]"><ClipboardList size={13} /> Pedidos</div>
+        <div className="flex items-center gap-1.5 px-1.75 py-2.25 text-[9px] text-[#74878e]"><BarChart3 size={13} /> Reportes</div>
+        <Callout className="-right-2.5 top-30.5">01</Callout>
       </aside>
 
       <div className="min-w-0 flex-1">
-        <div className="relative flex h-[53px] items-center justify-between gap-3 border-b border-[#dfe7e9] bg-white px-5 text-[9px] text-[#9aa8ad]">
+        <div className={newLocal}>
           <span>Brother Plast / <strong className="text-[#345460]">Vista general</strong></span>
-          <div className="flex items-center gap-[9px]">
-            <span className="flex w-[115px] items-center gap-1 rounded-[4px] bg-[#f5f7f8] px-2 py-1.5 text-[#a0adb1]"><Search size={11} /> Buscar...</span>
+          <div className="flex items-center gap-2.25">
+            <span className="flex w-28.75 items-center gap-1 rounded-sm bg-[#f5f7f8] px-2 py-1.5 text-[#a0adb1]"><Search size={11} /> Buscar...</span>
             <span className="grid h-5 w-5 place-items-center rounded-full bg-brand text-[7px] font-extrabold text-white">JP</span>
           </div>
           <Callout className="right-3.5 top-2">02</Callout>
         </div>
 
         <div className="p-[23px_25px]">
-          <div className="relative mb-[17px] flex items-end justify-between gap-2.5">
+          <div className="relative mb-4.25 flex items-end justify-between gap-2.5">
             <div>
               <small className="text-[7px] font-extrabold tracking-[0.15em] text-[#82979e]">01 · CONTROL TOWER</small>
               <h2 className="mt-1.5 font-barlow text-[27px] leading-[0.95] text-[#173c4b]">Buen día, equipo.</h2>
               <p className="mt-1 text-[9px] text-[#829298]">Resumen operativo de la planta y la playa de expedición.</p>
             </div>
-            <button className="flex items-center gap-[5px] rounded-[4px] bg-brand px-[9px] py-[7px] text-[8px] font-bold text-white">
+            <button className="flex items-center gap-1.25 rounded-sm bg-brand px-2.25 py-1.75 text-[8px] font-bold text-white">
               Ver cargas <ArrowUpRight size={11} />
             </button>
-            <Callout className="right-[-8px] top-3">03</Callout>
+            <Callout className="-right-2 top-3">03</Callout>
           </div>
 
-          <div className="mb-[11px] flex items-center gap-2 rounded-[5px] border border-[#f1dfbc] bg-[#fff8e9] p-[9px_10px] text-[#c4811f]">
+          <div className="mb-2.75 flex items-center gap-2 rounded-[5px] border border-[#f1dfbc] bg-[#fff8e9] p-[9px_10px] text-[#c4811f]">
             <AlertTriangle size={13} />
             <span className="flex-1">
               <strong className="block text-[9px] text-[#815714]">2 materiales requieren atención</strong>
@@ -137,22 +138,22 @@ function MockApp() {
               <small className="block truncate text-[7px] text-[#778b92]">Pedidos pendientes</small>
               <strong className="mt-1 block font-barlow text-[22px] text-[#173d4b]">24</strong>
               <em className="text-[7px] not-italic text-green">+8,2%</em>
-              <Callout className="right-[-7px] top-[-7px]">04</Callout>
+              <Callout className="-right-1.75 -top-1.75">04</Callout>
             </div>
             <div className="rounded-[5px] border border-[#e1e8ea] bg-white p-2.5">
-              <span className="mb-2 grid h-5 w-5 place-items-center rounded-[4px] bg-green-soft text-green"><Clock3 size={12} /></span>
+              <span className="mb-2 grid h-5 w-5 place-items-center rounded-sm bg-green-soft text-green"><Clock3 size={12} /></span>
               <small className="block truncate text-[7px] text-[#778b92]">Tiempo de carga</small>
               <strong className="mt-1 block font-barlow text-[22px] text-[#173d4b]">03:42 h</strong>
               <em className="text-[7px] not-italic text-green">−18 min</em>
             </div>
             <div className="rounded-[5px] border border-[#e1e8ea] bg-white p-2.5">
-              <span className="mb-2 grid h-5 w-5 place-items-center rounded-[4px] bg-amber-soft text-amber"><AlertTriangle size={12} /></span>
+              <span className="mb-2 grid h-5 w-5 place-items-center rounded-sm bg-amber-soft text-amber"><AlertTriangle size={12} /></span>
               <small className="block truncate text-[7px] text-[#778b92]">Vencimientos</small>
               <strong className="mt-1 block font-barlow text-[22px] text-[#173d4b]">02</strong>
               <em className="text-[7px] not-italic text-green">+1</em>
             </div>
             <div className="rounded-[5px] border border-[#e1e8ea] bg-white p-2.5">
-              <span className="mb-2 grid h-5 w-5 place-items-center rounded-[4px] bg-slate-soft text-[#71828a]"><Truck size={12} /></span>
+              <span className="mb-2 grid h-5 w-5 place-items-center rounded-sm bg-slate-soft text-muted-ink"><Truck size={12} /></span>
               <small className="block truncate text-[7px] text-[#778b92]">Camiones en playa</small>
               <strong className="mt-1 block font-barlow text-[22px] text-[#173d4b]">04</strong>
               <em className="text-[7px] not-italic text-green">02 cargando</em>
@@ -160,14 +161,14 @@ function MockApp() {
           </div>
 
           <div className="mb-2 grid grid-cols-[1.35fr_0.8fr] gap-2">
-            <div className="relative min-h-[150px] rounded-[5px] border border-[#e1e8ea] bg-white p-3">
+            <div className="relative min-h-37.5 rounded-[5px] border border-[#e1e8ea] bg-white p-3">
               <small className="text-[7px] font-extrabold tracking-[0.15em] text-[#82979e]">FLUJO OPERATIVO</small>
               <h3 className="my-1.5 font-barlow text-base text-[#214451]">Estado de producción</h3>
-              <div className="flex items-center gap-[19px]">
+              <div className="flex items-center gap-4.75">
                 <div className="font-barlow text-[30px] text-brand">86,4%</div>
-                <div className="flex h-[72px] flex-1 items-end justify-around gap-1.5 border-b border-[#e7edef]">
+                <div className="flex h-18 flex-1 items-end justify-around gap-1.5 border-b border-[#e7edef]">
                   {[35, 58, 45, 82, 68, 92, 55].map((h, i) => (
-                    <i key={i} className={`w-[11px] rounded-t-[3px] ${i === 3 ? "bg-brand" : "bg-[#d7e7eb]"}`} style={{ height: `${h}%` }} />
+                    <i key={i} className={`w-2.75 rounded-t-[3px] ${i === 3 ? "bg-brand" : "bg-[#d7e7eb]"}`} style={{ height: `${h}%` }} />
                   ))}
                 </div>
               </div>

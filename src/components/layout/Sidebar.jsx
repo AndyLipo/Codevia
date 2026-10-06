@@ -1,50 +1,11 @@
 import {
-  LayoutDashboard,
-  Factory,
-  Package,
-  Truck,
-  ClipboardList,
-  BarChart3,
-  Settings,
   X,
   SparkleIcon,
   AlertTriangle,
   LogOut,
+  Settings,
 } from "lucide-react";
-
-const navItems = [
-  {
-    id: "overview",
-    label: "Vista general",
-    icon: LayoutDashboard,
-  },
-  {
-    id: "production",
-    label: "Producción",
-    icon: Factory,
-  },
-  {
-    id: "warehouse",
-    label: "Depósito",
-    icon: Package,
-    badge: "3",
-  },
-  {
-    id: "dispatch",
-    label: "Expedición",
-    icon: Truck,
-  },
-  {
-    id: "orders",
-    label: "Pedidos",
-    icon: ClipboardList,
-  },
-  {
-    id: "reports",
-    label: "Reportes",
-    icon: BarChart3,
-  },
-];
+import { getModulesForRole } from "@/data/mockData";
 
 export default function Sidebar({
   active,
@@ -55,6 +16,8 @@ export default function Sidebar({
   setLogged,
   fakeAction,
 }) {
+  const navItems = getModulesForRole(role?.id);
+
   return (
     <>
       {/* Overlay mobile */}
@@ -73,11 +36,6 @@ export default function Sidebar({
         <div className="relative flex items-center gap-2.5 px-2.5 pb-6.25">
           <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-soft">
             <SparkleIcon className="h-6 w-6 object-contain" />
-            {/* <img
-              src=""
-              alt=""
-              className="h-6 w-6 object-contain"
-            /> */}
           </div>
 
           <div>
@@ -90,16 +48,16 @@ export default function Sidebar({
             </small>
           </div>
 
-          {/* Cerrar sidebar en mobile */}
           <button
             type="button"
             onClick={() => setMobileOpen(false)}
-            className="absolute right-0 top-0 grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-[#71828a] lg:hidden"
+            className="absolute right-0 top-0 grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-muted-ink lg:hidden"
             aria-label="Cerrar menú"
           >
             <X size={17} />
           </button>
         </div>
+
         {/* Navegación */}
         <nav className="flex flex-col gap-1 pt-4.25">
           {navItems.map((item) => {
@@ -117,12 +75,11 @@ export default function Sidebar({
                   }`}
               >
                 <Icon size={16} strokeWidth={1.8} />
-
                 <span className="flex-1">{item.label}</span>
 
-                {item.badge && (
+                {item.id === "warehouse" && (
                   <em className="rounded-full bg-[#fff0d7] px-1.5 py-0.5 text-[10px] font-semibold not-italic text-[#b87318]">
-                    {item.badge}
+                    2
                   </em>
                 )}
               </button>
@@ -132,55 +89,39 @@ export default function Sidebar({
 
         {/* Parte inferior */}
         <div className="mt-auto">
-          {/* Alerta */}
           <button
             type="button"
             onClick={() => fakeAction?.("Hay 3 excepciones que requieren atención")}
             className="flex w-full cursor-pointer items-center gap-2.25 rounded-[7px] border border-[#f6e2bc] bg-[#fff7e9] px-2.5 py-2.75 text-left"
           >
-            <AlertTriangle
-              size={16}
-              className="shrink-0 text-[#b5741c]"
-            />
-
+            <AlertTriangle size={16} className="shrink-0 text-[#b5741c]" />
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <strong className="text-[11px] text-[#8a5812]">
-                3 alertas críticas
-              </strong>
-
-              <span className="text-[10px] text-[#b89054]">
-                Requieren atención hoy
-              </span>
+              <strong className="text-[11px] text-[#8a5812]">3 alertas críticas</strong>
+              <span className="text-[10px] text-[#b89054]">Requieren atención hoy</span>
             </div>
           </button>
 
-          {/* Configuración */}
           <button
             type="button"
             onClick={() => navigate("settings")}
             className="mt-2 flex w-full items-center gap-2.75 rounded-[7px] border-0 bg-transparent px-3 py-2.75 text-left text-[11px] text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
           >
             <Settings size={16} strokeWidth={1.8} />
-
             <span>Configuración</span>
           </button>
 
-          {/* Usuario */}
           <div className="mt-3.75 flex items-center gap-2.25 border-t border-[#e4eaec] px-2 pt-3.75">
             <div className="grid h-7.75 w-7.75 shrink-0 place-items-center rounded-full bg-brand font-barlow text-[12px] font-bold text-white">
               AL
             </div>
-
             <div className="min-w-0 flex-1">
               <strong className="block overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-[#35535d]">
                 Andrés Liporace
               </strong>
-
               <span className="mt-0.5 block overflow-hidden text-ellipsis whitespace-nowrap text-[9px] text-[#8b9ba0]">
                 {role?.label || "Administrador"}
               </span>
             </div>
-
             <button
               type="button"
               onClick={() => setLogged?.(false)}
