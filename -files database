@@ -1,0 +1,43 @@
+ database/Bkp_All/Codevia_utf8.sql                  | 1331 [32m++++++++++++++++++++[m
+ ...rigger - Produccion_generar_lote_produccion.sql |    5 [32m+[m
+ .../01-Alter Table - Produccion_productos.sql      |   14 [32m+[m
+ ...02-Create Table - Produccion_Lote_productos.sql |   48 [32m+[m
+ ... - Produccion_Control_de_vencimientos_lotes.sql |   45 [32m+[m
+ ... - Produccion_Control_de_vencimientos_lotes.sql |    5 [32m+[m
+ ...-Create Function - Produccion_Validar_lotes.sql |   71 [32m++[m
+ ...6-Create Trigger - Produccion_Validar_lotes.sql |    5 [32m+[m
+ .../Migrations/07-Instert-Test_insert_lotes.sql    |   16 [32m+[m
+ .../08-Create Seq-Produccion_Cod_lotes.sql         |    3 [32m+[m
+ ...eate Function-Produccion_generarl_Cod_lotes.sql |   17 [32m+[m
+ ...reate Trigger-Produccion_generarl_Cod_lotes.sql |    5 [32m+[m
+ ...on-Produccion_actualizar_detalle_produccion.sql |  161 [32m+++[m
+ .../12-Alter Table-Produccion_produccion.sql       |    8 [32m+[m
+ ... Table- Mod_Contraint Produccion_produccion.sql |    9 [32m+[m
+ ...uccion_actualizar_detalle_produccion part 2.sql |  117 [32m++[m
+ ...Function-Produccion_actualizar_estado_orden.sql |  123 [32m++[m
+ ... Trigger-Produccion_actualizar_estado_orden.sql |    5 [32m+[m
+ ...Function-Produccion_generar_lote_produccion.sql |   68 [32m+[m
+ .../19-Create Table - Deposito_deposito.sql        |   24 [32m+[m
+ .../20-Create Table - Deposito_Zonas_dep.sql       |   33 [32m+[m
+ .../21-Create Table - Deposito_Pasillos_dep.sql    |   33 [32m+[m
+ .../22-Create Table - Deposito_Modulos_dep.sql     |   45 [32m+[m
+ .../23-Create Table - Deposito_Niveles_dep.sql     |   34 [32m+[m
+ .../24-Create Table - Deposito_Posiciones_dep.sql  |   52 [32m+[m
+ .../25-Create Table - Deposito_config_zona.sql     |   70 [32m+[m
+ .../26-Create Table - Deposito_config_pasillo.sql  |   41 [32m+[m
+ ...7-Create Function - Deposito_config_pasillo.sql |   62 [32m+[m
+ ...8-Create Function - Deposito_modulos_config.sql |  175 [32m+++[m
+ .../29-Create Function - Deposito_zona_config.sql  |   78 [32m++[m
+ ...ate Function - Deposito_Gen_pasillos_config.sql |  100 [32m++[m
+ ...eate Function - Deposito_Gen_niveles_config.sql |   93 [32m++[m
+ ...e Function - Deposito_Gen_posiciones_config.sql |  114 [32m++[m
+ .../33-Alter Table - Deposito_Config_zona.sql      |    2 [32m+[m
+ .../34-Alter Table - Deposito_Config_zona 2.sql    |    6 [32m+[m
+ ...-Create Function - Deposito_Generar_estruct.sql |   46 [32m+[m
+ ...ate Function - Deposito_calc_modulos_config.sql |   70 [32m+[m
+ .../36-Alter Table - Deposito_Config_zona 3.sql    |    5 [32m+[m
+ .../37-Create Table - Deposito_lote_posicion.sql   |   30 [32m+[m
+ ...eate Index - Deposito_lote+posicion_activos.sql |    8 [32m+[m
+ database/Migrations/INSERT TEST ZONA.sql           |   25 [32m+[m
+ database/Migrations/TRUNCAR DEPOSITO.sql           |    9 [32m+[m
+ 42 files changed, 3211 insertions(+)
