@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Dialog,
     DialogContent,
@@ -21,73 +20,123 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-const clients = [
-    {
-        id: "CLI-001",
-        name: "Plásticos del Sur",
-    },
-    {
-        id: "CLI-002",
-        name: "Mayorista Centro",
-    },
-    {
-        id: "CLI-003",
-        name: "Distribuidora Norte",
-    },
-];
+import { supabase } from "@/lib/supabaseClient";
 
-const units = [
-    {
-        value: "KG",
-        label: "Kg",
-    },
-    {
-        value: "TN",
-        label: "Tonelada",
-    },
-    {
-        value: "UN",
-        label: "Unidad",
-    },
-    {
-        value: "M2",
-        label: "m²",
-    },
-];
+export default function CreateOrderModal({ open, onOpenChange, onCreate }) {
+    const [productos, setProductos] = useState([]);
+    const [solicitantes, setSolicitantes] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-export default function CreateOrderModal({
-    open,
-    onOpenChange,
-    onCreate,
-}) {
     const [form, setForm] = useState({
-        clientId: "",
-        volume: "",
-        unit: "",
-        deliveryDate: "",
+        productoId: "",
+        cantidad: "",
+        fechaLimite: "",
+        solicitanteId: "",
     });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    useEffect(() => {
+        if (!open) return;
 
-        const newOrder = {
-            numero: "PBP-00001",
-            idCliente: form.clientId,
-            volumen: Number(form.volume),
-            unidad: form.unit,
-            fechaEntrega: form.deliveryDate,
-            estado: "A",
+        const fetchOptions = async () => {
+            const [{ data: productosData, error: productosError }, { data: usuariosData, error: usuariosError }] =
+                await Promise.all([
+                    supabase
+                        .schema("produccion")
+                        .from("producto")
+                        .select("id_producto, codigo, nombre")
+                        .eq("estado", "A"),
+                    supabase
+                        .schema("usuarios")
+                        .from("usuarios")
+                        .select("id_usuario, nombre, apellido, usuario_login")
+                        .eq("estado", "A"),
+                ]);
+
+            if (productosError) console.error("Error al traer productos:", productosError.message);
+            else setProductos(productosData || []);
+
+            if (usuariosError) console.error("Error al traer solicitantes:", usuariosError.message);
+            else setSolicitantes(usuariosData || []);
         };
 
-        onCreate?.(newOrder);
+        fetchOptions();
+    }, [open]);
 
+    const resetForm = () => {
         setForm({
-            clientId: "",
-            volume: "",
-            unit: "",
-            deliveryDate: "",
+            productoId: "",
+            cantidad: "",
+            fechaLimite: "",
+            solicitanteId: "",
         });
+    };
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        const solicitante = solicitantes.find(
+            (u) => String(u.id_usuario) === form.solicitanteId
+        );
+
+        // ⚠️ nro_orden generado acá como placeholder simple. Lo ideal sería
+        // que exista una secuencia/función en la base (como la que ya armaron
+        // para los códigos de lote) que lo genere automáticamente.
+
+        const now = new Date().toISOString();
+
+        // 1) Insertar la cabecera (orden_produccion)
+        const { data: ordenData, error: ordenError } = await supabase
+            .schema("produccion")
+            .from("orden_produccion")
+            .insert([
+                {
+                    fecha_orden: now,
+                    id_solicitante: Number(form.solicitanteId),
+                    estado_op: "P",
+                    estado: "A",
+                    usu_alta: solicitante?.usuario_login,
+                    fec_alta: now,
+                },
+            ])
+            .select();
+
+        if (ordenError) {
+            console.error("Error al crear orden de producción:", ordenError.message);
+            setLoading(false);
+            return;
+        }
+
+        const idOrdenProduccion = ordenData?.[0]?.id_orden_produccion;
+
+        // 2) Insertar el detalle (detalle_orden_produccion)
+        const { data: detalleData, error: detalleError } = await supabase
+            .schema("produccion")
+            .from("detalle_orden_produccion")
+            .insert([
+                {
+                    id_orden_produccion: idOrdenProduccion,
+                    id_producto: Number(form.productoId),
+                    cantidad_solicitada: Number(form.cantidad),
+                    cantidad_producida: 0,
+                    fecha_limite: form.fechaLimite,
+                    estado_detalle: "P",
+                    estado: "A",
+                    usu_alta: solicitante?.usuario_login,
+                    fec_alta: now,
+                },
+            ])
+            .select();
+
+        setLoading(false);
+
+        if (detalleError) {
+            console.error("Error al crear el detalle de la orden:", detalleError.message);
+            return;
+        }
+
+        onCreate?.({ ...ordenData?.[0], detalle: detalleData?.[0] });
+        resetForm();
         onOpenChange(false);
     };
 
@@ -96,145 +145,102 @@ export default function CreateOrderModal({
             <DialogContent className="max-w-125 border border-[#e1e8ea] bg-white p-0 shadow-card">
                 <DialogHeader className="border-b border-slate-soft bg-white px-6 py-5">
                     <DialogTitle className="font-barlow text-[25px] font-normal text-ink">
-                        Nuevo pedido
+                        Nueva orden de producción
                     </DialogTitle>
-
                     <DialogDescription className="text-[12px] text-muted-ink">
-                        Cargá los datos del pedido de Brother Plast.
+                        Solicitá la fabricación de un producto para Brother Plast.
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit}>
                     <div className="space-y-5 bg-white px-6 py-5">
-                        {/* Número de pedido */}
                         <div className="space-y-2">
                             <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
-                                Pedido
+                                Producto
                             </Label>
-
-                            <div className="flex h-9 items-center rounded-md border border-[#e1e8ea] bg-slate-soft px-3 font-barlow text-[15px] text-ink-soft">
-                                PBP-00001
-                            </div>
-
-                            <p className="text-[10px] text-[#98a6aa]">
-                                Generado automáticamente por el sistema.
-                            </p>
-                        </div>
-
-                        {/* Cliente */}
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
-                                Cliente
-                            </Label>
-
                             <Select
-                                value={form.clientId}
+                                value={form.productoId}
                                 onValueChange={(value) =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        clientId: value,
-                                    }))
+                                    setForm((prev) => ({ ...prev, productoId: value }))
                                 }
                             >
                                 <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
-                                    <SelectValue placeholder="Seleccionar cliente" />
+                                    <SelectValue placeholder="Seleccionar producto" />
                                 </SelectTrigger>
-
                                 <SelectContent>
-                                    {clients.map((client) => (
+                                    {productos.map((p) => (
                                         <SelectItem
-                                            key={client.id}
-                                            value={client.id}
+                                            key={p.id_producto}
+                                            value={String(p.id_producto)}
                                             className="text-[11px] bg-white"
                                         >
-                                            {client.name}
+                                            {p.codigo} — {p.nombre}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
 
-                        {/* Volumen + Unidad */}
                         <div className="grid grid-cols-[1fr_150px] gap-3">
                             <div className="space-y-2">
-                                <Label
-                                    htmlFor="volume"
-                                    className="text-[10px] font-bold uppercase tracking-widest text-muted-ink"
-                                >
-                                    Volumen
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
+                                    Cantidad solicitada
                                 </Label>
-
                                 <Input
-                                    id="volume"
                                     type="number"
-                                    min="0"
+                                    min="1"
                                     step="0.01"
                                     placeholder="Ej. 1200"
-                                    value={form.volume}
+                                    value={form.cantidad}
                                     onChange={(e) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            volume: e.target.value,
-                                        }))
+                                        setForm((prev) => ({ ...prev, cantidad: e.target.value }))
                                     }
                                     className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
+                                    required
                                 />
                             </div>
 
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
-                                    Unidad
+                                    Fecha límite
                                 </Label>
-
-                                <Select
-                                    value={form.unit}
-                                    onValueChange={(value) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            unit: value,
-                                        }))
+                                <Input
+                                    type="date"
+                                    value={form.fechaLimite}
+                                    onChange={(e) =>
+                                        setForm((prev) => ({ ...prev, fechaLimite: e.target.value }))
                                     }
-                                >
-                                    <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
-                                        <SelectValue placeholder="Unidad" />
-                                    </SelectTrigger>
-
-                                    <SelectContent>
-                                        {units.map((unit) => (
-                                            <SelectItem
-                                                key={unit.value}
-                                                value={unit.value}
-                                                className="text-[11px]"
-                                            >
-                                                {unit.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
+                                    required
+                                />
                             </div>
                         </div>
 
-                        {/* Fecha */}
                         <div className="space-y-2">
-                            <Label
-                                htmlFor="deliveryDate"
-                                className="text-[10px] font-bold uppercase tracking-widest text-muted-ink"
-                            >
-                                Fecha de entrega
+                            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
+                                Solicitante
                             </Label>
-
-                            <Input
-                                id="deliveryDate"
-                                type="date"
-                                value={form.deliveryDate}
-                                onChange={(e) =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        deliveryDate: e.target.value,
-                                    }))
+                            <Select
+                                value={form.solicitanteId}
+                                onValueChange={(value) =>
+                                    setForm((prev) => ({ ...prev, solicitanteId: value }))
                                 }
-                                className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
-                            />
+                            >
+                                <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
+                                    <SelectValue placeholder="Seleccionar solicitante" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {solicitantes.map((u) => (
+                                        <SelectItem
+                                            key={u.id_usuario}
+                                            value={String(u.id_usuario)}
+                                            className="text-[11px] bg-white"
+                                        >
+                                            {u.nombre} {u.apellido}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 
@@ -250,15 +256,16 @@ export default function CreateOrderModal({
 
                         <Button
                             type="submit"
-                            className="h-9 bg-green text-[11px] text-white hover:bg-[#328160]"
                             disabled={
-                                !form.clientId ||
-                                !form.volume ||
-                                !form.unit ||
-                                !form.deliveryDate
+                                loading ||
+                                !form.productoId ||
+                                !form.cantidad ||
+                                !form.fechaLimite ||
+                                !form.solicitanteId
                             }
+                            className="h-9 bg-green text-[11px] text-white hover:bg-[#328160]"
                         >
-                            Crear pedido
+                            {loading ? "Creando..." : "Crear orden"}
                         </Button>
                     </DialogFooter>
                 </form>

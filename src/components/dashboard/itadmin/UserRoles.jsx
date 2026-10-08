@@ -1,64 +1,3 @@
-// import { Plus, Search } from "lucide-react";
-// import Table from "@/components/common/Table";
-// import Badge from "@/components/common/Badge";
-// import ActionButton from "@/components/common/ActionButton";
-// import { itUsersRows } from "@/data/mockData";
-// import { useState } from "react";
-// import CreateUsuarioModal from "../modals/CreateUsuarioModal";
-
-
-// export default function UsersRoles({ fakeAction }) {
-
-//     const [createUser, setCreateUser] = useState(false)
-//     const handleCreateUser = (createUser) => {
-//         console.log("Nueva hoja de ruta:", createUser);
-
-//         fakeAction?.(`${createUser.numero} creada correctamente`);
-//     };
-
-//     return (
-//         <>
-//             <div className="rounded-lg border border-[#e1e8ea] bg-white p-5 shadow-card">
-//                 <div className="mb-4.5 flex items-start justify-between gap-3">
-//                     <div>
-//                         <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.16em] text-[#82979e]">CUENTAS</div>
-//                         <h3 className="m-0 font-barlow text-[21px] text-[#214451]">Usuarios del sistema</h3>
-//                     </div>
-//                     <div className="flex gap-2">
-//                         <ActionButton variant="secondary"><Search size={15} /> Buscar</ActionButton>
-//                         <ActionButton onClick={() => setCreateUser(true)}>
-//                             <Plus size={17} /> Nuevo usuario
-//                         </ActionButton>
-//                     </div>
-//                 </div>
-//                 <Table
-//                     headers={["Nombre", "Email", "Rol", "Estado"]}
-//                     rows={itUsersRows}
-//                     renderCell={(cell, j) => (j === 3 ? <Badge tone={cell === "Activo" ? "green" : "slate"}>{cell}</Badge> : cell)}
-//                 />
-//             </div>
-
-//             {/* <div className="mt-3.5 rounded-lg border border-[#e1e8ea] bg-white p-5 shadow-card">
-//                 <div className="mb-4.5 flex items-start justify-between gap-3">
-//                     <div>
-//                         <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.16em] text-[#82979e]">PERMISOS</div>
-//                         <h3 className="m-0 font-barlow text-[21px] text-[#214451]">Roles y accesos</h3>
-//                     </div>
-//                     <ActionButton variant="secondary" onClick={() => fakeAction("Alta de rol en preparación")}>
-//                         <Plus size={15} /> Nuevo rol
-//                     </ActionButton>
-//                 </div>
-//                 <Table headers={["Rol", "Descripción", "Usuarios asignados"]} rows={itRolesRows} />
-//             </div> */}
-//             <CreateUsuarioModal
-//                 open={createUser}
-//                 onOpenChange={setCreateUser}
-//                 onCreate={handleCreateUser}
-//             />
-//         </>
-//     );
-// }
-
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Search } from "lucide-react";
 import Table from "@/components/common/Table";
@@ -113,7 +52,7 @@ export default function UsersRoles({ fakeAction }) {
         <>
             <div className="rounded-lg border border-[#e1e8ea] bg-white p-5 shadow-card">
                 <div className="mb-4.5 flex items-start justify-between gap-3">
-                    <div>
+                    <div className="">
                         <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.16em] text-[#82979e]">CUENTAS</div>
                         <h3 className="m-0 font-barlow text-[21px] text-[#214451]">Usuarios del sistema</h3>
                     </div>
