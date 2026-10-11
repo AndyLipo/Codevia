@@ -21,25 +21,28 @@ export default function Orders({ query }) {
       .schema("produccion")
       .from("orden_produccion")
       .select(`
-        id_orden_produccion,
-        nro_orden,
-        fecha_orden,
-        id_solicitante,
-        estado_op,
-        estado,
-        detalle_orden_produccion (
-          id_detalle_orden,
-          id_producto,
-          cantidad_solicitada,
-          cantidad_producida,
-          fecha_limite,
-          estado_detalle,
-          producto (
-            codigo,
-            nombre
-          )
-        )
-      `)
+    id_orden_produccion,
+    nro_orden,
+    fecha_orden,
+    id_solicitante,
+    estado_op,
+    estado,
+    detalle_orden_produccion (
+      id_detalle_orden,
+      id_producto,
+      id_unidad_medida,
+      cantidad_solicitada,
+      cantidad_producida,
+      fecha_limite,
+      estado_detalle,
+      unidad_detalle:unidad_medida ( codigo, nombre ),
+      producto (
+        codigo,
+        nombre,
+        unidad_medida ( codigo, nombre )
+      )
+    )
+  `)
       .eq("estado", "A")
       .order("fecha_orden", { ascending: false });
 
@@ -69,13 +72,14 @@ export default function Orders({ query }) {
     .flatMap((order) =>
       (order.detalle_orden_produccion || []).map((detalle) => {
         const producto = detalle.producto;
+        const unidad = detalle.unidad_detalle ?? producto?.unidad_medida;
 
         return [
           order.nro_orden,
           producto
             ? `${producto.codigo} · ${producto.nombre}`
             : `Producto #${detalle.id_producto}`,
-          `${detalle.cantidad_solicitada} unidades`,
+          `${detalle.cantidad_solicitada} ${unidad?.codigo ?? ""}`.trim(),
           detalle.fecha_limite
             ? new Date(detalle.fecha_limite).toLocaleDateString("es-AR")
             : "-",
@@ -104,7 +108,7 @@ export default function Orders({ query }) {
       />
 
       <div className="mb-3.5 grid grid-cols-3 gap-3.5 max-[760px]:grid-cols-1">
-        <div className="rounded-lg border border-[#e1e8ea] bg-white p-[17px] shadow-card">
+        <div className="rounded-lg border border-[#e1e8ea] bg-white p-4.25 shadow-card">
           <span className="block text-[10px] text-[#819298]">
             Órdenes activas
           </span>
@@ -118,15 +122,13 @@ export default function Orders({ query }) {
           </small>
         </div>
 
-        <div className="rounded-lg border border-[#e1e8ea] bg-white p-[17px] shadow-card">
+        <div className="rounded-lg border border-[#e1e8ea] bg-white p-4.25 shadow-card">
           <span className="block text-[10px] text-[#819298]">
             En producción
           </span>
 
           <strong className="my-1 block font-barlow text-[33px] text-[#174354]">
-            {
-              orders.filter((order) => order.estado_op === "P").length
-            }
+            {orders.filter((order) => order.estado_op === "P").length}
           </strong>
 
           <small className="block text-[9px] text-[#819298]">
@@ -134,7 +136,7 @@ export default function Orders({ query }) {
           </small>
         </div>
 
-        <div className="rounded-lg border border-[#e1e8ea] bg-white p-[17px] shadow-card">
+        <div className="rounded-lg border border-[#e1e8ea] bg-white p-4.25 shadow-card">
           <span className="block text-[10px] text-[#819298]">
             Productos solicitados
           </span>

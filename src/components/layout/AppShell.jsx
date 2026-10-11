@@ -32,7 +32,7 @@ export default function AppShell({
         fakeAction={fakeAction}
       />
 
-      <main className="ml-[248px] min-h-screen min-w-0 max-lg:ml-0">
+      <main className="ml-62 min-h-screen min-w-0 max-lg:ml-0">
         <Topbar
           active={active}
           role={role}
@@ -42,7 +42,7 @@ export default function AppShell({
           fakeAction={fakeAction}
         />
 
-        <div className="mx-auto max-w-[1440px] px-6 pb-4 pt-[34px] max-md:px-4 max-md:pt-6">
+        <div className="mx-auto max-w-360 px-6 pb-4 pt-8.5 max-md:px-4 max-md:pt-6">
           {children}
         </div>
 

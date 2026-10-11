@@ -1,11 +1,11 @@
 import {
   X,
-  SparkleIcon,
   AlertTriangle,
   LogOut,
   Settings,
 } from "lucide-react";
 import { getModulesForRole } from "@/data/mockData";
+import logo from '/logo-final.jpg'
 
 export default function Sidebar({
   active,
@@ -35,7 +35,8 @@ export default function Sidebar({
         {/* Brand */}
         <div className="relative flex items-center gap-2.5 px-2.5 pb-6.25">
           <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-soft">
-            <SparkleIcon className="h-6 w-6 object-contain" />
+            <img src={logo} className="h-6 w-6 object-contain" alt="logo de la empresa" />
+            {/* <SparkleIcon className="h-6 w-6 object-contain" /> */}
           </div>
 
           <div>

@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Dialog,
     DialogContent,
@@ -21,87 +20,100 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-const clients = [
-    {
-        id: "CLI-001",
-        name: "Plásticos del Sur",
-    },
-    {
-        id: "CLI-002",
-        name: "Mayorista Centro",
-    },
-    {
-        id: "CLI-003",
-        name: "Distribuidora Norte",
-    },
+import { supabase } from "@/lib/supabaseClient";
+
+const ubicFisic = [
+    { id: "Sector B · Rack 04 · P02", name: "Sector B · Rack 04 · P02" },
+    { id: "Sector A · Rack 02 · P07", name: "Sector A · Rack 02 · P07" },
+    { id: "Sector A · Rack 02 · P08", name: "Sector A · Rack 02 · P08" },
 ];
 
 const units = [
-    {
-        value: "KG",
-        label: "Kg",
-    },
-    {
-        value: "TN",
-        label: "Tonelada",
-    },
-    {
-        value: "UN",
-        label: "Unidad",
-    },
-    {
-        value: "M2",
-        label: "m²",
-    },
+    { value: "KG", label: "Kg" },
+    { value: "TN", label: "Tonelada" },
+    { value: "UN", label: "Unidad" },
+    { value: "M2", label: "m²" },
 ];
 const levels = [
-    {
-        value: "Critico",
-        label: "Critico",
-    },
-    {
-        value: "Normal",
-        label: "Normal",
-    },
-    {
-        value: "Atencion",
-        label: "Atencion",
-    }
+    { value: "Critico", label: "Critico" },
+    { value: "Normal", label: "Normal" },
+    { value: "Atencion", label: "Atencion" },
 ];
 
-export default function CreateMovModal({
-    open,
-    onOpenChange,
-    onCreate,
-}) {
+export default function CreateMovModal({ open, onOpenChange, onCreate }) {
+    const [productos, setProductos] = useState([]);
+    const [materiales, setMateriales] = useState([]);
+
     const [form, setForm] = useState({
-        clientId: "",
+        productoId: "",
+        materialId: "",
+        ubicFisic: "",
         volume: "",
         unit: "",
+        level: "",
         deliveryDate: "",
     });
+
+    // Traemos productos y materiales reales desde Supabase al abrir el modal
+    useEffect(() => {
+        if (!open) return;
+
+        const fetchOptions = async () => {
+            const [{ data: productosData, error: productosError }, { data: materialesData, error: materialesError }] =
+                await Promise.all([
+                    supabase
+                        .schema("produccion")
+                        .from("producto")
+                        .select("id_producto, codigo, nombre, id_unidad_medida, unidad_medida(nombre, codigo)")
+                        .eq("estado", "A"),
+                    supabase
+                        .schema("produccion")
+                        .from("material")
+                        .select("id_material, codigo, nombre")
+                        .eq("estado", "A"),
+                ]);
+
+            if (productosError) console.error("Error al traer productos:", productosError.message);
+            else setProductos(productosData || []);
+
+            if (materialesError) console.error("Error al traer materiales:", materialesError.message);
+            else setMateriales(materialesData || []);
+        };
+
+        fetchOptions();
+    }, [open]);
+
+    const resetForm = () => {
+        setForm({
+            productoId: "",
+            materialId: "",
+            ubicFisic: "",
+            volume: "",
+            unit: "",
+            level: "",
+            deliveryDate: "",
+        });
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
+        const producto = productos.find((p) => String(p.id_producto) === form.productoId);
+
         const newOrder = {
-            numero: "EXP-00001",
-            idCliente: form.clientId,
+            numero: producto?.codigo,
+            idProducto: form.productoId,
+            idMaterial: form.materialId,
+            ubicacionFisica: form.ubicFisic,
             volumen: Number(form.volume),
             unidad: form.unit,
+            nivel: form.level,
             fechaEntrega: form.deliveryDate,
             estado: "A",
         };
 
         onCreate?.(newOrder);
-
-        setForm({
-            clientId: "",
-            volume: "",
-            unit: "",
-            deliveryDate: "",
-        });
-
+        resetForm();
         onOpenChange(false);
     };
 
@@ -120,50 +132,61 @@ export default function CreateMovModal({
 
                 <form onSubmit={handleSubmit}>
                     <div className="space-y-5 bg-white px-6 py-5">
-                        {/* Número de pedido */}
+                        {/* Producto */}
                         <div className="space-y-2">
                             <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
-                                Pedido
+                                Producto
                             </Label>
 
-                            <div className="flex h-9 items-center rounded-md border border-[#e1e8ea] bg-slate-soft px-3 font-barlow text-[15px] text-ink-soft">
-                                EXP-00001
-                            </div>
+                            <Select
+                                value={form.productoId}
+                                onValueChange={(value) =>
+                                    setForm((prev) => ({ ...prev, productoId: value }))
+                                }
+                            >
+                                <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
+                                    <SelectValue placeholder="Seleccionar producto" />
+                                </SelectTrigger>
 
-                            <p className="text-[10px] text-[#98a6aa]">
-                                Generado automáticamente por el sistema.
-                            </p>
+                                <SelectContent>
+                                    {productos.map((p) => (
+                                        <SelectItem
+                                            key={p.id_producto}
+                                            value={String(p.id_producto)}
+                                            className="text-[11px] bg-white"
+                                        >
+                                            {p.codigo} — {p.nombre}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
-                        {/* Cliente */}
-                        {/* Cliente + Ubicación física */}
+                        {/* Material + Ubicación física */}
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
-                                    Cliente
+                                    Material
                                 </Label>
 
                                 <Select
-                                    value={form.clientId}
+                                    value={form.materialId}
                                     onValueChange={(value) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            clientId: value,
-                                        }))
+                                        setForm((prev) => ({ ...prev, materialId: value }))
                                     }
                                 >
                                     <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
-                                        <SelectValue placeholder="Seleccionar cliente" />
+                                        <SelectValue placeholder="Seleccionar material" />
                                     </SelectTrigger>
 
                                     <SelectContent>
-                                        {clients.map((client) => (
+                                        {materiales.map((m) => (
                                             <SelectItem
-                                                key={client.id}
-                                                value={client.id}
+                                                key={m.id_material}
+                                                value={String(m.id_material)}
                                                 className="text-[11px] bg-white"
                                             >
-                                                {client.name}
+                                                {m.codigo} — {m.nombre}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -176,12 +199,9 @@ export default function CreateMovModal({
                                 </Label>
 
                                 <Select
-                                    value={form.clientId}
+                                    value={form.ubicFisic}
                                     onValueChange={(value) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            clientId: value,
-                                        }))
+                                        setForm((prev) => ({ ...prev, ubicFisic: value }))
                                     }
                                 >
                                     <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
@@ -189,19 +209,20 @@ export default function CreateMovModal({
                                     </SelectTrigger>
 
                                     <SelectContent>
-                                        {clients.map((client) => (
+                                        {ubicFisic.map((ubicFisics) => (
                                             <SelectItem
-                                                key={client.id}
-                                                value={client.id}
+                                                key={ubicFisics.id}
+                                                value={ubicFisics.id}
                                                 className="text-[11px] bg-white"
                                             >
-                                                {client.name}
+                                                {ubicFisics.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
                         </div>
+
                         {/* Stock y unidad */}
                         <div className="grid grid-cols-[1fr_150px] gap-3">
                             <div className="space-y-2">
@@ -220,15 +241,12 @@ export default function CreateMovModal({
                                     placeholder="Ej. 1200"
                                     value={form.volume}
                                     onChange={(e) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            volume: e.target.value,
-                                        }))
+                                        setForm((prev) => ({ ...prev, volume: e.target.value }))
                                     }
                                     className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
                                 />
                             </div>
-                            {/* Nivel */}
+
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     Unidad
@@ -237,10 +255,7 @@ export default function CreateMovModal({
                                 <Select
                                     value={form.unit}
                                     onValueChange={(value) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            unit: value,
-                                        }))
+                                        setForm((prev) => ({ ...prev, unit: value }))
                                     }
                                 >
                                     <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
@@ -261,6 +276,7 @@ export default function CreateMovModal({
                                 </Select>
                             </div>
                         </div>
+
                         <div className="space-y-2">
                             <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                 Nivel
@@ -269,10 +285,7 @@ export default function CreateMovModal({
                             <Select
                                 value={form.level}
                                 onValueChange={(value) =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        level: value,
-                                    }))
+                                    setForm((prev) => ({ ...prev, level: value }))
                                 }
                             >
                                 <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
@@ -307,10 +320,7 @@ export default function CreateMovModal({
                                 type="date"
                                 value={form.deliveryDate}
                                 onChange={(e) =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        deliveryDate: e.target.value,
-                                    }))
+                                    setForm((prev) => ({ ...prev, deliveryDate: e.target.value }))
                                 }
                                 className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
                             />
@@ -330,7 +340,8 @@ export default function CreateMovModal({
                             type="submit"
                             className="h-9 bg-green text-[11px] text-white hover:bg-[#328160]"
                             disabled={
-                                !form.clientId ||
+                                !form.productoId ||
+                                !form.materialId ||
                                 !form.volume ||
                                 !form.unit ||
                                 !form.deliveryDate
