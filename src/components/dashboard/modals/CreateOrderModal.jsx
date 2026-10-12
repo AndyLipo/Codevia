@@ -192,10 +192,13 @@ export default function CreateOrderModal({ open, onOpenChange, onCreate }) {
     };
 
     return (
+
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-125 border border-[#e1e8ea] bg-white p-0 shadow-card">
-                <DialogHeader className="border-b border-slate-soft bg-white px-6 py-5">
-                    <DialogTitle className="font-barlow text-[25px] font-normal text-ink">
+            <DialogContent className="w-[calc(100vw-2rem)] max-w-[500px] min-w-0 border border-[#e1e8ea] bg-white p-0 shadow-card sm:w-[calc(100vw-3rem)]">
+
+                {/* Encabezado */}
+                <DialogHeader className="border-b border-slate-soft bg-white px-4 py-4 sm:px-6 sm:py-5">
+                    <DialogTitle className="font-barlow text-[22px] font-normal text-ink sm:text-[25px]">
                         Nueva orden de producción
                     </DialogTitle>
 
@@ -204,10 +207,11 @@ export default function CreateOrderModal({ open, onOpenChange, onCreate }) {
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit}>
-                    <div className="space-y-5 bg-white px-6 py-5">
+                <form onSubmit={handleSubmit} className="min-w-0">
+                    <div className="space-y-4 bg-white px-4 py-4 sm:space-y-5 sm:px-6 sm:py-5">
+
                         {/* Producto */}
-                        <div className="space-y-2">
+                        <div className="min-w-0 space-y-2">
                             <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                 Producto
                             </Label>
@@ -218,17 +222,17 @@ export default function CreateOrderModal({ open, onOpenChange, onCreate }) {
                                     const prod = productos.find(
                                         (p) => String(p.id_producto) === value
                                     );
+
                                     setForm((prev) => ({
                                         ...prev,
                                         productoId: value,
-                                        // Sugiere la unidad del producto; se puede cambiar
                                         unidad: prod?.id_unidad_medida
                                             ? String(prod.id_unidad_medida)
                                             : prev.unidad,
                                     }));
                                 }}
                             >
-                                <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
+                                <SelectTrigger className="h-10 w-full min-w-0 border-[#dfe7e9] bg-white text-[12px] text-ink-soft sm:h-9 sm:text-[11px]">
                                     <SelectValue placeholder="Seleccionar producto" />
                                 </SelectTrigger>
 
@@ -247,8 +251,9 @@ export default function CreateOrderModal({ open, onOpenChange, onCreate }) {
                         </div>
 
                         {/* Cantidad y unidad */}
-                        <div className="grid grid-cols-[1fr_150px] gap-3">
-                            <div className="space-y-2">
+                        <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_140px] sm:gap-3">
+
+                            <div className="min-w-0 space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     Cantidad solicitada
                                 </Label>
@@ -265,12 +270,12 @@ export default function CreateOrderModal({ open, onOpenChange, onCreate }) {
                                             cantidad: e.target.value,
                                         }))
                                     }
-                                    className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
+                                    className="h-10 border-[#dfe7e9] bg-white text-[12px] text-ink-soft sm:h-9 sm:text-[11px]"
                                     required
                                 />
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="min-w-0 space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     Unidad
                                 </Label>
@@ -284,7 +289,7 @@ export default function CreateOrderModal({ open, onOpenChange, onCreate }) {
                                         }))
                                     }
                                 >
-                                    <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
+                                    <SelectTrigger className="h-10 w-full min-w-0 border-[#dfe7e9] bg-white text-[12px] text-ink-soft sm:h-9 sm:text-[11px]">
                                         <SelectValue placeholder="Seleccionar" />
                                     </SelectTrigger>
 
@@ -304,8 +309,9 @@ export default function CreateOrderModal({ open, onOpenChange, onCreate }) {
                         </div>
 
                         {/* Solicitante y fecha límite */}
-                        <div className="grid grid-cols-[1fr_150px] gap-3">
-                            <div className="space-y-2">
+                        <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_140px] sm:gap-3">
+
+                            <div className="min-w-0 space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     Solicitante
                                 </Label>
@@ -319,7 +325,7 @@ export default function CreateOrderModal({ open, onOpenChange, onCreate }) {
                                         }))
                                     }
                                 >
-                                    <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
+                                    <SelectTrigger className="h-10 w-full min-w-0 border-[#dfe7e9] bg-white text-[12px] text-ink-soft sm:h-9 sm:text-[11px]">
                                         <SelectValue placeholder="Seleccionar solicitante" />
                                     </SelectTrigger>
 
@@ -337,7 +343,7 @@ export default function CreateOrderModal({ open, onOpenChange, onCreate }) {
                                 </Select>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="min-w-0 space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     Fecha límite
                                 </Label>
@@ -351,19 +357,21 @@ export default function CreateOrderModal({ open, onOpenChange, onCreate }) {
                                             fechaLimite: e.target.value,
                                         }))
                                     }
-                                    className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
+                                    className="h-10 w-full min-w-0 border-[#dfe7e9] bg-white text-[12px] text-ink-soft sm:h-9 sm:text-[11px]"
                                     required
                                 />
                             </div>
                         </div>
                     </div>
 
-                    <DialogFooter className="border-t border-slate-soft bg-white px-6 py-4">
+                    {/* Acciones */}
+                    <DialogFooter className="flex-col-reverse gap-2 border-t border-slate-soft bg-white px-4 py-4 sm:flex-row sm:justify-end sm:px-6">
+
                         <Button
                             type="button"
                             variant="outline"
                             onClick={() => onOpenChange(false)}
-                            className="h-9 border-[#dce5e8] bg-white text-[11px] text-ink-soft hover:bg-slate-soft"
+                            className="h-10 w-full border-[#dce5e8] bg-white text-[12px] text-ink-soft hover:bg-slate-soft sm:h-9 sm:w-auto sm:text-[11px]"
                         >
                             Cancelar
                         </Button>
@@ -378,7 +386,7 @@ export default function CreateOrderModal({ open, onOpenChange, onCreate }) {
                                 !form.fechaLimite ||
                                 !form.solicitanteId
                             }
-                            className="h-9 bg-green text-[11px] text-white hover:bg-[#328160]"
+                            className="h-10 w-full bg-green text-[12px] text-white hover:bg-[#328160] sm:h-9 sm:w-auto sm:text-[11px]"
                         >
                             {loading ? "Creando..." : "Crear orden"}
                         </Button>

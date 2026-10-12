@@ -107,7 +107,7 @@ export default function Orders({ query }) {
         }
       />
 
-      <div className="mb-3.5 grid grid-cols-3 gap-3.5 max-[760px]:grid-cols-1">
+      <div className="mb-3.5 grid grid-cols-3 gap-3.5 max-[760px]:grid-cols-1 px-5.75 py-5">
         <div className="rounded-lg border border-[#e1e8ea] bg-white p-4.25 shadow-card">
           <span className="block text-[10px] text-[#819298]">
             Órdenes activas
