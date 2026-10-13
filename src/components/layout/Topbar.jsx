@@ -18,7 +18,7 @@ export default function Topbar({
   const currentModule = modules.find((m) => m.id === active);
 
   return (
-    <header className="sticky top-0 z-10 flex h-[72px] items-center justify-between border-b border-[#dfe7e9] bg-white px-4 lg:px-[34px]">
+    <header className="sticky top-0 z-10 flex h-18 items-center justify-between border-b border-[#dfe7e9] bg-white px-4 lg:px-8.5">
 
       {/* Menú mobile */}
       <button
@@ -44,7 +44,7 @@ export default function Topbar({
       <div className="flex items-center gap-2.5 lg:gap-3.5">
 
         {/* Buscador */}
-        <div className="flex h-8 w-8 items-center justify-center rounded-[6px] bg-[#f5f7f8] text-[#9aa9af] lg:h-auto lg:w-[230px] lg:justify-start lg:gap-[9px] lg:px-[11px] lg:py-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#f5f7f8] text-[#9aa9af] lg:h-auto lg:w-57.5 lg:justify-start lg:gap-2.25 lg:px-2.75 lg:py-2">
           <Search size={17} />
 
           <input
@@ -62,11 +62,11 @@ export default function Topbar({
             fakeAction?.("No hay nuevas notificaciones")
           }
           aria-label="Notificaciones"
-          className="relative grid h-8 w-8 place-items-center rounded-[6px] border border-[#dce5e7] bg-white text-[#67808a] transition-colors hover:border-[#9ebbc5] hover:text-brand"
+          className="relative grid h-8 w-8 place-items-center rounded-md border border-[#dce5e7] bg-white text-[#67808a] transition-colors hover:border-[#9ebbc5] hover:text-brand"
         >
           <Bell size={18} />
 
-          <i className="absolute right-[6px] top-[5px] h-[5px] w-[5px] rounded-full bg-amber" />
+          <i className="absolute right-1.5 top-1.25 h-1.25 w-1.25 rounded-full bg-amber" />
         </button>
 
         {/* Selector de rol */}
@@ -90,7 +90,7 @@ export default function Topbar({
                   setRole(selectedRole);
                 }
               }}
-              className="max-w-[150px] appearance-none border-0 bg-transparent pr-5 text-[11px] font-semibold text-[#49636c] outline-none cursor-pointer"
+              className="max-w-37.5 appearance-none border-0 bg-transparent pr-5 text-[11px] font-semibold text-[#49636c] outline-none cursor-pointer"
             >
               {roleOptions.map((r) => (
                 <option key={r.id} value={r.id}>

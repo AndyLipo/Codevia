@@ -25,7 +25,7 @@ export default function Reports() {
         {reportCards.map((card, i) => (
           <div key={card.label} className="relative rounded-lg border border-[#e1e8ea] bg-white p-5 shadow-card">
             <div className="mb-6"><IconBox icon={card.icon} tone={card.tone} /></div>
-            <div className="absolute right-[19px] top-5 font-barlow text-xl text-[#cbd7da]">0{i + 1}</div>
+            <div className="absolute right-4.75 top-5 font-barlow text-xl text-[#cbd7da]">0{i + 1}</div>
             <h3 className="m-0 font-barlow text-[22px] text-[#214451]">{card.label}</h3>
             <p className="my-1.5 mb-5 text-[10px] text-[#8a9aa0]">{card.detail}</p>
             <button className="flex items-center gap-1.5 text-[11px] font-bold text-brand">Abrir reporte <ArrowUpRight size={15} /></button>
@@ -33,20 +33,20 @@ export default function Reports() {
         ))}
       </div>
 
-      <div className="min-h-[310px] rounded-lg border border-[#e1e8ea] bg-white p-5 shadow-card">
-        <div className="mb-[18px] flex items-start justify-between gap-3">
+      <div className="min-h-77.5 rounded-lg border border-[#e1e8ea] bg-white p-5 shadow-card">
+        <div className="mb-4.5 flex items-start justify-between gap-3">
           <div><div className="mb-2 text-[9px] font-bold uppercase tracking-[0.16em] text-[#82979e]">CUMPLIMIENTO OPERATIVO</div><h3 className="m-0 font-barlow text-[21px] text-[#214451]">Producción vs. plan semanal</h3></div>
           <div className="flex gap-3 text-[9px] text-[#819298]">
             <span className="flex items-center gap-1.5"><i className="inline-block h-1.5 w-1.5 rounded-full bg-brand" />Producido</span>
             <span className="flex items-center gap-1.5"><i className="inline-block h-1.5 w-1.5 rounded-full bg-[#cedadd]" />Planificado</span>
           </div>
         </div>
-        <div className="flex h-[215px] items-end justify-around gap-6 px-[8%] py-2.5">
+        <div className="flex h-53.75 items-end justify-around gap-6 px-[8%] py-2.5">
           {weekData.map(([day, value, plan]) => (
             <div key={day} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
-              <div className="relative h-[180px] w-[35px] overflow-hidden rounded-[5px] bg-[#f2f5f5]">
-                <i className="absolute bottom-0 left-0 w-full rounded-t-[4px] bg-[#d3e1e4]" style={{ height: `${plan}%` }} />
-                <i className="absolute bottom-0 left-0 z-[1] w-full rounded-t-[4px] bg-brand" style={{ height: `${value}%` }} />
+              <div className="relative h-45 w-8.75 overflow-hidden rounded-[5px] bg-[#f2f5f5]">
+                <i className="absolute bottom-0 left-0 w-full rounded-t-sm bg-[#d3e1e4]" style={{ height: `${plan}%` }} />
+                <i className="absolute bottom-0 left-0 z-1 w-full rounded-t-sm bg-brand" style={{ height: `${value}%` }} />
               </div>
               <strong className="font-barlow text-[17px] text-[#41606a]">{value}%</strong>
               <span className="text-[9px] text-[#89999e]">{day}</span>
@@ -55,7 +55,7 @@ export default function Reports() {
         </div>
       </div>
 
-      <div className="mt-3.5 flex items-start gap-2.5 rounded-[7px] bg-brand-soft px-[15px] py-[13px] text-brand">
+      <div className="mt-3.5 flex items-start gap-2.5 rounded-[7px] bg-brand-soft px-3.75 py-3.25 text-brand">
         <Zap size={18} />
         <div>
           <strong className="block text-[11px]">Lectura rápida</strong>

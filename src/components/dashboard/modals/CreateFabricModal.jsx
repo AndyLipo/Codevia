@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Dialog,
     DialogContent,
@@ -20,153 +19,199 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 
+import { supabase } from "@/lib/supabaseClient";
+
+// Hardcodeados por ahora
 const sector = [
-    {
-        id: "Sect-001",
-        name: "Pasillo A",
-    },
-    {
-        id: "Sect-002",
-        name: "Pasillo B",
-    },
-    {
-        id: "Sect-003",
-        name: "Pasillo C",
-    },
+    { id: "Sect-001", name: "Pasillo A" },
+    { id: "Sect-002", name: "Pasillo B" },
+    { id: "Sect-003", name: "Pasillo C" },
 ];
 
 const turnos = [
-    {
-        value: "Maniana",
-        label: "Maniana",
-    },
-    {
-        value: "Tarde",
-        label: "Tarde",
-    },
-    {
-        value: "Noche",
-        label: "Noche",
-    }
+    { value: "Mañana", label: "Mañana" },
+    { value: "Tarde", label: "Tarde" },
+    { value: "Noche", label: "Noche" },
 ];
+
 const levels = [
-    {
-        value: "En Proceso",
-        label: "En Proceso",
-    },
-    {
-        value: "Control de Calidad",
-        label: "Control de Calidad",
-    },
-    {
-        value: "Liberado",
-        label: "Liberado",
-    },
-    {
-        value: "Pendiente",
-        label: "Pendiente",
-    }
+    { value: "En Proceso", label: "En Proceso" },
+    { value: "Control de Calidad", label: "Control de Calidad" },
+    { value: "Liberado", label: "Liberado" },
+    { value: "Pendiente", label: "Pendiente" },
 ];
 
-const units = [
-    {
-        value: "KG",
-        label: "Kg",
-    },
-    {
-        value: "TN",
-        label: "Tonelada",
-    },
-    {
-        value: "UN",
-        label: "Unidad",
-    },
-    {
-        value: "M2",
-        label: "m²",
-    },
-];
+export default function CreateFabricModal({ open, onOpenChange, onCreate }) {
+    const [productos, setProductos] = useState([]);
+    const [materiales, setMateriales] = useState([]);
+    const [unidades, setUnidades] = useState([]);
 
-export default function CreateFabricModal({
-    open,
-    onOpenChange,
-    onCreate,
-}) {
     const [form, setForm] = useState({
-        clientId: "",
-        volume: "",
+        productoId: "",
+        materialId: "",
+        sectorId: "",
+        turno: "",
+        level: "",
+        stock: "",
         unit: "",
-        deliveryDate: "",
     });
+
+    // Traemos producto, material y unidad desde Supabase al abrir el modal
+    useEffect(() => {
+        if (!open) return;
+
+        const fetchOptions = async () => {
+            const [
+                { data: productosData, error: productosError },
+                { data: materialesData, error: materialesError },
+                { data: unidadesData, error: unidadesError },
+            ] = await Promise.all([
+                supabase
+                    .schema("produccion")
+                    .from("producto")
+                    .select("id_producto, codigo, nombre, id_material, id_unidad_medida")
+                    .eq("estado", "A"),
+                supabase
+                    .schema("produccion")
+                    .from("material")
+                    .select("id_material, codigo, nombre")
+                    .eq("estado", "A"),
+                supabase
+                    .schema("produccion")
+                    .from("unidad_medida")
+                    .select("id_unidad_medida, codigo, nombre")
+                    .eq("estado", "A"),
+            ]);
+
+            if (productosError) console.error("Error al traer productos:", productosError.message);
+            else setProductos(productosData || []);
+
+            if (materialesError) console.error("Error al traer materiales:", materialesError.message);
+            else setMateriales(materialesData || []);
+
+            if (unidadesError) console.error("Error al traer unidades:", unidadesError.message);
+            else setUnidades(unidadesData || []);
+        };
+
+        fetchOptions().catch((error) => {
+            console.error("Error al cargar las opciones:", error);
+        });
+    }, [open]);
+
+    const resetForm = () => {
+        setForm({
+            productoId: "",
+            materialId: "",
+            sectorId: "",
+            turno: "",
+            level: "",
+            stock: "",
+            unit: "",
+        });
+    };
+
+    // Al elegir un producto, sugerimos su material y su unidad (se pueden cambiar)
+    const handleProductoChange = (value) => {
+        const prod = productos.find((p) => String(p.id_producto) === value);
+
+        setForm((prev) => ({
+            ...prev,
+            productoId: value,
+            materialId: prod?.id_material ? String(prod.id_material) : prev.materialId,
+            unit: prod?.id_unidad_medida ? String(prod.id_unidad_medida) : prev.unit,
+        }));
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const newOrder = {
-            numero: "EXP-00001",
-            idCliente: form.clientId,
-            volumen: Number(form.volume),
-            unidad: form.unit,
-            fechaEntrega: form.deliveryDate,
-            estado: "A",
+        const newFabric = {
+            idProducto: Number(form.productoId),
+            idMaterial: Number(form.materialId),
+            linea: form.sectorId,
+            turno: form.turno,
+            estado: form.level,
+            stock: Number(form.stock),
+            idUnidadMedida: Number(form.unit),
         };
 
-        onCreate?.(newOrder);
-
-        setForm({
-            clientId: "",
-            volume: "",
-            unit: "",
-            deliveryDate: "",
-        });
-
+        onCreate?.(newFabric);
+        resetForm();
         onOpenChange(false);
     };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-125 border border-[#e1e8ea] bg-white p-0 shadow-card">
+            <DialogContent className="w-[calc(100vw-2rem)] max-w-[500px] min-w-0 border border-[#e1e8ea] bg-white p-0 shadow-card sm:w-[calc(100vw-3rem)]">
                 <DialogHeader className="border-b border-slate-soft bg-white px-6 py-5">
                     <DialogTitle className="font-barlow text-[25px] font-normal text-ink">
                         Registrar Fabricacion
                     </DialogTitle>
 
                     <DialogDescription className="text-[12px] text-muted-ink">
-                        Cargá los datos del pedido de Brother Plast.
+                        Cargá los datos de la fabricación de Brother Plast.
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit}>
                     <div className="space-y-5 bg-white px-6 py-5">
-                        {/* Número de pedido */}
+                        {/* Producto */}
                         <div className="space-y-2">
                             <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
-                                Lote
+                                Producto
                             </Label>
 
-                            <div className="flex h-9 items-center rounded-md border border-[#e1e8ea] bg-slate-soft px-3 font-barlow text-[15px] text-ink-soft">
-                                EXP-00001
-                            </div>
+                            <Select value={form.productoId} onValueChange={handleProductoChange}>
+                                <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
+                                    <SelectValue placeholder="Seleccionar producto" />
+                                </SelectTrigger>
 
-                            <p className="text-[10px] text-[#98a6aa]">
-                                Generado automáticamente por el sistema.
-                            </p>
+                                <SelectContent>
+                                    {productos.map((p) => (
+                                        <SelectItem
+                                            key={p.id_producto}
+                                            value={String(p.id_producto)}
+                                            className="bg-white text-[11px]"
+                                        >
+                                            {p.codigo} — {p.nombre}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
-                        {/* Cliente */}
-                        {/* Cliente + Ubicación física */}
+                        {/* Material + Línea */}
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
-                                    Producto
+                                    Material
                                 </Label>
 
-                                <Textarea>
-                                </Textarea>
+                                <Select
+                                    value={form.materialId}
+                                    onValueChange={(value) =>
+                                        setForm((prev) => ({ ...prev, materialId: value }))
+                                    }
+                                >
+                                    <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
+                                        <SelectValue placeholder="Seleccionar material" />
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                        {materiales.map((m) => (
+                                            <SelectItem
+                                                key={m.id_material}
+                                                value={String(m.id_material)}
+                                                className="bg-white text-[11px]"
+                                            >
+                                                {m.codigo} — {m.nombre}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
-                            {/* Linea */}
+
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     Linea
@@ -175,33 +220,30 @@ export default function CreateFabricModal({
                                 <Select
                                     value={form.sectorId}
                                     onValueChange={(value) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            sectorId: value,
-                                        }))
+                                        setForm((prev) => ({ ...prev, sectorId: value }))
                                     }
                                 >
                                     <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
-                                        <SelectValue placeholder="Seleccionar ubicación" />
+                                        <SelectValue placeholder="Seleccionar línea" />
                                     </SelectTrigger>
 
                                     <SelectContent>
-                                        {sector.map((client) => (
+                                        {sector.map((s) => (
                                             <SelectItem
-                                                key={client.id}
-                                                value={client.id}
-                                                className="text-[11px] bg-white"
+                                                key={s.id}
+                                                value={s.id}
+                                                className="bg-white text-[11px]"
                                             >
-                                                {client.name}
+                                                {s.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
                         </div>
+
                         {/* Turno y estado */}
                         <div className="grid grid-cols-[1fr_150px] gap-3">
-                            {/* Turno */}
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     Turno
@@ -210,10 +252,7 @@ export default function CreateFabricModal({
                                 <Select
                                     value={form.turno}
                                     onValueChange={(value) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            turno: value,
-                                        }))
+                                        setForm((prev) => ({ ...prev, turno: value }))
                                     }
                                 >
                                     <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
@@ -225,7 +264,7 @@ export default function CreateFabricModal({
                                             <SelectItem
                                                 key={turno.value}
                                                 value={turno.value}
-                                                className="text-[11px]"
+                                                className="bg-white text-[11px]"
                                             >
                                                 {turno.label}
                                             </SelectItem>
@@ -234,7 +273,6 @@ export default function CreateFabricModal({
                                 </Select>
                             </div>
 
-                            {/* Estado */}
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     Estado
@@ -243,10 +281,7 @@ export default function CreateFabricModal({
                                 <Select
                                     value={form.level}
                                     onValueChange={(value) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            level: value,
-                                        }))
+                                        setForm((prev) => ({ ...prev, level: value }))
                                     }
                                 >
                                     <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
@@ -258,7 +293,7 @@ export default function CreateFabricModal({
                                             <SelectItem
                                                 key={level.value}
                                                 value={level.value}
-                                                className="text-[11px]"
+                                                className="bg-white text-[11px]"
                                             >
                                                 {level.label}
                                             </SelectItem>
@@ -267,28 +302,26 @@ export default function CreateFabricModal({
                                 </Select>
                             </div>
                         </div>
-                        {/* Fecha */}
+
+                        {/* Stock y unidad */}
                         <div className="grid grid-cols-[1fr_150px] gap-3">
                             <div className="space-y-2">
                                 <Label
-                                    htmlFor="volume"
+                                    htmlFor="stock"
                                     className="text-[10px] font-bold uppercase tracking-widest text-muted-ink"
                                 >
-                                    Volumen
+                                    Stock
                                 </Label>
 
                                 <Input
-                                    id="volume"
+                                    id="stock"
                                     type="number"
                                     min="0"
                                     step="0.01"
                                     placeholder="Ej. 1200"
-                                    value={form.volume}
+                                    value={form.stock}
                                     onChange={(e) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            volume: e.target.value,
-                                        }))
+                                        setForm((prev) => ({ ...prev, stock: e.target.value }))
                                     }
                                     className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
                                 />
@@ -302,10 +335,7 @@ export default function CreateFabricModal({
                                 <Select
                                     value={form.unit}
                                     onValueChange={(value) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            unit: value,
-                                        }))
+                                        setForm((prev) => ({ ...prev, unit: value }))
                                     }
                                 >
                                     <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
@@ -313,13 +343,13 @@ export default function CreateFabricModal({
                                     </SelectTrigger>
 
                                     <SelectContent>
-                                        {units.map((unit) => (
+                                        {unidades.map((u) => (
                                             <SelectItem
-                                                key={unit.value}
-                                                value={unit.value}
-                                                className="text-[11px]"
+                                                key={u.id_unidad_medida}
+                                                value={String(u.id_unidad_medida)}
+                                                className="bg-white text-[11px]"
                                             >
-                                                {unit.label}
+                                                {u.nombre}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -327,6 +357,7 @@ export default function CreateFabricModal({
                             </div>
                         </div>
                     </div>
+
                     <DialogFooter className="border-t border-slate-soft bg-white px-6 py-4">
                         <Button
                             type="button"
@@ -341,13 +372,13 @@ export default function CreateFabricModal({
                             type="submit"
                             className="h-9 bg-green text-[11px] text-white hover:bg-[#328160]"
                             disabled={
-                                !form.clientId ||
-                                !form.volume ||
-                                !form.unit ||
-                                !form.deliveryDate
+                                !form.productoId ||
+                                !form.materialId ||
+                                !form.stock ||
+                                !form.unit
                             }
                         >
-                            Crear pedido
+                            Registrar fabricación
                         </Button>
                     </DialogFooter>
                 </form>

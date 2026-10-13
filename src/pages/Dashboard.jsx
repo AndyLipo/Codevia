@@ -53,7 +53,7 @@ export default function Dashboard({ role, setRole, setLogged }) {
       case "reports":
         return <Reports />;
 
-      case "itadmin":
+      case "it-admin":
         return <ITAdmin />;
 
       default:

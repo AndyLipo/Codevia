@@ -6,7 +6,7 @@ import { integrationsRows } from "@/data/mockData";
 export default function Integrations({ fakeAction }) {
     return (
         <div className="mt-3.5 rounded-lg border border-[#e1e8ea] bg-white p-5 shadow-card">
-            <div className="mb-[18px] flex items-start justify-between gap-3">
+            <div className="mb-4.5 flex items-start justify-between gap-3">
                 <div>
                     <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.16em] text-[#82979e]">CONEXIONES EXTERNAS</div>
                     <h3 className="m-0 font-barlow text-[21px] text-[#214451]">Integraciones</h3>

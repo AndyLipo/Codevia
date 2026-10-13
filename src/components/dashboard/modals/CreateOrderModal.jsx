@@ -1,5 +1,5 @@
+import { useState, useEffect } from "react";
 
-import { useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -21,192 +21,286 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-const clients = [
-    {
-        id: "CLI-001",
-        name: "Plásticos del Sur",
-    },
-    {
-        id: "CLI-002",
-        name: "Mayorista Centro",
-    },
-    {
-        id: "CLI-003",
-        name: "Distribuidora Norte",
-    },
-];
+import { supabase } from "@/lib/supabaseClient";
 
-const units = [
-    {
-        value: "KG",
-        label: "Kg",
-    },
-    {
-        value: "TN",
-        label: "Tonelada",
-    },
-    {
-        value: "UN",
-        label: "Unidad",
-    },
-    {
-        value: "M2",
-        label: "m²",
-    },
-];
+export default function CreateOrderModal({ open, onOpenChange, onCreate }) {
+    const [productos, setProductos] = useState([]);
+    const [solicitantes, setSolicitantes] = useState([]);
+    const [unidades, setUnidades] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-export default function CreateOrderModal({
-    open,
-    onOpenChange,
-    onCreate,
-}) {
     const [form, setForm] = useState({
-        clientId: "",
-        volume: "",
-        unit: "",
-        deliveryDate: "",
+        productoId: "",
+        cantidad: "",
+        unidad: "",
+        fechaLimite: "",
+        solicitanteId: "",
     });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    // Derivados: van DESPUÉS de los useState de los que dependen
+    const unidadSel = unidades.find(
+        (u) => String(u.id_unidad_medida) === form.unidad
+    );
 
-        const newOrder = {
-            numero: "PBP-00001",
-            idCliente: form.clientId,
-            volumen: Number(form.volume),
-            unidad: form.unit,
-            fechaEntrega: form.deliveryDate,
-            estado: "A",
+    // Consultar las opciones desde Supabase al abrir el modal
+    useEffect(() => {
+        if (!open) return;
+
+        const fetchOptions = async () => {
+            const [
+                { data: productosData, error: productosError },
+                { data: usuariosData, error: usuariosError },
+                { data: unidadesData, error: unidadesError },
+            ] = await Promise.all([
+                supabase
+                    .schema("produccion")
+                    .from("producto")
+                    .select("id_producto, codigo, nombre, id_unidad_medida")
+                    .eq("estado", "A"),
+
+                supabase
+                    .schema("usuarios")
+                    .from("usuarios")
+                    .select("id_usuario, nombre, apellido, usuario_login")
+                    .eq("estado", "A"),
+
+                supabase
+                    .schema("produccion")
+                    .from("unidad_medida")
+                    .select("id_unidad_medida, codigo, nombre")
+                    .eq("estado", "A"),
+            ]);
+
+            if (productosError) {
+                console.error("Error al traer productos:", productosError.message);
+            } else {
+                setProductos(productosData || []);
+            }
+
+            if (usuariosError) {
+                console.error("Error al traer solicitantes:", usuariosError.message);
+            } else {
+                setSolicitantes(usuariosData || []);
+            }
+
+            if (unidadesError) {
+                console.error("Error al traer unidades:", unidadesError.message);
+            } else {
+                setUnidades(unidadesData || []);
+            }
         };
 
-        onCreate?.(newOrder);
-
-        setForm({
-            clientId: "",
-            volume: "",
-            unit: "",
-            deliveryDate: "",
+        fetchOptions().catch((error) => {
+            console.error("Error al cargar las opciones:", error);
         });
+    }, [open]);
 
-        onOpenChange(false);
+    const resetForm = () => {
+        setForm({
+            productoId: "",
+            cantidad: "",
+            unidad: "",
+            fechaLimite: "",
+            solicitanteId: "",
+        });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (
+            !form.productoId ||
+            !form.cantidad ||
+            !form.unidad ||
+            !form.fechaLimite ||
+            !form.solicitanteId
+        ) {
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const solicitante = solicitantes.find(
+                (u) => String(u.id_usuario) === form.solicitanteId
+            );
+
+            if (!solicitante) {
+                console.error("No se encontró el solicitante.");
+                return;
+            }
+
+            const now = new Date().toISOString();
+
+            // 1. Cabecera de la orden
+            const { data: ordenData, error: ordenError } = await supabase
+                .schema("produccion")
+                .from("orden_produccion")
+                .insert([
+                    {
+                        fecha_orden: now,
+                        id_solicitante: Number(form.solicitanteId),
+                        estado_op: "P",
+                        estado: "A",
+                        usu_alta: solicitante.usuario_login,
+                        fec_alta: now,
+                    },
+                ])
+                .select()
+                .single();
+
+            if (ordenError) {
+                console.error("Error al crear orden de producción:", ordenError.message);
+                return;
+            }
+
+            // 2. Detalle de la orden
+            const { data: detalleData, error: detalleError } = await supabase
+                .schema("produccion")
+                .from("detalle_orden_produccion")
+                .insert([
+                    {
+                        id_orden_produccion: ordenData.id_orden_produccion,
+                        id_producto: Number(form.productoId),
+                        id_unidad_medida: Number(form.unidad),
+                        cantidad_solicitada: Number(form.cantidad),
+                        cantidad_producida: 0,
+                        fecha_limite: form.fechaLimite,
+                        estado_detalle: "P",
+                        estado: "A",
+                        usu_alta: solicitante.usuario_login,
+                        fec_alta: now,
+                    },
+                ])
+                .select()
+                .single();
+
+            if (detalleError) {
+                console.error("Error al crear el detalle de la orden:", detalleError.message);
+                return;
+            }
+
+            onCreate?.({ ...ordenData, detalle: detalleData });
+
+            resetForm();
+            onOpenChange(false);
+        } catch (error) {
+            console.error("Error inesperado al crear la orden:", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
+
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-125 border border-[#e1e8ea] bg-white p-0 shadow-card">
-                <DialogHeader className="border-b border-slate-soft bg-white px-6 py-5">
-                    <DialogTitle className="font-barlow text-[25px] font-normal text-ink">
-                        Nuevo pedido
+            <DialogContent className="w-[calc(100vw-2rem)] max-w-[500px] min-w-0 border border-[#e1e8ea] bg-white p-0 shadow-card sm:w-[calc(100vw-3rem)]">
+
+                {/* Encabezado */}
+                <DialogHeader className="border-b border-slate-soft bg-white px-4 py-4 sm:px-6 sm:py-5">
+                    <DialogTitle className="font-barlow text-[22px] font-normal text-ink sm:text-[25px]">
+                        Nueva orden de producción
                     </DialogTitle>
 
                     <DialogDescription className="text-[12px] text-muted-ink">
-                        Cargá los datos del pedido de Brother Plast.
+                        Solicitá la fabricación de un producto para Brother Plast.
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit}>
-                    <div className="space-y-5 bg-white px-6 py-5">
-                        {/* Número de pedido */}
-                        <div className="space-y-2">
+                <form onSubmit={handleSubmit} className="min-w-0">
+                    <div className="space-y-4 bg-white px-4 py-4 sm:space-y-5 sm:px-6 sm:py-5">
+
+                        {/* Producto */}
+                        <div className="min-w-0 space-y-2">
                             <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
-                                Pedido
-                            </Label>
-
-                            <div className="flex h-9 items-center rounded-md border border-[#e1e8ea] bg-slate-soft px-3 font-barlow text-[15px] text-ink-soft">
-                                PBP-00001
-                            </div>
-
-                            <p className="text-[10px] text-[#98a6aa]">
-                                Generado automáticamente por el sistema.
-                            </p>
-                        </div>
-
-                        {/* Cliente */}
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
-                                Cliente
+                                Producto
                             </Label>
 
                             <Select
-                                value={form.clientId}
-                                onValueChange={(value) =>
+                                value={form.productoId}
+                                onValueChange={(value) => {
+                                    const prod = productos.find(
+                                        (p) => String(p.id_producto) === value
+                                    );
+
                                     setForm((prev) => ({
                                         ...prev,
-                                        clientId: value,
-                                    }))
-                                }
+                                        productoId: value,
+                                        unidad: prod?.id_unidad_medida
+                                            ? String(prod.id_unidad_medida)
+                                            : prev.unidad,
+                                    }));
+                                }}
                             >
-                                <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
-                                    <SelectValue placeholder="Seleccionar cliente" />
+                                <SelectTrigger className="h-10 w-full min-w-0 border-[#dfe7e9] bg-white text-[12px] text-ink-soft sm:h-9 sm:text-[11px]">
+                                    <SelectValue placeholder="Seleccionar producto" />
                                 </SelectTrigger>
 
                                 <SelectContent>
-                                    {clients.map((client) => (
+                                    {productos.map((p) => (
                                         <SelectItem
-                                            key={client.id}
-                                            value={client.id}
-                                            className="text-[11px] bg-white"
+                                            key={p.id_producto}
+                                            value={String(p.id_producto)}
+                                            className="bg-white text-[11px]"
                                         >
-                                            {client.name}
+                                            {p.codigo} — {p.nombre}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
 
-                        {/* Volumen + Unidad */}
-                        <div className="grid grid-cols-[1fr_150px] gap-3">
-                            <div className="space-y-2">
-                                <Label
-                                    htmlFor="volume"
-                                    className="text-[10px] font-bold uppercase tracking-widest text-muted-ink"
-                                >
-                                    Volumen
+                        {/* Cantidad y unidad */}
+                        <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_140px] sm:gap-3">
+
+                            <div className="min-w-0 space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
+                                    Cantidad solicitada
                                 </Label>
 
                                 <Input
-                                    id="volume"
                                     type="number"
-                                    min="0"
+                                    min="0.01"
                                     step="0.01"
                                     placeholder="Ej. 1200"
-                                    value={form.volume}
+                                    value={form.cantidad}
                                     onChange={(e) =>
                                         setForm((prev) => ({
                                             ...prev,
-                                            volume: e.target.value,
+                                            cantidad: e.target.value,
                                         }))
                                     }
-                                    className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
+                                    className="h-10 border-[#dfe7e9] bg-white text-[12px] text-ink-soft sm:h-9 sm:text-[11px]"
+                                    required
                                 />
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="min-w-0 space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     Unidad
                                 </Label>
 
                                 <Select
-                                    value={form.unit}
+                                    value={form.unidad}
                                     onValueChange={(value) =>
                                         setForm((prev) => ({
                                             ...prev,
-                                            unit: value,
+                                            unidad: value,
                                         }))
                                     }
                                 >
-                                    <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
-                                        <SelectValue placeholder="Unidad" />
+                                    <SelectTrigger className="h-10 w-full min-w-0 border-[#dfe7e9] bg-white text-[12px] text-ink-soft sm:h-9 sm:text-[11px]">
+                                        <SelectValue placeholder="Seleccionar" />
                                     </SelectTrigger>
 
                                     <SelectContent>
-                                        {units.map((unit) => (
+                                        {unidades.map((unidad) => (
                                             <SelectItem
-                                                key={unit.value}
-                                                value={unit.value}
-                                                className="text-[11px]"
+                                                key={unidad.id_unidad_medida}
+                                                value={String(unidad.id_unidad_medida)}
+                                                className="bg-white text-[11px]"
                                             >
-                                                {unit.label}
+                                                {unidad.nombre}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -214,51 +308,87 @@ export default function CreateOrderModal({
                             </div>
                         </div>
 
-                        {/* Fecha */}
-                        <div className="space-y-2">
-                            <Label
-                                htmlFor="deliveryDate"
-                                className="text-[10px] font-bold uppercase tracking-widest text-muted-ink"
-                            >
-                                Fecha de entrega
-                            </Label>
+                        {/* Solicitante y fecha límite */}
+                        <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_140px] sm:gap-3">
 
-                            <Input
-                                id="deliveryDate"
-                                type="date"
-                                value={form.deliveryDate}
-                                onChange={(e) =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        deliveryDate: e.target.value,
-                                    }))
-                                }
-                                className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
-                            />
+                            <div className="min-w-0 space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
+                                    Solicitante
+                                </Label>
+
+                                <Select
+                                    value={form.solicitanteId}
+                                    onValueChange={(value) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            solicitanteId: value,
+                                        }))
+                                    }
+                                >
+                                    <SelectTrigger className="h-10 w-full min-w-0 border-[#dfe7e9] bg-white text-[12px] text-ink-soft sm:h-9 sm:text-[11px]">
+                                        <SelectValue placeholder="Seleccionar solicitante" />
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                        {solicitantes.map((u) => (
+                                            <SelectItem
+                                                key={u.id_usuario}
+                                                value={String(u.id_usuario)}
+                                                className="bg-white text-[11px]"
+                                            >
+                                                {u.nombre} {u.apellido}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="min-w-0 space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
+                                    Fecha límite
+                                </Label>
+
+                                <Input
+                                    type="date"
+                                    value={form.fechaLimite}
+                                    onChange={(e) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            fechaLimite: e.target.value,
+                                        }))
+                                    }
+                                    className="h-10 w-full min-w-0 border-[#dfe7e9] bg-white text-[12px] text-ink-soft sm:h-9 sm:text-[11px]"
+                                    required
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    <DialogFooter className="border-t border-slate-soft bg-white px-6 py-4">
+                    {/* Acciones */}
+                    <DialogFooter className="flex-col-reverse gap-2 border-t border-slate-soft bg-white px-4 py-4 sm:flex-row sm:justify-end sm:px-6">
+
                         <Button
                             type="button"
                             variant="outline"
                             onClick={() => onOpenChange(false)}
-                            className="h-9 border-[#dce5e8] bg-white text-[11px] text-ink-soft hover:bg-slate-soft"
+                            className="h-10 w-full border-[#dce5e8] bg-white text-[12px] text-ink-soft hover:bg-slate-soft sm:h-9 sm:w-auto sm:text-[11px]"
                         >
                             Cancelar
                         </Button>
 
                         <Button
                             type="submit"
-                            className="h-9 bg-green text-[11px] text-white hover:bg-[#328160]"
                             disabled={
-                                !form.clientId ||
-                                !form.volume ||
-                                !form.unit ||
-                                !form.deliveryDate
+                                loading ||
+                                !form.productoId ||
+                                !form.cantidad ||
+                                !form.unidad ||
+                                !form.fechaLimite ||
+                                !form.solicitanteId
                             }
+                            className="h-10 w-full bg-green text-[12px] text-white hover:bg-[#328160] sm:h-9 sm:w-auto sm:text-[11px]"
                         >
-                            Crear pedido
+                            {loading ? "Creando..." : "Crear orden"}
                         </Button>
                     </DialogFooter>
                 </form>
