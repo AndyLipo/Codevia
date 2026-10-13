@@ -1,0 +1,1 @@
+SELECT deposito.fn_generar_estructura_zona(2);

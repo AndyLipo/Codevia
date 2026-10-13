@@ -27,7 +27,7 @@ const crearProducto = async (req, res) => {
             id_material,
             id_unidad_medida,
             es_biodegradable,
-            estado,
+            vida_util_meses,
             usu_alta
         } = req.body;
 
@@ -38,7 +38,7 @@ const crearProducto = async (req, res) => {
                 id_material,
                 id_unidad_medida,
                 es_biodegradable,
-                estado,
+                vida_util_meses,
                 usu_alta
             )
             VALUES (
@@ -57,7 +57,7 @@ const crearProducto = async (req, res) => {
             id_material,
             id_unidad_medida,
             es_biodegradable ?? false,
-            estado ?? 'A',
+            vida_util_meses,
             usu_alta
         ]);
 
@@ -188,10 +188,85 @@ const eliminarProducto = async (req, res) => {
     }
 };
 
+const obtenerTiposProducto = async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT
+                id_tipo_producto,
+                descripcion
+            FROM produccion.tipo_producto
+            WHERE estado = 'A'
+            ORDER BY descripcion
+        `);
+
+        res.json(result.rows);
+
+    } catch (error) {
+        console.error('Error al obtener tipos de producto:', error);
+
+        res.status(500).json({
+            error: 'Error al obtener los tipos de producto',
+            detalle: error.message
+        });
+    }
+};
+
+
+const obtenerMateriales = async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT
+                id_material,
+                descripcion
+            FROM produccion.material
+            WHERE estado = 'A'
+            ORDER BY descripcion
+        `);
+
+        res.json(result.rows);
+
+    } catch (error) {
+        console.error('Error al obtener materiales:', error);
+
+        res.status(500).json({
+            error: 'Error al obtener los materiales',
+            detalle: error.message
+        });
+    }
+};
+
+
+const obtenerUnidadesMedida = async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT
+                id_unidad_medida,
+                codigo,
+                descripcion
+            FROM produccion.unidad_medida
+            WHERE estado = 'A'
+            ORDER BY descripcion
+        `);
+
+        res.json(result.rows);
+
+    } catch (error) {
+        console.error('Error al obtener unidades de medida:', error);
+
+        res.status(500).json({
+            error: 'Error al obtener las unidades de medida',
+            detalle: error.message
+        });
+    }
+};
+
 module.exports = {
     obtenerProductos,
     obtenerProductoPorId,
     crearProducto,
     actualizarProducto,
-    eliminarProducto
+    eliminarProducto,
+    obtenerTiposProducto,
+    obtenerMateriales,
+    obtenerUnidadesMedida
 };
