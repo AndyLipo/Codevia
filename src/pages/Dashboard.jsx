@@ -11,7 +11,12 @@ import Orders from "@/components/dashboard/Orders";
 import Reports from "@/components/dashboard/Reports";
 import ITAdmin from "@/components/dashboard/itadmin/ITAdmin";
 
-export default function Dashboard({ role, setRole, setLogged }) {
+export default function Dashboard({
+  role,
+  setRole,
+  setLogged,
+  usuarioActual,
+}) {
   const [active, setActive] = useState("overview");
   const [query, setQuery] = useState("");
 
@@ -37,7 +42,12 @@ export default function Dashboard({ role, setRole, setLogged }) {
         return <Production fakeAction={fakeAction} />;
 
       case "warehouse":
-        return <Warehouse fakeAction={fakeAction} />;
+        return (
+          <Warehouse
+            fakeAction={fakeAction}
+            usuarioActual={usuarioActual}
+          />
+        );
 
       case "dispatch":
         return <Dispatch fakeAction={fakeAction} />;

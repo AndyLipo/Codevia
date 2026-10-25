@@ -1,4 +1,6 @@
+
 import { useState, useEffect } from "react";
+
 import {
     Dialog,
     DialogContent,
@@ -21,30 +23,36 @@ import {
 } from "@/components/ui/select";
 
 import { supabase } from "@/lib/supabaseClient";
+import { toast } from "sonner";
 
 const estados = [
     { id: "A", name: "Activo" },
     { id: "I", name: "Inactivo" },
 ];
 
-export default function CreateUsuarioModal({ open, onOpenChange, onCreate }) {
+const initialForm = {
+    nombre: "",
+    apellido: "",
+    dni: "",
+    email: "",
+    rolId: "",
+    estado: "A",
+};
+
+export default function CreateUsuarioModal({
+    open,
+    onOpenChange,
+    onCreate,
+    usuario,
+}) {
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [form, setForm] = useState(initialForm);
 
-    const [form, setForm] = useState({
-        nombre: "",
-        apellido: "",
-        dni: "",
-        email: "",
-        rolId: "",
-        estado: "A",
-    });
-
-    // Traemos los roles reales desde Supabase al abrir el modal
     useEffect(() => {
         if (!open) return;
 
-        const fetchRoles = async () => {
+        const loadModalData = async () => {
             const { data, error } = await supabase
                 .schema("usuarios")
                 .from("roles")
@@ -52,77 +60,122 @@ export default function CreateUsuarioModal({ open, onOpenChange, onCreate }) {
 
             if (error) {
                 console.error("Error al traer roles:", error.message);
-                return;
+                toast.error("No se pudieron cargar los roles");
+            } else {
+                setRoles(data || []);
             }
-            setRoles(data || []);
         };
 
-        fetchRoles();
-    }, [open]);
+        loadModalData();
+
+        if (usuario) {
+            setForm({
+                nombre: usuario.nombre || "",
+                apellido: usuario.apellido || "",
+                dni: String(usuario.dni ?? ""),
+                email: usuario.email || "",
+                rolId: String(usuario.id_rol ?? ""),
+                estado: usuario.estado || "A",
+            });
+        } else {
+            setForm({ ...initialForm });
+        }
+    }, [open, usuario]);
 
     const resetForm = () => {
-        setForm({
-            nombre: "",
-            apellido: "",
-            dni: "",
-            email: "",
-            rolId: "",
-            estado: "A",
-        });
+        setForm({ ...initialForm });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
-        // Generamos usuario_login siguiendo el patrón que ya usás: "BP" + DNI
-        const usuarioLogin = `BP${form.dni}`;
+        try {
+            let error;
 
-        // Usuario que está realizando el alta (temporal)
-        const usuarioAlta = "BP30000000";
+            if (usuario) {
+                // Actualizar el usuario seleccionado.
+                const result = await supabase
+                    .schema("usuarios")
+                    .from("usuarios")
+                    .update({
+                        nombre: form.nombre.trim(),
+                        apellido: form.apellido.trim(),
+                        dni: form.dni.trim(),
+                        email: form.email.trim(),
+                        id_rol: Number(form.rolId),
+                        estado: form.estado,
+                        usuario_login: `BP${form.dni.trim()}`,
+                    })
+                    .eq("id_usuario", usuario.id_usuario);
 
-        // Placeholder temporal
-        const passwordHash = "$2b$12$ejemplo_hash_de_prueba";
+                error = result.error;
+            } else {
+                // Crear un usuario nuevo.
+                const result = await supabase
+                    .schema("usuarios")
+                    .from("usuarios")
+                    .insert({
+                        nombre: form.nombre.trim(),
+                        apellido: form.apellido.trim(),
+                        dni: form.dni.trim(),
+                        email: form.email.trim(),
+                        id_rol: Number(form.rolId),
+                        estado: form.estado,
+                        usuario_login: `BP${form.dni.trim()}`,
+                        password_hash: "$2b$12$ejemplo_hash_de_prueba",
+                        usu_alta: "BP30000000",
+                    });
 
-        const { data, error } = await supabase
-            .schema("usuarios")
-            .from("usuarios")
-            .insert([
-                {
-                    nombre: form.nombre,
-                    apellido: form.apellido,
-                    dni: form.dni,
-                    email: form.email,
-                    id_rol: Number(form.rolId),
-                    estado: form.estado,
-                    usuario_login: usuarioLogin,
-                    password_hash: passwordHash,
-                    usu_alta: usuarioAlta,
-                },
-            ])
-            .select();
+                error = result.error;
+            }
 
-        setLoading(false);
+            if (error) {
+                console.error("Error al guardar usuario:", error.message);
+                toast.error(
+                    usuario
+                        ? "No se pudo actualizar el usuario"
+                        : "No se pudo crear el usuario"
+                );
+                return;
+            }
 
-        if (error) {
-            console.error("Error al crear usuario:", error.message);
-            return;
+            toast.success(
+                usuario
+                    ? "Usuario actualizado correctamente"
+                    : "Usuario creado correctamente"
+            );
+
+            await onCreate?.();
+            resetForm();
+            onOpenChange(false);
+        } catch (error) {
+            console.error("Error inesperado al guardar usuario:", error);
+            toast.error("Ocurrió un error al guardar el usuario");
+        } finally {
+            setLoading(false);
         }
-
-        onCreate?.(data?.[0]);
-        resetForm();
-        onOpenChange(false);
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog
+            open={open}
+            onOpenChange={(nextOpen) => {
+                if (!loading) {
+                    onOpenChange(nextOpen);
+                }
+            }}
+        >
             <DialogContent className="max-w-125 border border-[#e1e8ea] bg-white p-0 shadow-card">
                 <DialogHeader className="border-b border-slate-soft bg-white px-6 py-5">
                     <DialogTitle className="font-barlow text-[25px] font-normal text-ink">
-                        Nuevo usuario
+                        {usuario ? "Editar usuario" : "Nuevo usuario"}
                     </DialogTitle>
+
                     <DialogDescription className="text-[12px] text-muted-ink">
-                        Asigná un nuevo usuario/rol al sistema.
+                        {usuario
+                            ? "Modificá los datos de la cuenta seleccionada."
+                            : "Asigná un nuevo usuario/rol al sistema."}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -133,11 +186,15 @@ export default function CreateUsuarioModal({ open, onOpenChange, onCreate }) {
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     Nombre
                                 </Label>
+
                                 <Input
                                     placeholder="Nombre"
                                     value={form.nombre}
                                     onChange={(e) =>
-                                        setForm((prev) => ({ ...prev, nombre: e.target.value }))
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            nombre: e.target.value,
+                                        }))
                                     }
                                     className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
                                     required
@@ -148,11 +205,15 @@ export default function CreateUsuarioModal({ open, onOpenChange, onCreate }) {
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     Apellido
                                 </Label>
+
                                 <Input
                                     placeholder="Apellido"
                                     value={form.apellido}
                                     onChange={(e) =>
-                                        setForm((prev) => ({ ...prev, apellido: e.target.value }))
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            apellido: e.target.value,
+                                        }))
                                     }
                                     className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
                                     required
@@ -165,11 +226,15 @@ export default function CreateUsuarioModal({ open, onOpenChange, onCreate }) {
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     DNI
                                 </Label>
+
                                 <Input
                                     placeholder="38636078"
                                     value={form.dni}
                                     onChange={(e) =>
-                                        setForm((prev) => ({ ...prev, dni: e.target.value }))
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            dni: e.target.value,
+                                        }))
                                     }
                                     className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
                                     required
@@ -180,12 +245,16 @@ export default function CreateUsuarioModal({ open, onOpenChange, onCreate }) {
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                     Email
                                 </Label>
+
                                 <Input
                                     type="email"
                                     placeholder="nombre@brotherplast.com"
                                     value={form.email}
                                     onChange={(e) =>
-                                        setForm((prev) => ({ ...prev, email: e.target.value }))
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            email: e.target.value,
+                                        }))
                                     }
                                     className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
                                     required
@@ -197,21 +266,27 @@ export default function CreateUsuarioModal({ open, onOpenChange, onCreate }) {
                             <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                 Rol
                             </Label>
+
                             <Select
                                 value={form.rolId}
                                 onValueChange={(value) =>
-                                    setForm((prev) => ({ ...prev, rolId: value }))
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        rolId: value,
+                                    }))
                                 }
+                                required
                             >
                                 <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
                                     <SelectValue placeholder="Seleccionar rol" />
                                 </SelectTrigger>
+
                                 <SelectContent>
                                     {roles.map((rol) => (
                                         <SelectItem
                                             key={rol.id_rol}
                                             value={String(rol.id_rol)}
-                                            className="text-[11px] bg-white"
+                                            className="bg-white text-[11px]"
                                         >
                                             {rol.nombre}
                                         </SelectItem>
@@ -224,21 +299,26 @@ export default function CreateUsuarioModal({ open, onOpenChange, onCreate }) {
                             <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                                 Estado
                             </Label>
+
                             <Select
                                 value={form.estado}
                                 onValueChange={(value) =>
-                                    setForm((prev) => ({ ...prev, estado: value }))
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        estado: value,
+                                    }))
                                 }
                             >
                                 <SelectTrigger className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft">
-                                    <SelectValue placeholder="Seleccionar" />
+                                    <SelectValue placeholder="Seleccionar estado" />
                                 </SelectTrigger>
+
                                 <SelectContent>
                                     {estados.map((estado) => (
                                         <SelectItem
                                             key={estado.id}
                                             value={estado.id}
-                                            className="text-[11px] bg-white"
+                                            className="bg-white text-[11px]"
                                         >
                                             {estado.name}
                                         </SelectItem>
@@ -252,6 +332,7 @@ export default function CreateUsuarioModal({ open, onOpenChange, onCreate }) {
                         <Button
                             type="button"
                             variant="outline"
+                            disabled={loading}
                             onClick={() => onOpenChange(false)}
                             className="h-9 border-[#dce5e8] bg-white text-[11px] text-ink-soft hover:bg-slate-soft"
                         >
@@ -262,15 +343,19 @@ export default function CreateUsuarioModal({ open, onOpenChange, onCreate }) {
                             type="submit"
                             disabled={
                                 loading ||
-                                !form.nombre ||
-                                !form.apellido ||
-                                !form.dni ||
-                                !form.email ||
+                                !form.nombre.trim() ||
+                                !form.apellido.trim() ||
+                                !form.dni.trim() ||
+                                !form.email.trim() ||
                                 !form.rolId
                             }
                             className="h-9 bg-green text-[11px] text-white hover:bg-[#328160]"
                         >
-                            {loading ? "Creando..." : "Crear usuario"}
+                            {loading
+                                ? "Guardando..."
+                                : usuario
+                                    ? "Guardar cambios"
+                                    : "Crear usuario"}
                         </Button>
                     </DialogFooter>
                 </form>
