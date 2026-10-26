@@ -1,3 +1,72 @@
+// import { useState } from "react";
+// import { Toaster } from "sonner";
+// import { TooltipProvider } from "@/components/ui/tooltip";
+
+// import Login from "@/pages/Login";
+// import Dashboard from "@/pages/Dashboard";
+// import Anatomy from "@/pages/Anatomy";
+
+// import Front from "@/components/dashboard/Front";
+
+// import { roleOptions } from "@/data/mockData";
+
+// function App() {
+//   const [logged, setLogged] = useState(false);
+//   const [role, setRole] = useState(roleOptions[0]);
+//   const [usuarioActual, setUsuarioActual] = useState(null);
+//   const [showAnatomy, setShowAnatomy] = useState(false);
+
+//   // =====================================================
+//   // FORMULARIO DE PRODUCTOS
+//   // http://localhost:5173/productos
+//   // =====================================================
+//   if (window.location.pathname === "/productos") {
+//     return <Front />;
+//   }
+
+//   // =====================================================
+//   // ANATOMY
+//   // =====================================================
+//   if (window.location.pathname === "/anatomy" || showAnatomy) {
+//     return (
+//       <Anatomy
+//         onBack={() => {
+//           window.history.pushState({}, "", "/");
+//           setShowAnatomy(false);
+//         }}
+//       />
+//     );
+//   }
+
+//   // =====================================================
+//   // APLICACIÓN PRINCIPAL
+//   // =====================================================
+//   return (
+//     <TooltipProvider>
+//       {!logged ? (
+//         <Login
+//           role={role}
+//           setRole={setRole}
+//           setLogged={setLogged}
+//           usuarioActual={usuarioActual}
+//           setUsuarioActual={setUsuarioActual}
+//           onAnatomy={() => setShowAnatomy(true)}
+//         />
+//       ) : (
+//         <Dashboard
+//           role={role}
+//           setRole={setRole}
+//           setLogged={setLogged}
+//           usuarioActual={usuarioActual}
+//         />
+//       )}
+
+//       <Toaster />
+//     </TooltipProvider>
+//   );
+// }
+
+// export default App;
 import { useState } from "react";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,7 +74,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Anatomy from "@/pages/Anatomy";
-
 import Front from "@/components/dashboard/Front";
 
 import { roleOptions } from "@/data/mockData";
@@ -13,6 +81,7 @@ import { roleOptions } from "@/data/mockData";
 function App() {
   const [logged, setLogged] = useState(false);
   const [role, setRole] = useState(roleOptions[0]);
+  const [usuarioActual, setUsuarioActual] = useState(null);
   const [showAnatomy, setShowAnatomy] = useState(false);
 
   // =====================================================
@@ -22,7 +91,6 @@ function App() {
   if (window.location.pathname === "/productos") {
     return <Front />;
   }
-
   // =====================================================
   // ANATOMY
   // =====================================================
@@ -36,7 +104,6 @@ function App() {
       />
     );
   }
-
   // =====================================================
   // APLICACIÓN PRINCIPAL
   // =====================================================
@@ -47,6 +114,8 @@ function App() {
           role={role}
           setRole={setRole}
           setLogged={setLogged}
+          usuarioActual={usuarioActual}
+          setUsuarioActual={setUsuarioActual}
           onAnatomy={() => setShowAnatomy(true)}
         />
       ) : (
@@ -54,10 +123,11 @@ function App() {
           role={role}
           setRole={setRole}
           setLogged={setLogged}
+          usuarioActual={usuarioActual}
         />
       )}
 
-      <Toaster />
+      <Toaster richColors position="top-right" />
     </TooltipProvider>
   );
 }

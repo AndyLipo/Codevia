@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Plus, Search, UsersRound } from "lucide-react";
 import { toast } from "sonner";
@@ -11,6 +12,8 @@ import { supabase } from "@/lib/supabaseClient";
 
 export default function Orders({ query }) {
   const [orderModalOpen, setOrderModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedDetail, setSelectedDetail] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,28 +24,34 @@ export default function Orders({ query }) {
       .schema("produccion")
       .from("orden_produccion")
       .select(`
-    id_orden_produccion,
-    nro_orden,
-    fecha_orden,
-    id_solicitante,
-    estado_op,
-    estado,
-    detalle_orden_produccion (
-      id_detalle_orden,
-      id_producto,
-      id_unidad_medida,
-      cantidad_solicitada,
-      cantidad_producida,
-      fecha_limite,
-      estado_detalle,
-      unidad_detalle:unidad_medida ( codigo, nombre ),
-      producto (
-        codigo,
-        nombre,
-        unidad_medida ( codigo, nombre )
-      )
-    )
-  `)
+        id_orden_produccion,
+        nro_orden,
+        fecha_orden,
+        id_solicitante,
+        estado_op,
+        estado,
+        detalle_orden_produccion (
+          id_detalle_orden,
+          id_producto,
+          id_unidad_medida,
+          cantidad_solicitada,
+          cantidad_producida,
+          fecha_limite,
+          estado_detalle,
+          unidad_detalle:unidad_medida (
+            codigo,
+            nombre
+          ),
+          producto (
+            codigo,
+            nombre,
+            unidad_medida (
+              codigo,
+              nombre
+            )
+          )
+        )
+      `)
       .eq("estado", "A")
       .order("fecha_orden", { ascending: false });
 
@@ -61,6 +70,22 @@ export default function Orders({ query }) {
     loadOrders();
   }, []);
 
+  const handleNewOrder = () => {
+    setSelectedOrder(null);
+    setSelectedDetail(null);
+    setOrderModalOpen(true);
+  };
+
+  const handleEditOrder = (order, detail) => {
+    setSelectedOrder(order);
+    setSelectedDetail(detail);
+    setOrderModalOpen(true);
+  };
+
+  const handleSaveOrder = async () => {
+    await loadOrders();
+  };
+
   const rows = orders
     .filter((order) => {
       if (!query) return true;
@@ -70,28 +95,57 @@ export default function Orders({ query }) {
         .includes(query.toLowerCase());
     })
     .flatMap((order) =>
-      (order.detalle_orden_produccion || []).map((detalle) => {
-        const producto = detalle.producto;
-        const unidad = detalle.unidad_detalle ?? producto?.unidad_medida;
+      (order.detalle_orden_produccion || []).map((detail) => {
+        const product = detail.producto;
+        const unit = detail.unidad_detalle ?? product?.unidad_medida;
+
+        const clickableCell = (content) => (
+          <button
+            type="button"
+            onClick={() => handleEditOrder(order, detail)}
+            title="Hacé clic para editar esta orden"
+            className="block w-full cursor-pointer text-left"
+          >
+            {content}
+          </button>
+        );
 
         return [
-          order.nro_orden,
-          producto
-            ? `${producto.codigo} · ${producto.nombre}`
-            : `Producto #${detalle.id_producto}`,
-          `${detalle.cantidad_solicitada} ${unidad?.codigo ?? ""}`.trim(),
-          detalle.fecha_limite
-            ? new Date(detalle.fecha_limite).toLocaleDateString("es-AR")
-            : "-",
-          getEstadoLabel(detalle.estado_detalle),
+          clickableCell(order.nro_orden),
+          clickableCell(
+            product
+              ? `${product.codigo} · ${product.nombre}`
+              : `Producto #${detail.id_producto}`
+          ),
+          clickableCell(
+            `${detail.cantidad_solicitada} ${unit?.codigo ?? ""}`.trim()
+          ),
+          clickableCell(
+            detail.fecha_limite
+              ? new Date(
+                `${detail.fecha_limite}T12:00:00`
+              ).toLocaleDateString("es-AR")
+              : "-"
+          ),
+          clickableCell(
+            <Badge
+              tone={
+                getEstadoLabel(detail.estado_detalle) === "Completado"
+                  ? "green"
+                  : getEstadoLabel(detail.estado_detalle) === "Pendiente"
+                    ? "amber"
+                    : getEstadoLabel(detail.estado_detalle) ===
+                      "En producción"
+                      ? "blue"
+                      : "red"
+              }
+            >
+              {getEstadoLabel(detail.estado_detalle)}
+            </Badge>
+          ),
         ];
       })
     );
-
-  const handleCreateOrder = async () => {
-    setOrderModalOpen(false);
-    await loadOrders();
-  };
 
   return (
     <>
@@ -100,14 +154,14 @@ export default function Orders({ query }) {
         title="Órdenes de producción"
         description="Seguimiento de las órdenes de producción y sus productos."
         action={
-          <ActionButton onClick={() => setOrderModalOpen(true)}>
+          <ActionButton onClick={handleNewOrder}>
             <Plus size={17} />
             Nueva orden
           </ActionButton>
         }
       />
 
-      <div className="mb-3.5 grid grid-cols-3 gap-3.5 max-[760px]:grid-cols-1 px-5.75 py-5">
+      <div className="mb-3.5 grid grid-cols-3 gap-3.5 px-5.75 py-5 max-[760px]:grid-cols-1">
         <div className="rounded-lg border border-[#e1e8ea] bg-white p-4.25 shadow-card">
           <span className="block text-[10px] text-[#819298]">
             Órdenes activas
@@ -190,25 +244,7 @@ export default function Orders({ query }) {
               "Estado",
             ]}
             rows={rows}
-            renderCell={(cell, j) =>
-              j === 4 ? (
-                <Badge
-                  tone={
-                    cell === "Completado"
-                      ? "green"
-                      : cell === "Pendiente"
-                        ? "amber"
-                        : cell === "En producción"
-                          ? "blue"
-                          : "red"
-                  }
-                >
-                  {cell}
-                </Badge>
-              ) : (
-                cell
-              )
-            }
+            renderCell={(cell) => cell}
           />
         )}
       </div>
@@ -216,7 +252,9 @@ export default function Orders({ query }) {
       <CreateOrderModal
         open={orderModalOpen}
         onOpenChange={setOrderModalOpen}
-        onCreate={handleCreateOrder}
+        onCreate={handleSaveOrder}
+        orden={selectedOrder}
+        detalle={selectedDetail}
       />
     </>
   );
@@ -226,16 +264,12 @@ function getEstadoLabel(estado) {
   switch (estado) {
     case "P":
       return "Pendiente";
-
     case "E":
       return "En producción";
-
     case "C":
       return "Completado";
-
     case "A":
       return "Activo";
-
     default:
       return estado || "Sin estado";
   }
