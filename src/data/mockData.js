@@ -5,7 +5,8 @@ import {
   Truck,
   ClipboardList,
   BarChart3,
-  ShieldCheck
+  ShieldCheck,
+  UsersRound
 } from "lucide-react";
 
 export const roleOptions = [
@@ -61,6 +62,7 @@ export const modules = [
   { id: "orders", label: "Pedidos", icon: ClipboardList },
   { id: "reports", label: "Reportes", icon: BarChart3 },
   { id: "it-admin", label: "IT / Sistemas", icon: ShieldCheck },
+  { id: "rrhh", label: "Recursos Humanos", icon: UsersRound },
 ];
 
 export const productionRows = [
@@ -160,13 +162,6 @@ export const dispatchRows = [
   ],
 ];
 
-// El resto de los roles sigue viendo todo el menú, salvo "it-admin".
-export function getModulesForRole(roleId) {
-  if (roleId === "it") {
-    return modules.filter((m) => m.id === "overview" || m.id === "it-admin");
-  }
-  return modules.filter((m) => m.id !== "it-admin");
-}
 
 // ── Datos mock del panel de IT ──────────────────────────────
 
@@ -213,3 +208,45 @@ export const clients = [
     name: "Distribuidora Norte",
   },
 ];
+
+const normalize = (s = "") =>
+  s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+const ROLE_MODULES = {
+  admin: ["overview", "it-admin", "rrhh"],
+  it: ["overview", "it-admin"],
+  rrhh: ["overview", "rrhh"],
+};
+
+export function getModulesForRole(roleId) {
+  const allowed = ROLE_MODULES[roleId];
+
+  if (allowed) {
+    return modules.filter((m) => allowed.includes(m.id));
+  }
+
+  return modules.filter(
+    (m) => m.id !== "it-admin" && m.id !== "rrhh"
+  );
+}
+
+export function resolveRole(rolNombre) {
+  const n = normalize(rolNombre);
+  let id = "admin";
+
+  if (/recursos|rrhh|humanos/.test(n)) {
+    id = "rrhh";
+  } else if (/\bit\b|sistemas/.test(n)) {
+    id = "it";
+  } else if (/produccion/.test(n)) {
+    id = "production";
+  } else if (/deposito|expedicion/.test(n)) {
+    id = "warehouse";
+  } else if (/extrusion|operario/.test(n)) {
+    id = "operator";
+  } else if (/clark/.test(n)) {
+    id = "forklift";
+  }
+
+  return roleOptions.find((r) => r.id === id);
+}

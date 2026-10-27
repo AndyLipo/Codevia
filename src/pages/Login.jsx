@@ -1,74 +1,11 @@
-import { useEffect, useState } from "react";
-import { ArrowUpRight } from "lucide-react";
-import { toast } from "sonner";
 
-import RoleGrid from "@/components/login/RoleGrid";
-import { supabase } from "@/lib/supabaseClient";
 import logo from "/logo-codevia1.png";
+import FormLogin from "@/components/login/FormLogin";
 
 export default function Login({
-  role,
-  setRole,
-  setLogged,
-  usuarioActual,
-  setUsuarioActual,
+  onLogin,
   onAnatomy,
 }) {
-  const [usuarios, setUsuarios] = useState([]);
-  const [loadingUsuarios, setLoadingUsuarios] = useState(true);
-  const [errorUsuarios, setErrorUsuarios] = useState("");
-
-  useEffect(() => {
-    let cancelado = false;
-
-    async function cargarUsuarios() {
-      setLoadingUsuarios(true);
-      setErrorUsuarios("");
-
-      const { data, error } = await supabase
-        .schema("usuarios")
-        .from("usuarios")
-        .select(
-          "id_usuario, nombre, apellido, dni, email, usuario_login, id_rol, estado"
-        )
-        .eq("estado", "A")
-        .order("nombre", { ascending: true });
-
-      if (cancelado) return;
-
-      if (error) {
-        console.error("Error al cargar usuarios:", error);
-        setErrorUsuarios(error.message);
-        setUsuarios([]);
-      } else {
-        setUsuarios(data ?? []);
-      }
-
-      setLoadingUsuarios(false);
-    }
-
-    cargarUsuarios();
-
-    return () => {
-      cancelado = true;
-    };
-  }, []);
-
-  const handleLogin = () => {
-    if (!usuarioActual) {
-      toast.error("Seleccioná el usuario que va a operar el sistema.");
-      return;
-    }
-
-    if (!usuarioActual.usuario_login) {
-      toast.error(
-        "El usuario seleccionado no tiene usuario_login configurado."
-      );
-      return;
-    }
-
-    setLogged(true);
-  };
 
   return (
     <div className="grid min-h-screen grid-cols-[1.08fr_0.92fr] bg-[#f4f6f7] max-[760px]:grid-cols-1">
@@ -153,10 +90,10 @@ export default function Login({
           </h2>
 
           <p className="mb-3.75 mt-2.25 text-xs text-[#829298]">
-            Seleccioná el usuario y el rol que querés utilizar en el prototipo.
+            Ingresaá tu usuario que querés utilizar.
           </p>
 
-          <div className="mb-4">
+          {/* <div className="mb-4">
             <label
               htmlFor="usuarioActual"
               className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#82979e]"
@@ -207,15 +144,14 @@ export default function Login({
                   No hay usuarios activos disponibles.
                 </p>
               )}
-          </div>
+          </div> */}
 
           <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#82979e]">
             Rol de la vista
           </div>
 
-          <RoleGrid role={role} setRole={setRole} />
-
-          <button
+          <FormLogin onLogin={onLogin} />
+          {/* <button
             type="button"
             disabled={
               loadingUsuarios ||
@@ -226,7 +162,7 @@ export default function Login({
             className="flex w-full cursor-pointer items-center justify-center gap-1.75 rounded-md bg-brand py-2.5 text-[11px] font-bold text-white shadow-[0_4px_10px_rgba(20,92,115,0.16)] transition-all hover:-translate-y-px hover:bg-brand-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Entrar al puesto <ArrowUpRight size={18} />
-          </button>
+          </button> */}
 
           {onAnatomy && (
             <button
