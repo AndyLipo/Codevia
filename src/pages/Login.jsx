@@ -89,7 +89,7 @@ export default function Login({
           </h2>
 
           <p className="mb-3.75 mt-2.25 text-xs text-[#829298]">
-            Ingresaá tu usuario que querés utilizar.
+            Ingresá tu usuario que querés utilizar.
           </p>
 
           {/* <div className="mb-4">

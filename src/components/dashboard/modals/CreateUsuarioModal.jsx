@@ -585,11 +585,10 @@ export default function CreateUsuarioModal({
                                                 email: val,
                                             }));
                                         }}
-                                        className={`h-9 bg-white text-[11px] text-ink-soft ${
-                                            emailConflictUser
-                                                ? "border-[#ba584d] focus-visible:ring-[#ba584d]"
-                                                : "border-[#dfe7e9]"
-                                        }`}
+                                        className={`h-9 bg-white text-[11px] text-ink-soft ${emailConflictUser
+                                            ? "border-[#ba584d] focus-visible:ring-[#ba584d]"
+                                            : "border-[#dfe7e9]"
+                                            }`}
                                         required
                                     />
 
