@@ -1,21 +1,55 @@
+import { useEffect, useState } from "react";
 import {
   Bell,
-  ChevronDown,
   Menu,
   Search,
 } from "lucide-react";
 
-import { modules, roleOptions } from "@/data/mockData";
+import { modules } from "@/data/mockData";
+import { useAuth } from "@/context/AuthContext";
+
+const pad2 = (n) => String(n).padStart(2, "0");
+
+const formatLiveDateTime = (date) => {
+  const day = pad2(date.getDate());
+  const month = pad2(date.getMonth() + 1);
+  const year = date.getFullYear();
+  const hours = pad2(date.getHours());
+  const minutes = pad2(date.getMinutes());
+  return `${day}-${month}-${year} ${hours}:${minutes}hs`;
+};
 
 export default function Topbar({
   active,
   role,
-  setRole,
   setMobileOpen,
   setQuery,
   fakeAction,
 }) {
-  const currentModule = modules.find((m) => m.id === active);
+  const { user } = useAuth();
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(new Date());
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const currentModule =
+    active === "it-params-roles"
+      ? { label: "IT / Sistemas · Parámetros · Roles" }
+      : modules.find((m) => m.id === active);
+
+  const initials = user
+    ? `${user.nombre?.trim()?.[0] ?? ""}${user.apellido?.trim()?.[0] ?? ""}`.toUpperCase()
+    : role?.initials ?? "";
+
+  const fullName = user
+    ? `${user.nombre?.trim() ?? ""} ${user.apellido?.trim() ?? ""}`.trim()
+    : "";
+
+  const rolLabel = user?.rol_nombre?.trim() || role?.label || "";
 
   return (
     <header className="sticky top-0 z-10 flex h-18 items-center justify-between border-b border-[#dfe7e9] bg-white px-4 lg:px-8.5">
@@ -69,40 +103,29 @@ export default function Topbar({
           <i className="absolute right-1.5 top-1.25 h-1.25 w-1.25 rounded-full bg-amber" />
         </button>
 
-        {/* Selector de rol */}
-        <div className="flex items-center gap-1.75 border-l border-[#e6ecee] pl-3.5">
+        {/* Info del usuario en sesión + fecha y hora en vivo */}
+        <div className="flex items-center gap-2.5 border-l border-[#e6ecee] pl-3.5">
 
-          {/* Avatar */}
-          <div className="grid h-7 w-7 place-items-center rounded-full bg-brand font-barlow text-[11px] font-bold text-white">
-            {role?.initials ?? "AL"}
+          {/* 1. Iniciales Nombre + Apellido */}
+          <div className="grid h-8.5 w-8.5 shrink-0 place-items-center rounded-full bg-brand font-barlow text-[12px] font-bold text-white">
+            {initials}
           </div>
 
-          {/* Selector — solo desktop */}
-          <div className="relative hidden items-center lg:flex">
-            <select
-              value={role?.id ?? ""}
-              onChange={(e) => {
-                const selectedRole = roleOptions.find(
-                  (r) => r.id === e.target.value
-                );
+          <div className="hidden leading-tight sm:block">
+            {/* 2. Nombre y apellido */}
+            <div className="text-[11px] font-bold text-[#214451]">
+              {fullName}
+            </div>
 
-                if (selectedRole) {
-                  setRole(selectedRole);
-                }
-              }}
-              className="max-w-37.5 appearance-none border-0 bg-transparent pr-5 text-[11px] font-semibold text-[#49636c] outline-none cursor-pointer"
-            >
-              {roleOptions.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
+            {/* 3. Rol */}
+            <div className="text-[10px] font-medium capitalize text-[#49636c]">
+              {rolLabel}
+            </div>
 
-            <ChevronDown
-              size={14}
-              className="pointer-events-none absolute right-0 text-[#67808a]"
-            />
+            {/* 4. Fecha y hora en vivo DD-MM-AAAA HH:MMhs */}
+            <div className="font-mono text-[9.5px] text-[#82979e]">
+              {formatLiveDateTime(now)}
+            </div>
           </div>
         </div>
       </div>

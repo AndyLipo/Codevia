@@ -218,23 +218,51 @@ const ROLE_MODULES = {
   rrhh: ["overview", "rrhh"],
 };
 
-export function getModulesForRole(roleId) {
+// Roles de base de datos con acceso al modulo IT / Sistemas (usuarios.roles.id_rol)
+//   1 = administrador (acceso total), 7 = sistemas (administracion y mantenimiento)
+export const IT_ADMIN_ROLE_IDS = [1, 7];
+
+// Roles de base de datos con acceso a Recursos Humanos (usuarios.roles.id_rol)
+//   1 = administrador, 11 y 15 = roles habilitados para RRHH
+export const RRHH_ROLE_IDS = [1, 11, 15];
+
+export const canAccessITAdmin = (idRol) => IT_ADMIN_ROLE_IDS.includes(Number(idRol));
+export const canAccessRRHH = (idRol) => RRHH_ROLE_IDS.includes(Number(idRol));
+
+export function getModulesForRole(roleId, idRol) {
   const allowed = ROLE_MODULES[roleId];
 
-  if (allowed) {
-    return modules.filter((m) => allowed.includes(m.id));
+  const base = allowed
+    ? modules.filter((m) => allowed.includes(m.id))
+    : modules.filter((m) => m.id !== "it-admin" && m.id !== "rrhh");
+
+  const withRoleModules = [...base];
+  if (canAccessITAdmin(idRol) && !withRoleModules.some((m) => m.id === "it-admin")) {
+    const itMod = modules.find((m) => m.id === "it-admin");
+    if (itMod) withRoleModules.push(itMod);
+  }
+  if (canAccessRRHH(idRol) && !withRoleModules.some((m) => m.id === "rrhh")) {
+    const rrhhMod = modules.find((m) => m.id === "rrhh");
+    if (rrhhMod) withRoleModules.push(rrhhMod);
   }
 
-  return modules.filter(
-    (m) => m.id !== "it-admin" && m.id !== "rrhh"
-  );
+  // IT / Sistemas solo para id_rol 1 y 7; Recursos Humanos solo para id_rol 1, 11 y 15
+  return withRoleModules.filter((m) => {
+    if (m.id === "it-admin") return canAccessITAdmin(idRol);
+    if (m.id === "rrhh") return canAccessRRHH(idRol);
+    return true;
+  });
 }
 
-export function resolveRole(rolNombre) {
+export function resolveRole(rolNombre, idRol) {
   const n = normalize(rolNombre);
   let id = "admin";
 
-  if (/recursos|rrhh|humanos/.test(n)) {
+  if (Number(idRol) === 7) {
+    id = "it";
+  } else if (Number(idRol) === 1) {
+    id = "admin";
+  } else if (Number(idRol) === 11 || Number(idRol) === 15 || /recursos|rrhh|humanos/.test(n)) {
     id = "rrhh";
   } else if (/\bit\b|sistemas/.test(n)) {
     id = "it";
@@ -248,5 +276,5 @@ export function resolveRole(rolNombre) {
     id = "forklift";
   }
 
-  return roleOptions.find((r) => r.id === id);
+  return roleOptions.find((r) => r.id === id) ?? roleOptions[0];
 }

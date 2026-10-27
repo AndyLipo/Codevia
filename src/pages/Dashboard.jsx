@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { useAuth } from "@/context/AuthContext";
+import { canAccessITAdmin, canAccessRRHH } from "@/data/mockData";
 import AppShell from "@/components/layout/AppShell";
+import SectionTitle from "@/components/common/SectionTitle";
 
 import Overview from "@/components/dashboard/Overview";
 import Production from "@/components/dashboard/Production";
@@ -10,16 +13,11 @@ import Dispatch from "@/components/dashboard/Dispatch";
 import Orders from "@/components/dashboard/Orders";
 import Reports from "@/components/dashboard/Reports";
 import ITAdmin from "@/components/dashboard/itadmin/ITAdmin";
+import RolesParams from "@/components/dashboard/itadmin/RolesParams";
 import RRHH from "@/components/dashboard/RRHH";
 
-export default function Dashboard({
-  role,
-  setRole,
-  setLogged,
-  user,
-  loginPassword,
-
-}) {
+export default function Dashboard() {
+  const { user, role, logout } = useAuth();
   const [active, setActive] = useState("overview");
   const [query, setQuery] = useState("");
 
@@ -48,7 +46,7 @@ export default function Dashboard({
         return (
           <Warehouse
             fakeAction={fakeAction}
-            usuarioActual={usuarioActual}
+            usuarioActual={user}
           />
         );
 
@@ -67,12 +65,30 @@ export default function Dashboard({
         return <Reports />;
 
       case "it-admin":
-        return <ITAdmin
-          user={user}
-          loginPassword={loginPassword}
-        />;
+        if (!canAccessITAdmin(user?.id_rol)) {
+          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+        }
+        return <ITAdmin fakeAction={fakeAction} />;
+
+      case "it-params-roles":
+        if (!canAccessITAdmin(user?.id_rol)) {
+          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+        }
+        return (
+          <>
+            <SectionTitle
+              eyebrow="07 · IT / SISTEMAS · PARÁMETROS"
+              title="Administración de roles"
+              description="Creación, edición y gestión del estado de los roles del sistema."
+            />
+            <RolesParams fakeAction={fakeAction} />
+          </>
+        );
 
       case "rrhh":
+        if (!canAccessRRHH(user?.id_rol)) {
+          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+        }
         return <RRHH fakeAction={fakeAction} />;
 
       default:
@@ -90,8 +106,7 @@ export default function Dashboard({
       active={active}
       navigate={navigate}
       role={role}
-      setRole={setRole}
-      setLogged={setLogged}
+      setLogged={logout}
       fakeAction={fakeAction}
       setQuery={setQuery}
     >

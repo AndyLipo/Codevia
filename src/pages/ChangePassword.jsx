@@ -2,12 +2,14 @@ import { useState } from "react";
 import { KeyRound } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/context/AuthContext";
 
 const labelCls = "text-[10px] font-bold uppercase tracking-widest text-muted-ink";
 const inputCls = "h-10 border-[#dfe7e9] bg-white text-[12px] text-ink-soft";
 
-export default function ChangePassword({ user, currentPassword, onDone, onCancel }) {
+export default function ChangePassword() {
+    const { user, changePassword, logout } = useAuth();
+    const [actual, setActual] = useState("");
     const [nueva, setNueva] = useState("");
     const [repetir, setRepetir] = useState("");
     const [error, setError] = useState("");
@@ -19,22 +21,14 @@ export default function ChangePassword({ user, currentPassword, onDone, onCancel
 
         if (nueva.length < 8) return setError("La contraseña debe tener al menos 8 caracteres.");
         if (nueva !== repetir) return setError("Las contraseñas no coinciden.");
-        if (nueva === currentPassword) return setError("La nueva contraseña debe ser distinta de la actual.");
+        if (nueva === actual) return setError("La nueva contraseña debe ser distinta de la actual.");
 
         setLoading(true);
-        const { data, error: rpcError } = await supabase
-            .schema("usuarios")
-            .rpc("cambiar_password", {
-                p_email: user.email,
-                p_password_actual: currentPassword,
-                p_password_nueva: nueva,
-            });
+        // Al guardar, el servidor pone debe_cambiar_password = false y la app pasa sola al Dashboard.
+        const result = await changePassword(actual, nueva);
         setLoading(false);
 
-        if (rpcError) return setError(rpcError.message);
-        if (!data) return setError("No se pudo actualizar la contraseña.");
-
-        onDone();
+        if (!result.ok) setError(result.message);
     };
 
     return (
@@ -52,6 +46,18 @@ export default function ChangePassword({ user, currentPassword, onDone, onCancel
                     <p className="mt-1 text-[12px] text-[#829298]">
                         Hola {user.nombre}. Por seguridad, antes de entrar tenés que reemplazar la contraseña inicial.
                     </p>
+                </div>
+
+                <div className="space-y-2">
+                    <Label className={labelCls}>Contraseña actual</Label>
+                    <Input
+                        type="password"
+                        value={actual}
+                        onChange={(e) => setActual(e.target.value)}
+                        autoComplete="current-password"
+                        className={inputCls}
+                        required
+                    />
                 </div>
 
                 <div className="space-y-2">
@@ -85,13 +91,13 @@ export default function ChangePassword({ user, currentPassword, onDone, onCancel
 
                 <button
                     type="submit"
-                    disabled={loading || !nueva || !repetir}
+                    disabled={loading || !actual || !nueva || !repetir}
                     className="w-full rounded-md bg-brand py-2.5 text-[11px] font-bold text-white transition-all hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {loading ? "Guardando..." : "Guardar y entrar"}
                 </button>
 
-                <button type="button" onClick={onCancel} className="w-full text-[11px] text-[#829298] hover:text-brand">
+                <button type="button" onClick={logout} className="w-full text-[11px] text-[#829298] hover:text-brand">
                     Cancelar
                 </button>
             </form>

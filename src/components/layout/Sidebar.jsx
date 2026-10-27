@@ -1,11 +1,15 @@
+import { useState } from "react";
 import {
   X,
   AlertTriangle,
+  ChevronDown,
   LogOut,
   Settings,
+  SlidersHorizontal,
 } from "lucide-react";
 import { getModulesForRole } from "@/data/mockData";
-import logo from '/logo-final.jpg'
+import logo from "/logo-final.jpg";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Sidebar({
   active,
@@ -16,7 +20,17 @@ export default function Sidebar({
   setLogged,
   fakeAction,
 }) {
-  const navItems = getModulesForRole(role?.id);
+  const { user } = useAuth();
+  const fullName = user ? `${user.nombre} ${user.apellido}`.trim() : "";
+  const initials = user
+    ? `${user.nombre?.[0] ?? ""}${user.apellido?.[0] ?? ""}`.toUpperCase()
+    : "";
+  const navItems = getModulesForRole(role?.id, user?.id_rol);
+
+  const [paramsOpen, setParamsOpen] = useState(true);
+
+  const isItSectionActive =
+    active === "it-admin" || active === "it-params-roles";
 
   return (
     <>
@@ -29,14 +43,18 @@ export default function Sidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-20 flex w-62 flex-col border-r border-[#dbe3e6] bg-white px-3.75 pb-4 pt-6.25 transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed inset-y-0 left-0 z-20 flex w-62 flex-col border-r border-[#dbe3e6] bg-white px-3.75 pb-4 pt-6.25 transition-transform duration-200 lg:translate-x-0 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         {/* Brand */}
         <div className="relative flex items-center gap-2.5 px-2.5 pb-6.25">
           <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-soft">
-            <img src={logo} className="h-6 w-6 object-contain" alt="logo de la empresa" />
-            {/* <SparkleIcon className="h-6 w-6 object-contain" /> */}
+            <img
+              src={logo}
+              className="h-6 w-6 object-contain"
+              alt="logo de la empresa"
+            />
           </div>
 
           <div>
@@ -63,27 +81,74 @@ export default function Sidebar({
         <nav className="flex flex-col gap-1 pt-4.25">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = active === item.id;
+            const isItItem = item.id === "it-admin";
+            const isActive = isItItem
+              ? active === "it-admin"
+              : active === item.id;
 
             return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => navigate(item.id)}
-                className={`flex w-full items-center gap-2.75 rounded-[7px] border-0 px-3 py-2.75 text-left text-[15px] transition-all duration-150 cursor-pointer ${isActive
-                  ? "bg-brand-soft font-semibold text-brand shadow-[inset_3px_0_0_#145c73]"
-                  : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+              <div key={item.id}>
+                <button
+                  type="button"
+                  onClick={() => navigate(item.id)}
+                  className={`flex w-full items-center gap-2.75 rounded-[7px] border-0 px-3 py-2.75 text-left text-[15px] transition-all duration-150 cursor-pointer ${
+                    isActive
+                      ? "bg-brand-soft font-semibold text-brand shadow-[inset_3px_0_0_#145c73]"
+                      : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
                   }`}
-              >
-                <Icon size={16} strokeWidth={1.8} />
-                <span className="flex-1">{item.label}</span>
+                >
+                  <Icon size={16} strokeWidth={1.8} />
+                  <span className="flex-1">{item.label}</span>
 
-                {item.id === "warehouse" && (
-                  <em className="rounded-full bg-[#fff0d7] px-1.5 py-0.5 text-[10px] font-semibold not-italic text-[#b87318]">
-                    2
-                  </em>
+                  {item.id === "warehouse" && (
+                    <em className="rounded-full bg-[#fff0d7] px-1.5 py-0.5 text-[10px] font-semibold not-italic text-[#b87318]">
+                      2
+                    </em>
+                  )}
+                </button>
+
+                {/* Submenú de IT / Sistemas: Parámetros -> Roles (visible para id_rol 1 y 7) */}
+                {isItItem && (
+                  <div className="mt-1 ml-4 border-l border-[#dfe7e9] pl-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setParamsOpen((p) => !p)}
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-[6px] border-0 px-2.5 py-1.5 text-left text-[12px] font-medium transition-colors ${
+                        isItSectionActive
+                          ? "text-[#214451]"
+                          : "text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <SlidersHorizontal size={13} />
+                        <span>Parámetros</span>
+                      </span>
+                      <ChevronDown
+                        size={13}
+                        className={`transition-transform ${
+                          paramsOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {paramsOpen && (
+                      <div className="mt-0.5 ml-3 flex flex-col gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => navigate("it-params-roles")}
+                          className={`flex w-full cursor-pointer items-center rounded-[6px] border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${
+                            active === "it-params-roles"
+                              ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
+                              : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                          }`}
+                        >
+                          Roles
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
-              </button>
+              </div>
             );
           })}
         </nav>
@@ -92,13 +157,19 @@ export default function Sidebar({
         <div className="mt-auto">
           <button
             type="button"
-            onClick={() => fakeAction?.("Hay 3 excepciones que requieren atención")}
+            onClick={() =>
+              fakeAction?.("Hay 3 excepciones que requieren atención")
+            }
             className="flex w-full cursor-pointer items-center gap-2.25 rounded-[7px] border border-[#f6e2bc] bg-[#fff7e9] px-2.5 py-2.75 text-left"
           >
             <AlertTriangle size={16} className="shrink-0 text-[#b5741c]" />
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <strong className="text-[11px] text-[#8a5812]">3 alertas críticas</strong>
-              <span className="text-[10px] text-[#b89054]">Requieren atención hoy</span>
+              <strong className="text-[11px] text-[#8a5812]">
+                3 alertas críticas
+              </strong>
+              <span className="text-[10px] text-[#b89054]">
+                Requieren atención hoy
+              </span>
             </div>
           </button>
 
@@ -113,14 +184,14 @@ export default function Sidebar({
 
           <div className="mt-3.75 flex items-center gap-2.25 border-t border-[#e4eaec] px-2 pt-3.75">
             <div className="grid h-7.75 w-7.75 shrink-0 place-items-center rounded-full bg-brand font-barlow text-[12px] font-bold text-white">
-              AL
+              {initials}
             </div>
             <div className="min-w-0 flex-1">
               <strong className="block overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-[#35535d]">
-                Andrés Liporace
+                {fullName}
               </strong>
               <span className="mt-0.5 block overflow-hidden text-ellipsis whitespace-nowrap text-[9px] text-[#8b9ba0]">
-                {role?.label || "Administrador"}
+                {user?.rol_nombre || role?.label || "Administrador"}
               </span>
             </div>
             <button

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { resolveRole, roleOptions } from "@/data/mockData";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
@@ -10,66 +10,24 @@ import Anatomy from "@/pages/Anatomy";
 import Front from "@/components/dashboard/Front";
 import ChangePassword from "@/pages/ChangePassword";
 
-function App() {
-  const [logged, setLogged] = useState(false);
-  const [role, setRole] = useState(roleOptions[0]);
+// Rutas que se pueden ver sin sesión
+const PUBLIC_PATHS = ["/", "/anatomy"];
+
+function AppContent() {
+  const { isAuthenticated, checking, user } = useAuth();
   const [showAnatomy, setShowAnatomy] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [pendingUser, setPendingUser] = useState(null);
-  const [tempPassword, setTempPassword] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
 
-  const completeLogin = (user, password) => {
-    setCurrentUser(user);
-    setLoginPassword(password);
-    setRole(resolveRole(user.rol_nombre));
-    setLogged(true);
-  };
+  const path = window.location.pathname;
 
-  const handleLogin = (user, password) => {
-    if (user.debe_cambiar_password) {
-      setPendingUser(user);
-      setTempPassword(password);
-      return;
-    }
+  // Mientras se valida la sesión guardada (F5) no se muestra nada.
+  if (checking) return null;
 
-    completeLogin(user, password);
-  };
-
-  const handlePasswordChanged = () => {
-    completeLogin(
-      {
-        ...pendingUser,
-        debe_cambiar_password: false,
-      },
-      tempPassword
-    );
-
-    setPendingUser(null);
-    setTempPassword("");
-  };
-
-  const cancelPasswordChange = () => {
-    setPendingUser(null);
-    setTempPassword("");
-  };
-
-  const handleLogout = () => {
-    setCurrentUser(null);
-    setLoginPassword("");
-    setTempPassword("");
-    setPendingUser(null);
-    setLogged(false);
-  };
-
-  if (window.location.pathname === "/productos") {
-    return <Front />;
+  // Sin sesión, cualquier ruta protegida redirige al login sin renderizar su contenido.
+  if (!isAuthenticated && !PUBLIC_PATHS.includes(path)) {
+    window.history.replaceState({}, "", "/");
   }
 
-  if (
-    window.location.pathname === "/anatomy" ||
-    showAnatomy
-  ) {
+  if (path === "/anatomy" || showAnatomy) {
     return (
       <Anatomy
         onBack={() => {
@@ -80,32 +38,30 @@ function App() {
     );
   }
 
+  if (isAuthenticated && path === "/productos") {
+    return <Front />;
+  }
+
   return (
     <TooltipProvider>
-      {pendingUser ? (
-        <ChangePassword
-          user={pendingUser}
-          currentPassword={tempPassword}
-          onDone={handlePasswordChanged}
-          onCancel={cancelPasswordChange}
-        />
-      ) : !logged ? (
-        <Login
-          onLogin={handleLogin}
-          onAnatomy={() => setShowAnatomy(true)}
-        />
+      {!isAuthenticated ? (
+        <Login onAnatomy={() => setShowAnatomy(true)} />
+      ) : user.debe_cambiar_password ? (
+        <ChangePassword />
       ) : (
-        <Dashboard
-          role={role}
-          setRole={setRole}
-          setLogged={handleLogout}
-          user={currentUser}
-          loginPassword={loginPassword}
-        />
+        <Dashboard />
       )}
 
       <Toaster richColors position="top-right" />
     </TooltipProvider>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

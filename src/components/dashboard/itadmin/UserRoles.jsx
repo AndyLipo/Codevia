@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -8,23 +7,24 @@ import Badge from "@/components/common/Badge";
 import ActionButton from "@/components/common/ActionButton";
 import CreateUsuarioModal from "../modals/CreateUsuarioModal";
 import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/context/AuthContext";
 
-export default function UsersRoles({
-    fakeAction,
-    user,
-    loginPassword,
-}) {
+const ESTADO_META = {
+    A: { label: "Activo", tone: "green" },
+    I: { label: "Inactivo", tone: "slate" },
+    E: { label: "Eliminado", tone: "red" },
+};
+
+export default function UsersRoles({ fakeAction }) {
+    const { token } = useAuth();
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
 
-
-    const userEmail = user?.email;
-
     const fetchUsers = useCallback(async () => {
-        if (!userEmail || !loginPassword) {
+        if (!token) {
             setUsers([]);
             setLoading(false);
             return;
@@ -36,8 +36,7 @@ export default function UsersRoles({
             const { data, error } = await supabase
                 .schema("usuarios")
                 .rpc("listar_usuarios_autorizados", {
-                    p_email: userEmail,
-                    p_password: loginPassword,
+                    p_token: token,
                 });
 
             if (error) {
@@ -55,12 +54,11 @@ export default function UsersRoles({
         } finally {
             setLoading(false);
         }
-    }, [userEmail, loginPassword]);
+    }, [token]);
 
     useEffect(() => {
         fetchUsers();
     }, [fetchUsers]);
-
 
     const handleNewUser = () => {
         setSelectedUser(null);
@@ -74,26 +72,27 @@ export default function UsersRoles({
 
     const handleSaveUser = async () => {
         await fetchUsers();
-
-        if (selectedUser) {
-            toast.success("Usuario actualizado correctamente");
-        } else {
-            toast.success("Usuario creado correctamente");
+        if (!selectedUser) {
             fakeAction?.("Usuario creado correctamente");
         }
-
         setModalOpen(false);
         setSelectedUser(null);
     };
 
     const filteredUsers = users.filter((item) => {
+        const estadoInfo = ESTADO_META[item.estado] ?? ESTADO_META.I;
+        const userLogin =
+            item.usuario_login || (item.dni ? `BP${item.dni}` : "");
+
         const value = [
+            userLogin,
             item.nombre,
             item.apellido,
             item.email,
             item.dni,
             item.rol_nombre,
             item.estado,
+            estadoInfo.label,
         ]
             .filter(Boolean)
             .join(" ")
@@ -103,6 +102,13 @@ export default function UsersRoles({
     });
 
     const rows = filteredUsers.map((item) => {
+        const estadoInfo = ESTADO_META[item.estado] ?? {
+            label: item.estado || "Inactivo",
+            tone: "slate",
+        };
+        const userLogin =
+            item.usuario_login || (item.dni ? `BP${item.dni}` : "—");
+
         const clickableCell = (content) => (
             <button
                 type="button"
@@ -116,6 +122,11 @@ export default function UsersRoles({
 
         return [
             clickableCell(
+                <span className="font-mono text-[11px] font-semibold text-[#145c73]">
+                    {userLogin}
+                </span>
+            ),
+            clickableCell(
                 <span className="font-medium text-[#214451]">
                     {item.nombre} {item.apellido}
                 </span>
@@ -123,8 +134,8 @@ export default function UsersRoles({
             clickableCell(item.email || "—"),
             clickableCell(item.rol_nombre || "—"),
             clickableCell(
-                <Badge tone={item.estado === "A" ? "green" : "slate"}>
-                    {item.estado === "A" ? "Activo" : "Inactivo"}
+                <Badge tone={estadoInfo.tone}>
+                    {estadoInfo.label}
                 </Badge>
             ),
         ];
@@ -180,7 +191,7 @@ export default function UsersRoles({
                     </p>
                 ) : (
                     <Table
-                        headers={["Nombre", "Email", "Rol", "Estado"]}
+                        headers={["Usuario", "Nombre", "Email", "Rol", "Estado"]}
                         rows={rows}
                         renderCell={(cell) => cell}
                     />
@@ -198,8 +209,7 @@ export default function UsersRoles({
                 }}
                 onCreate={handleSaveUser}
                 usuario={selectedUser}
-                user={user}
-                loginPassword={loginPassword}
+                existingUsers={users}
             />
         </>
     );

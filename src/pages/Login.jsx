@@ -3,7 +3,6 @@ import logo from "/logo-codevia1.png";
 import FormLogin from "@/components/login/FormLogin";
 
 export default function Login({
-  onLogin,
   onAnatomy,
 }) {
 
@@ -150,7 +149,7 @@ export default function Login({
             Rol de la vista
           </div>
 
-          <FormLogin onLogin={onLogin} />
+          <FormLogin />
           {/* <button
             type="button"
             disabled={
