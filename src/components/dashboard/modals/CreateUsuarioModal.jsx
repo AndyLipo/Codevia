@@ -44,6 +44,8 @@ export default function CreateUsuarioModal({
     onOpenChange,
     onCreate,
     usuario,
+    user,
+    loginPassword,
 }) {
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -53,17 +55,25 @@ export default function CreateUsuarioModal({
         if (!open) return;
 
         const loadModalData = async () => {
+            if (!user?.email || !loginPassword) {
+                toast.error("No se pudieron validar tus credenciales.");
+                return;
+            }
+
             const { data, error } = await supabase
                 .schema("usuarios")
-                .from("roles")
-                .select("id_rol, nombre");
+                .rpc("listar_roles_autorizados", {
+                    p_email: user.email,
+                    p_password: loginPassword,
+                });
 
             if (error) {
-                console.error("Error al traer roles:", error.message);
-                toast.error("No se pudieron cargar los roles");
-            } else {
-                setRoles(data || []);
+                console.error("Error al traer roles:", error);
+                toast.error("No se pudieron cargar los roles autorizados");
+                return;
             }
+
+            setRoles(data ?? []);
         };
 
         loadModalData();
@@ -88,55 +98,47 @@ export default function CreateUsuarioModal({
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!user?.email || !loginPassword) {
+            toast.error("No se pudieron validar tus credenciales.");
+            return;
+        }
+
         setLoading(true);
 
         try {
-            let error;
+            const datos = {
+                p_email_actor: user.email,
+                p_password_actor: loginPassword,
+                p_nombre: form.nombre.trim(),
+                p_apellido: form.apellido.trim(),
+                p_dni: form.dni.trim(),
+                p_email: form.email.trim(),
+                p_id_rol: Number(form.rolId),
+                p_estado: form.estado,
+            };
 
-            if (usuario) {
-                // Actualizar el usuario seleccionado.
-                const result = await supabase
+            const { data, error } = usuario
+                ? await supabase
                     .schema("usuarios")
-                    .from("usuarios")
-                    .update({
-                        nombre: form.nombre.trim(),
-                        apellido: form.apellido.trim(),
-                        dni: form.dni.trim(),
-                        email: form.email.trim(),
-                        id_rol: Number(form.rolId),
-                        estado: form.estado,
-                        usuario_login: `BP${form.dni.trim()}`,
+                    .rpc("actualizar_usuario_autorizado", {
+                        ...datos,
+                        p_id_usuario: usuario.id_usuario,
                     })
-                    .eq("id_usuario", usuario.id_usuario);
-
-                error = result.error;
-            } else {
-                // Crear un usuario nuevo.
-                const result = await supabase
+                : await supabase
                     .schema("usuarios")
-                    .from("usuarios")
-                    .insert({
-                        nombre: form.nombre.trim(),
-                        apellido: form.apellido.trim(),
-                        dni: form.dni.trim(),
-                        email: form.email.trim(),
-                        id_rol: Number(form.rolId),
-                        estado: form.estado,
-                        usuario_login: `BP${form.dni.trim()}`,
-                        password_hash: "$2b$12$ejemplo_hash_de_prueba",
-                        usu_alta: "BP30000000",
-                    });
-
-                error = result.error;
-            }
+                    .rpc("crear_usuario_autorizado", datos);
 
             if (error) {
-                console.error("Error al guardar usuario:", error.message);
+                console.error("Error al guardar usuario:", error);
                 toast.error(
-                    usuario
-                        ? "No se pudo actualizar el usuario"
-                        : "No se pudo crear el usuario"
+                    error.message || "No se pudo guardar el usuario"
                 );
+                return;
+            }
+
+            if (data === false || data == null) {
+                toast.error("No se pudo confirmar la operación.");
                 return;
             }
 

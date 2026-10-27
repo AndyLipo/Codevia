@@ -12,7 +12,8 @@ const tabs = [
     { id: "audit", label: "Auditoría" },
 ];
 
-export default function ITAdmin({ fakeAction }) {
+export default function ITAdmin({ fakeAction, user,
+    loginPassword, }) {
     const [tab, setTab] = useState("users");
 
     return (
@@ -38,7 +39,8 @@ export default function ITAdmin({ fakeAction }) {
                 ))}
             </div>
 
-            {tab === "users" && <UserRoles fakeAction={fakeAction} />}
+            {tab === "users" && <UserRoles fakeAction={fakeAction} user={user}
+                loginPassword={loginPassword} />}
             {tab === "config" && <SystemConfig fakeAction={fakeAction} />}
             {tab === "audit" && <AuditLog />}
             {/* {tab === "integrations" && <Integrations fakeAction={fakeAction} />} */}

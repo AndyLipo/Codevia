@@ -10,12 +10,15 @@ import Dispatch from "@/components/dashboard/Dispatch";
 import Orders from "@/components/dashboard/Orders";
 import Reports from "@/components/dashboard/Reports";
 import ITAdmin from "@/components/dashboard/itadmin/ITAdmin";
+import RRHH from "@/components/dashboard/RRHH";
 
 export default function Dashboard({
   role,
   setRole,
   setLogged,
-  usuarioActual,
+  user,
+  loginPassword,
+
 }) {
   const [active, setActive] = useState("overview");
   const [query, setQuery] = useState("");
@@ -64,7 +67,13 @@ export default function Dashboard({
         return <Reports />;
 
       case "it-admin":
-        return <ITAdmin />;
+        return <ITAdmin
+          user={user}
+          loginPassword={loginPassword}
+        />;
+
+      case "rrhh":
+        return <RRHH fakeAction={fakeAction} />;
 
       default:
         return (
