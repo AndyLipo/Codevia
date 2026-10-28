@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   X,
-  AlertTriangle,
   ChevronDown,
   LogOut,
   Settings,
@@ -25,12 +24,18 @@ export default function Sidebar({
   const initials = user
     ? `${user.nombre?.[0] ?? ""}${user.apellido?.[0] ?? ""}`.toUpperCase()
     : "";
-  const navItems = getModulesForRole(role?.id, user?.id_rol);
+  const navItems = getModulesForRole(
+    role?.id,
+    user?.id_rol,
+    user?.rol_modulos
+  );
 
   const [paramsOpen, setParamsOpen] = useState(true);
 
   const isItSectionActive =
-    active === "it-admin" || active === "it-params-roles";
+    active === "it-admin" ||
+    active === "it-params-roles" ||
+    active === "it-params-permisos";
 
   return (
     <>
@@ -43,8 +48,9 @@ export default function Sidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-20 flex w-62 flex-col border-r border-[#dbe3e6] bg-white px-3.75 pb-4 pt-6.25 transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed inset-y-0 left-0 z-20 flex w-62 flex-col border-r border-[#dbe3e6] bg-white px-3.75 pb-4 pt-6.25 transition-transform duration-200 lg:translate-x-0 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         {/* Brand */}
         <div className="relative flex items-center gap-2.5 px-2.5 pb-6.25">
@@ -90,10 +96,11 @@ export default function Sidebar({
                 <button
                   type="button"
                   onClick={() => navigate(item.id)}
-                  className={`flex w-full items-center gap-2.75 rounded-[7px] border-0 px-3 py-2.75 text-left text-[15px] transition-all duration-150 cursor-pointer ${isActive
+                  className={`flex w-full items-center gap-2.75 rounded-[7px] border-0 px-3 py-2.75 text-left text-[15px] transition-all duration-150 cursor-pointer ${
+                    isActive
                       ? "bg-brand-soft font-semibold text-brand shadow-[inset_3px_0_0_#145c73]"
                       : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
-                    }`}
+                  }`}
                 >
                   <Icon size={16} strokeWidth={1.8} />
                   <span className="flex-1">{item.label}</span>
@@ -105,16 +112,17 @@ export default function Sidebar({
                   )}
                 </button>
 
-                {/* Submenú de IT / Sistemas: Parámetros -> Roles (visible para id_rol 1 y 7) */}
+                {/* Submenú de IT / Sistemas: Parámetros -> Roles / Permisos */}
                 {isItItem && (
                   <div className="mt-1 ml-4 border-l border-[#dfe7e9] pl-2.5">
                     <button
                       type="button"
                       onClick={() => setParamsOpen((p) => !p)}
-                      className={`flex w-full cursor-pointer items-center justify-between rounded-[6px] border-0 px-2.5 py-1.5 text-left text-[12px] font-medium transition-colors ${isItSectionActive
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-[6px] border-0 px-2.5 py-1.5 text-left text-[12px] font-medium transition-colors ${
+                        isItSectionActive
                           ? "text-[#214451]"
                           : "text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
-                        }`}
+                      }`}
                     >
                       <span className="flex items-center gap-2">
                         <SlidersHorizontal size={13} />
@@ -122,8 +130,9 @@ export default function Sidebar({
                       </span>
                       <ChevronDown
                         size={13}
-                        className={`transition-transform ${paramsOpen ? "rotate-180" : ""
-                          }`}
+                        className={`transition-transform ${
+                          paramsOpen ? "rotate-180" : ""
+                        }`}
                       />
                     </button>
 
@@ -132,12 +141,25 @@ export default function Sidebar({
                         <button
                           type="button"
                           onClick={() => navigate("it-params-roles")}
-                          className={`flex w-full cursor-pointer items-center rounded-[6px] border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${active === "it-params-roles"
+                          className={`flex w-full cursor-pointer items-center rounded-[6px] border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${
+                            active === "it-params-roles"
                               ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
                               : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
-                            }`}
+                          }`}
                         >
                           Roles
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => navigate("it-params-permisos")}
+                          className={`flex w-full cursor-pointer items-center rounded-[6px] border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${
+                            active === "it-params-permisos"
+                              ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
+                              : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                          }`}
+                        >
+                          Permisos
                         </button>
                       </div>
                     )}

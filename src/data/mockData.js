@@ -226,16 +226,35 @@ export const IT_ADMIN_ROLE_IDS = [1, 7];
 //   1 = administrador, 11 y 15 = roles habilitados para RRHH
 export const RRHH_ROLE_IDS = [1, 11, 15];
 
-export const canAccessITAdmin = (idRol) => IT_ADMIN_ROLE_IDS.includes(Number(idRol));
-export const canAccessRRHH = (idRol) => RRHH_ROLE_IDS.includes(Number(idRol));
+export const canAccessITAdmin = (idRol, rolModulos) => {
+  if (Number(idRol) === 1) return true;
+  if (Array.isArray(rolModulos) && rolModulos.length > 0) {
+    return rolModulos.includes("it-admin");
+  }
+  return IT_ADMIN_ROLE_IDS.includes(Number(idRol));
+};
+
+export const canAccessRRHH = (idRol, rolModulos) => {
+  if (Number(idRol) === 1) return true;
+  if (Array.isArray(rolModulos) && rolModulos.length > 0) {
+    return rolModulos.includes("rrhh");
+  }
+  return RRHH_ROLE_IDS.includes(Number(idRol));
+};
 
 
-export function getModulesForRole(roleId, idRol) {
+export function getModulesForRole(roleId, idRol, rolModulos) {
   const numericRoleId = Number(idRol);
 
   // Administrador: acceso a todos los módulos del Sidebar.
   if (numericRoleId === 1) {
     return [...modules];
+  }
+
+  // Si el rol tiene módulos configurados en base de datos (usuarios.roles.modulos),
+  // se respeta exactamente esa lista ordenada según `modules`.
+  if (Array.isArray(rolModulos) && rolModulos.length > 0) {
+    return modules.filter((m) => rolModulos.includes(m.id));
   }
 
   const allowed = ROLE_MODULES[roleId];

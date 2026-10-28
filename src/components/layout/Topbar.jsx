@@ -39,7 +39,9 @@ export default function Topbar({
   const currentModule =
     active === "it-params-roles"
       ? { label: "IT / Sistemas · Parámetros · Roles" }
-      : modules.find((m) => m.id === active);
+      : active === "it-params-permisos"
+        ? { label: "IT / Sistemas · Parámetros · Permisos" }
+        : modules.find((m) => m.id === active);
 
   const initials = user
     ? `${user.nombre?.trim()?.[0] ?? ""}${user.apellido?.trim()?.[0] ?? ""}`.toUpperCase()

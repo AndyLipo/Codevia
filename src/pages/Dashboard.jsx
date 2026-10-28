@@ -14,6 +14,7 @@ import Orders from "@/components/dashboard/Orders";
 import Reports from "@/components/dashboard/Reports";
 import ITAdmin from "@/components/dashboard/itadmin/ITAdmin";
 import RolesParams from "@/components/dashboard/itadmin/RolesParams";
+import PermisosParams from "@/components/dashboard/itadmin/PermisosParams";
 import RRHH from "@/components/dashboard/RRHH";
 
 export default function Dashboard() {
@@ -65,13 +66,13 @@ export default function Dashboard() {
         return <Reports />;
 
       case "it-admin":
-        if (!canAccessITAdmin(user?.id_rol)) {
+        if (!canAccessITAdmin(user?.id_rol, user?.rol_modulos)) {
           return <Overview navigate={navigate} fakeAction={fakeAction} />;
         }
         return <ITAdmin fakeAction={fakeAction} />;
 
       case "it-params-roles":
-        if (!canAccessITAdmin(user?.id_rol)) {
+        if (!canAccessITAdmin(user?.id_rol, user?.rol_modulos)) {
           return <Overview navigate={navigate} fakeAction={fakeAction} />;
         }
         return (
@@ -85,8 +86,23 @@ export default function Dashboard() {
           </>
         );
 
+      case "it-params-permisos":
+        if (!canAccessITAdmin(user?.id_rol, user?.rol_modulos)) {
+          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+        }
+        return (
+          <>
+            <SectionTitle
+              eyebrow="07 · IT / SISTEMAS · PARÁMETROS"
+              title="Permisos de módulos por rol"
+              description="Definí qué módulos del menú principal puede visualizar y operar cada rol del sistema."
+            />
+            <PermisosParams fakeAction={fakeAction} />
+          </>
+        );
+
       case "rrhh":
-        if (!canAccessRRHH(user?.id_rol)) {
+        if (!canAccessRRHH(user?.id_rol, user?.rol_modulos)) {
           return <Overview navigate={navigate} fakeAction={fakeAction} />;
         }
         return <RRHH fakeAction={fakeAction} />;

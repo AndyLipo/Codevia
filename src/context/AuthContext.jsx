@@ -92,6 +92,20 @@ export function AuthProvider({ children }) {
     }
   }, [session]);
 
+  const refreshSession = useCallback(async () => {
+    const stored = loadSession();
+    if (!stored?.token) return;
+    const { data, error } = await usuariosRpc("validar_sesion", {
+      p_token: stored.token,
+    });
+    const user = data?.[0];
+    if (!error && user) {
+      const fresh = { token: stored.token, user };
+      saveSession(fresh);
+      setSession(fresh);
+    }
+  }, []);
+
   const value = useMemo(
     () => ({
       checking,
@@ -102,8 +116,9 @@ export function AuthProvider({ children }) {
       login,
       logout,
       changePassword,
+      refreshSession,
     }),
-    [checking, session, login, logout, changePassword]
+    [checking, session, login, logout, changePassword, refreshSession]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
