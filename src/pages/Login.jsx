@@ -92,77 +92,10 @@ export default function Login({
             Ingresá tu usuario que querés utilizar.
           </p>
 
-          {/* <div className="mb-4">
-            <label
-              htmlFor="usuarioActual"
-              className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#82979e]"
-            >
-              Usuario
-            </label>
-
-            <select
-              id="usuarioActual"
-              value={usuarioActual?.id_usuario ?? ""}
-              disabled={loadingUsuarios || usuarios.length === 0}
-              onChange={(event) => {
-                const seleccionado = usuarios.find(
-                  (u) => String(u.id_usuario) === event.target.value
-                );
-
-                setUsuarioActual(seleccionado ?? null);
-              }}
-              className="h-10 w-full rounded-md border border-[#dfe7e9] bg-white px-3 text-sm text-[#47626c] outline-none focus:border-[#7daebc]"
-            >
-              <option value="">
-                {loadingUsuarios
-                  ? "Cargando usuarios..."
-                  : "Seleccionar usuario"}
-              </option>
-
-              {usuarios.map((usuario) => (
-                <option
-                  key={usuario.id_usuario}
-                  value={String(usuario.id_usuario)}
-                >
-                  {usuario.nombre.trim()} {usuario.apellido.trim()} —{" "}
-                  {usuario.email}
-                </option>
-              ))}
-            </select>
-
-            {errorUsuarios && (
-              <p className="mt-2 text-xs text-red-600">
-                Error al cargar usuarios: {errorUsuarios}
-              </p>
-            )}
-
-            {!loadingUsuarios &&
-              !errorUsuarios &&
-              usuarios.length === 0 && (
-                <p className="mt-2 text-xs text-[#829298]">
-                  No hay usuarios activos disponibles.
-                </p>
-              )}
-          </div> */}
-
           <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#82979e]">
             Rol de la vista
           </div>
-
           <FormLogin />
-          {/* <button
-            type="button"
-            disabled={
-              loadingUsuarios ||
-              !usuarioActual ||
-              !usuarioActual.usuario_login
-            }
-            onClick={handleLogin}
-            className="flex w-full cursor-pointer items-center justify-center gap-1.75 rounded-md bg-brand py-2.5 text-[11px] font-bold text-white shadow-[0_4px_10px_rgba(20,92,115,0.16)] transition-all hover:-translate-y-px hover:bg-brand-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Entrar al puesto <ArrowUpRight size={18} />
-          </button> */}
-
           {onAnatomy && (
             <button
               type="button"
