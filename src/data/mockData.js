@@ -229,7 +229,15 @@ export const RRHH_ROLE_IDS = [1, 11, 15];
 export const canAccessITAdmin = (idRol) => IT_ADMIN_ROLE_IDS.includes(Number(idRol));
 export const canAccessRRHH = (idRol) => RRHH_ROLE_IDS.includes(Number(idRol));
 
+
 export function getModulesForRole(roleId, idRol) {
+  const numericRoleId = Number(idRol);
+
+  // Administrador: acceso a todos los módulos del Sidebar.
+  if (numericRoleId === 1) {
+    return [...modules];
+  }
+
   const allowed = ROLE_MODULES[roleId];
 
   const base = allowed
@@ -237,22 +245,32 @@ export function getModulesForRole(roleId, idRol) {
     : modules.filter((m) => m.id !== "it-admin" && m.id !== "rrhh");
 
   const withRoleModules = [...base];
-  if (canAccessITAdmin(idRol) && !withRoleModules.some((m) => m.id === "it-admin")) {
+
+  if (
+    canAccessITAdmin(numericRoleId) &&
+    !withRoleModules.some((m) => m.id === "it-admin")
+  ) {
     const itMod = modules.find((m) => m.id === "it-admin");
     if (itMod) withRoleModules.push(itMod);
   }
-  if (canAccessRRHH(idRol) && !withRoleModules.some((m) => m.id === "rrhh")) {
+
+  if (
+    canAccessRRHH(numericRoleId) &&
+    !withRoleModules.some((m) => m.id === "rrhh")
+  ) {
     const rrhhMod = modules.find((m) => m.id === "rrhh");
     if (rrhhMod) withRoleModules.push(rrhhMod);
   }
 
-  // IT / Sistemas solo para id_rol 1 y 7; Recursos Humanos solo para id_rol 1, 11 y 15
+  // IT / Sistemas: solo roles autorizados.
+  // Recursos Humanos: solo roles autorizados.
   return withRoleModules.filter((m) => {
-    if (m.id === "it-admin") return canAccessITAdmin(idRol);
-    if (m.id === "rrhh") return canAccessRRHH(idRol);
+    if (m.id === "it-admin") return canAccessITAdmin(numericRoleId);
+    if (m.id === "rrhh") return canAccessRRHH(numericRoleId);
     return true;
   });
 }
+
 
 export function resolveRole(rolNombre, idRol) {
   const n = normalize(rolNombre);
