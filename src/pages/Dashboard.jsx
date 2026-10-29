@@ -2,7 +2,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/context/AuthContext";
-import { canAccessITAdmin, canAccessRRHH } from "@/data/mockData";
+import {
+  canAccessITAdmin,
+  canAccessRRHH,
+  canAccessClientes,
+} from "@/data/mockData";
 import AppShell from "@/components/layout/AppShell";
 import SectionTitle from "@/components/common/SectionTitle";
 
@@ -11,6 +15,7 @@ import Production from "@/components/dashboard/Production";
 import Warehouse from "@/components/dashboard/Warehouse";
 import Dispatch from "@/components/dashboard/Dispatch";
 import Orders from "@/components/dashboard/Orders";
+import Clientes from "@/components/dashboard/Clientes";
 import Reports from "@/components/dashboard/Reports";
 import ITAdmin from "@/components/dashboard/itadmin/ITAdmin";
 import RolesParams from "@/components/dashboard/itadmin/RolesParams";
@@ -61,6 +66,12 @@ export default function Dashboard() {
             query={query}
           />
         );
+
+      case "clients":
+        if (!canAccessClientes(user?.id_rol, user?.rol_modulos)) {
+          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+        }
+        return <Clientes fakeAction={fakeAction} />;
 
       case "reports":
         return <Reports />;

@@ -3,17 +3,11 @@ import {
     Plus,
     Search,
     Trash2,
-    Users,
-    UserCheck,
-    UserMinus,
-    UserX,
 } from "lucide-react";
 import { toast } from "sonner";
 
-import SectionTitle from "@/components/common/SectionTitle";
 import Table from "@/components/common/Table";
 import Badge from "@/components/common/Badge";
-import Kpi from "@/components/common/Kpi";
 import ActionButton from "@/components/common/ActionButton";
 import CreateEmpleadoModal from "./modals/CreateEmpleadoModal";
 import { supabase } from "@/lib/supabaseClient";
@@ -249,46 +243,88 @@ export default function RRHH({ fakeAction }) {
 
     return (
         <>
-            <SectionTitle
-                eyebrow="08 · RECURSOS HUMANOS"
-                title="Padrón de personal"
-                description="Gestión de legajos, altas, modificaciones y bajas del personal de Brother Plast."
-            />
+            {/* Cabecera con título a la izquierda y 4 recuadros pequeños de KPIs a la derecha */}
+            <div className="mb-3.5 flex flex-col justify-between gap-3.5 xl:flex-row xl:items-center">
+                <div className="min-w-0">
+                    <div className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-[#82979e]">
+                        08 · RECURSOS HUMANOS
+                    </div>
 
-            {/* Indicadores de RRHH */}
-            <div className="mb-4 grid grid-cols-2 gap-3.5 lg:grid-cols-4">
-                <Kpi
-                    icon={Users}
-                    label="Total legajos"
-                    value={String(stats.total)}
-                    trend="Padrón"
-                    note="registrados en el sistema"
-                    tone="blue"
-                />
-                <Kpi
-                    icon={UserCheck}
-                    label="Personal en actividad"
-                    value={String(stats.activos)}
-                    trend="Activos"
-                    note="sin fecha de egreso"
-                    tone="green"
-                />
-                <Kpi
-                    icon={UserMinus}
-                    label="Con baja registrada"
-                    value={String(stats.conBaja)}
-                    trend="Egresos"
-                    note="poseen fecha de egreso"
-                    tone="amber"
-                />
-                <Kpi
-                    icon={UserX}
-                    label="Legajos eliminados"
-                    value={String(stats.eliminados)}
-                    trend="Bajas"
-                    note="dados de baja definitiva"
-                    tone="red"
-                />
+                    <h1 className="m-0 font-barlow text-[34px] leading-[0.95] tracking-[-0.6px] text-[#173c4b]">
+                        Padrón de personal
+                    </h1>
+
+                    <p className="mt-1.5 mb-0 text-[12.5px] text-[#829298]">
+                        Gestión de legajos, altas, modificaciones y bajas del personal de Brother Plast.
+                    </p>
+                </div>
+
+                {/* 4 recuadros pequeños a la derecha */}
+                <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-4">
+                    <div className="rounded-lg border border-[#e1e8ea] bg-white px-3 py-2 shadow-card">
+                        <div className="flex items-center justify-between gap-2">
+                            <span className="text-[10px] font-semibold text-[#5b727b]">
+                                Total legajos
+                            </span>
+                            <span className="rounded bg-[#e8f2f6] px-1.5 py-0.5 text-[8.5px] font-bold uppercase text-[#145c73]">
+                                Padrón
+                            </span>
+                        </div>
+                        <div className="mt-0.5">
+                            <strong className="font-barlow text-[22px] leading-none text-[#173c4b]">
+                                {stats.total}
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div className="rounded-lg border border-[#e1e8ea] bg-white px-3 py-2 shadow-card">
+                        <div className="flex items-center justify-between gap-2">
+                            <span className="text-[10px] font-semibold text-[#5b727b]">
+                                Personal en actividad
+                            </span>
+                            <span className="rounded bg-[#e7f4ed] px-1.5 py-0.5 text-[8.5px] font-bold uppercase text-[#256349]">
+                                Activos
+                            </span>
+                        </div>
+                        <div className="mt-0.5">
+                            <strong className="font-barlow text-[22px] leading-none text-[#256349]">
+                                {stats.activos}
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div className="rounded-lg border border-[#e1e8ea] bg-white px-3 py-2 shadow-card">
+                        <div className="flex items-center justify-between gap-2">
+                            <span className="text-[10px] font-semibold text-[#5b727b]">
+                                Con baja registrada
+                            </span>
+                            <span className="rounded bg-[#fff2d8] px-1.5 py-0.5 text-[8.5px] font-bold uppercase text-[#a76e1a]">
+                                Egresos
+                            </span>
+                        </div>
+                        <div className="mt-0.5">
+                            <strong className="font-barlow text-[22px] leading-none text-[#a76e1a]">
+                                {stats.conBaja}
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div className="rounded-lg border border-[#e1e8ea] bg-white px-3 py-2 shadow-card">
+                        <div className="flex items-center justify-between gap-2">
+                            <span className="text-[10px] font-semibold text-[#5b727b]">
+                                Legajos eliminados
+                            </span>
+                            <span className="rounded bg-[#fbe9e7] px-1.5 py-0.5 text-[8.5px] font-bold uppercase text-[#ba584d]">
+                                Bajas
+                            </span>
+                        </div>
+                        <div className="mt-0.5">
+                            <strong className="font-barlow text-[22px] leading-none text-[#ba584d]">
+                                {stats.eliminados}
+                            </strong>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div className="rounded-lg border border-[#e1e8ea] bg-white p-5 shadow-card">

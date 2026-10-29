@@ -30,7 +30,7 @@ export default function Sidebar({
     user?.rol_modulos
   );
 
-  const [paramsOpen, setParamsOpen] = useState(true);
+  const [paramsOpen, setParamsOpen] = useState(false);
 
   const isItSectionActive =
     active === "it-admin" ||

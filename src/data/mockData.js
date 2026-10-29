@@ -6,7 +6,8 @@ import {
   ClipboardList,
   BarChart3,
   ShieldCheck,
-  UsersRound
+  UsersRound,
+  Building2,
 } from "lucide-react";
 
 export const roleOptions = [
@@ -60,6 +61,7 @@ export const modules = [
   { id: "warehouse", label: "Depósito", icon: Warehouse },
   { id: "dispatch", label: "Expedición", icon: Truck },
   { id: "orders", label: "Pedidos", icon: ClipboardList },
+  { id: "clients", label: "Gestión de Clientes", icon: Building2 },
   { id: "reports", label: "Reportes", icon: BarChart3 },
   { id: "it-admin", label: "IT / Sistemas", icon: ShieldCheck },
   { id: "rrhh", label: "Recursos Humanos", icon: UsersRound },
@@ -213,7 +215,7 @@ const normalize = (s = "") =>
   s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 const ROLE_MODULES = {
-  admin: ["overview", "it-admin", "rrhh"],
+  admin: ["overview", "clients", "it-admin", "rrhh"],
   it: ["overview", "it-admin"],
   rrhh: ["overview", "rrhh"],
 };
@@ -240,6 +242,14 @@ export const canAccessRRHH = (idRol, rolModulos) => {
     return rolModulos.includes("rrhh");
   }
   return RRHH_ROLE_IDS.includes(Number(idRol));
+};
+
+export const canAccessClientes = (idRol, rolModulos) => {
+  if (Number(idRol) === 1) return true;
+  if (Array.isArray(rolModulos) && rolModulos.length > 0) {
+    return rolModulos.includes("clients");
+  }
+  return true;
 };
 
 

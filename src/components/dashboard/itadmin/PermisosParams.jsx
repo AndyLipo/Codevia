@@ -30,6 +30,7 @@ const MODULE_DESCRIPTIONS = {
     warehouse: "Gestión de stock, sectores, posiciones y movimientos de depósito.",
     dispatch: "Playa de carga, hojas de ruta y seguimiento de despachos.",
     orders: "Cartera de pedidos de clientes y estado de entregas.",
+    clients: "Altas, modificaciones, bajas, consultas de ficha e historial de clientes.",
     reports: "Reportes de cumplimiento y métricas semanales.",
     "it-admin": "Administración de usuarios, roles, permisos y auditoría del sistema.",
     rrhh: "Padrón de personal, legajos, altas, modificaciones y bajas.",
