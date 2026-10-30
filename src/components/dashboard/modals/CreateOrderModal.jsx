@@ -258,7 +258,7 @@ export default function CreateOrderModal({
                 if (!loading) onOpenChange(nextOpen);
             }}
         >
-            <DialogContent className="w-[calc(100vw-2rem)] max-w-[500px] min-w-0 border border-[#e1e8ea] bg-white p-0 shadow-card sm:w-[calc(100vw-3rem)]">
+            <DialogContent className="w-[calc(100vw-2rem)] max-w-125 min-w-0 border border-[#e1e8ea] bg-white p-0 shadow-card sm:w-[calc(100vw-3rem)]">
                 <DialogHeader className="border-b border-slate-soft bg-white px-4 py-4 sm:px-6 sm:py-5">
                     <DialogTitle className="font-barlow text-[22px] font-normal text-ink sm:text-[25px]">
                         {orden && detalle
