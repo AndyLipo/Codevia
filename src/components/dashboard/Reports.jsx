@@ -33,23 +33,62 @@ export default function Reports() {
         ))}
       </div>
 
-      <div className="min-h-77.5 rounded-lg border border-[#e1e8ea] bg-white p-5 shadow-card">
-        <div className="mb-4.5 flex items-start justify-between gap-3">
-          <div><div className="mb-2 text-[9px] font-bold uppercase tracking-[0.16em] text-[#82979e]">CUMPLIMIENTO OPERATIVO</div><h3 className="m-0 font-barlow text-[21px] text-[#214451]">Producción vs. plan semanal</h3></div>
-          <div className="flex gap-3 text-[9px] text-[#819298]">
-            <span className="flex items-center gap-1.5"><i className="inline-block h-1.5 w-1.5 rounded-full bg-brand" />Producido</span>
-            <span className="flex items-center gap-1.5"><i className="inline-block h-1.5 w-1.5 rounded-full bg-[#cedadd]" />Planificado</span>
+      <div className="w-full min-w-0 overflow-hidden rounded-lg border border-[#e1e8ea] bg-white p-3 shadow-card sm:p-5">
+        {/* Encabezado */}
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.16em] text-[#82979e]">
+              CUMPLIMIENTO OPERATIVO
+            </div>
+
+            <h3 className="m-0 font-barlow text-lg text-[#214451] sm:text-[21px]">
+              Producción vs. plan semanal
+            </h3>
+          </div>
+
+          {/* Referencias */}
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[9px] text-[#819298]">
+            <span className="flex items-center gap-1.5">
+              <i className="inline-block h-1.5 w-1.5 rounded-full bg-brand" />
+              Producido
+            </span>
+
+            <span className="flex items-center gap-1.5">
+              <i className="inline-block h-1.5 w-1.5 rounded-full bg-[#cedadd]" />
+              Planificado
+            </span>
           </div>
         </div>
-        <div className="flex h-53.75 items-end justify-around gap-6 px-[8%] py-2.5">
+
+        {/* Gráfico */}
+        <div className="flex h-53.75 w-full min-w-0 items-end justify-between gap-1 py-2.5 sm:gap-4 sm:px-3">
           {weekData.map(([day, value, plan]) => (
-            <div key={day} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
-              <div className="relative h-45 w-8.75 overflow-hidden rounded-[5px] bg-[#f2f5f5]">
-                <i className="absolute bottom-0 left-0 w-full rounded-t-sm bg-[#d3e1e4]" style={{ height: `${plan}%` }} />
-                <i className="absolute bottom-0 left-0 z-1 w-full rounded-t-sm bg-brand" style={{ height: `${value}%` }} />
+            <div
+              key={day}
+              className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5"
+            >
+              {/* Barras */}
+              <div className="relative h-45 w-full max-w-9 overflow-hidden rounded-[5px] bg-[#f2f5f5]">
+                <i
+                  className="absolute bottom-0 left-0 w-full rounded-t-sm bg-[#d3e1e4]"
+                  style={{ height: `${plan}%` }}
+                />
+
+                <i
+                  className="absolute bottom-0 left-0 z-1 w-full rounded-t-sm bg-brand"
+                  style={{ height: `${value}%` }}
+                />
               </div>
-              <strong className="font-barlow text-[17px] text-[#41606a]">{value}%</strong>
-              <span className="text-[9px] text-[#89999e]">{day}</span>
+
+              {/* Valor */}
+              <strong className="font-barlow text-sm text-[#41606a] sm:text-[17px]">
+                {value}%
+              </strong>
+
+              {/* Día */}
+              <span className="text-[9px] text-[#89999e]">
+                {day}
+              </span>
             </div>
           ))}
         </div>

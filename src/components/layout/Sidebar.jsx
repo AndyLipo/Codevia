@@ -48,11 +48,11 @@ export default function Sidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-20 flex w-62 flex-col border-r border-[#dbe3e6] bg-white px-3.75 pb-4 pt-6.25 transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-20 flex h-dvh w-62 flex-col overflow-hidden border-r border-[#dbe3e6] bg-white px-3.75 pb-3 pt-4 transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
         {/* Brand */}
-        <div className="relative flex items-center gap-2.5 px-2.5 pb-6.25">
+        <div className="relative flex shrink-0 items-center gap-2.5 px-2.5 pb-3">
           <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-soft">
             <img
               src={logo}
@@ -82,7 +82,7 @@ export default function Sidebar({
         </div>
 
         {/* Navegación */}
-        <nav className="flex flex-col gap-1 pt-4.25">
+        <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto pt-2 scrollbar-none [&::-webkit-scrollbar]:hidden">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isItItem = item.id === "it-admin";
@@ -175,7 +175,7 @@ export default function Sidebar({
             <span>Configuración</span>
           </button>
 
-          <div className="mt-3.75 flex items-center gap-2.25 border-t border-[#e4eaec] px-2 pt-3.75">
+          <div className="mt-2 flex shrink-0 items-center gap-2.25 border-t border-[#e4eaec] px-2 pt-2">
             <div className="grid h-7.75 w-7.75 shrink-0 place-items-center rounded-full bg-brand font-barlow text-[12px] font-bold text-white">
               {initials}
             </div>

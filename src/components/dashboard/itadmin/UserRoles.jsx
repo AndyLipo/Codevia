@@ -122,7 +122,7 @@ export default function UsersRoles({ fakeAction }) {
 
         return [
             clickableCell(
-                <span className="font-mono text-[11px] font-semibold text-[#145c73]">
+                <span className="font-mono text-[11px] font-semibold text-brand">
                     {userLogin}
                 </span>
             ),

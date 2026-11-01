@@ -12,7 +12,12 @@ export default function Overview({ navigate, fakeAction }) {
       <SectionTitle
         eyebrow="01 · CONTROL TOWER"
         title="Buen día, equipo."
-        description="Martes 18 de agosto · Resumen operativo de la planta y la playa de expedición."
+        description={`${new Date().toLocaleDateString("es-AR", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })} Resumen operativo de la planta y la playa de expedición.`}
         action={
           <div className="flex gap-2">
             <ActionButton variant="secondary" onClick={() => fakeAction("Vista actualizada")}>

@@ -64,8 +64,8 @@ export default function CreateOrderModal({
                 supabase
                     .schema("usuarios")
                     .from("usuarios")
-                    .select("id_usuario, nombre, apellido, usuario_login")
-                    .eq("estado", "A"),
+                    .select("id_usuario, nombre, apellido, usuario_login, estado")
+                    .order("apellido", { ascending: true }),
 
                 supabase
                     .schema("produccion")
@@ -73,6 +73,9 @@ export default function CreateOrderModal({
                     .select("id_unidad_medida, codigo, nombre")
                     .eq("estado", "A"),
             ]);
+
+            console.log("USUARIOS DATA:", usuariosData);
+            console.log("USUARIOS ERROR:", usuariosError);
 
             if (productosError) {
                 console.error("Error al traer productos:", productosError.message);
@@ -390,15 +393,20 @@ export default function CreateOrderModal({
                                     </SelectTrigger>
 
                                     <SelectContent>
-                                        {solicitantes.map((user) => (
-                                            <SelectItem
-                                                key={user.id_usuario}
-                                                value={String(user.id_usuario)}
-                                                className="bg-white text-[11px]"
-                                            >
-                                                {user.nombre} {user.apellido}
+                                        {solicitantes.length === 0 ? (
+                                            <SelectItem value="sin-usuarios" disabled>
+                                                No hay solicitantes disponibles
                                             </SelectItem>
-                                        ))}
+                                        ) : (
+                                            solicitantes.map((user) => (
+                                                <SelectItem
+                                                    key={user.id_usuario}
+                                                    value={String(user.id_usuario)}
+                                                >
+                                                    {user.nombre} {user.apellido}
+                                                </SelectItem>
+                                            ))
+                                        )}
                                     </SelectContent>
                                 </Select>
                             </div>

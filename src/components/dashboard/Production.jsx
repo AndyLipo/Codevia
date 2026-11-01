@@ -132,47 +132,58 @@ export default function Production({ fakeAction }) {
             </div>
           </div>
 
-          <div className="mt-3.5 rounded-lg border border-[#e1e8ea] bg-white p-5 shadow-card">
-            <div className="mb-4.5 flex items-start justify-between gap-3">
-              <div>
+          <div className="mt-3.5 rounded-lg border border-[#e1e8ea] bg-white p-3 sm:p-5 shadow-card">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+
+              {/* Título */}
+              <div className="min-w-0">
                 <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.16em] text-[#82979e]">
                   TRAZABILIDAD DE LOTES
                 </div>
-                <h3 className="m-0 font-barlow text-[21px] text-[#214451]">
+
+                <h3 className="m-0 font-barlow text-xl sm:text-[21px] text-[#214451]">
                   Fabricación reciente
                 </h3>
               </div>
-              <div className="flex gap-2">
+
+              {/* Acciones */}
+              <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
                 <ActionButton variant="secondary">
-                  <Search size={15} /> Filtrar
+                  <Search size={15} />
+                  Filtrar
                 </ActionButton>
+
                 <ActionButton variant="secondary">
-                  <FileText size={15} /> Exportar
+                  <FileText size={15} />
+                  Exportar
                 </ActionButton>
               </div>
             </div>
 
-            <Table
-              headers={["Lote", "Producto", "Línea", "Turno", "Estado", "Cantidad"]}
-              rows={productionRows}
-              renderCell={(cell, j) =>
-                j === 4 ? (
-                  <Badge
-                    tone={
-                      cell === "Liberado"
-                        ? "green"
-                        : cell === "En proceso"
-                          ? "blue"
-                          : cell === "Control de calidad"
-                            ? "amber"
-                            : "slate"
-                    }
-                  >
-                    {cell}
-                  </Badge>
-                ) : cell
-              }
-            />
+            {/* Tabla */}
+            <div className="w-full overflow-x-auto">
+              <Table
+                headers={["Lote", "Producto", "Línea", "Turno", "Estado", "Cantidad"]}
+                rows={productionRows}
+                renderCell={(cell, j) =>
+                  j === 4 ? (
+                    <Badge
+                      tone={
+                        cell === "Liberado"
+                          ? "green"
+                          : cell === "En proceso"
+                            ? "blue"
+                            : cell === "Control de calidad"
+                              ? "amber"
+                              : "slate"
+                      }
+                    >
+                      {cell}
+                    </Badge>
+                  ) : cell
+                }
+              />
+            </div>
           </div>
         </>
       )}
