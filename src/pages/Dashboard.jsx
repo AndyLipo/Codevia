@@ -6,6 +6,8 @@ import {
   canAccessITAdmin,
   canAccessRRHH,
   canAccessClientes,
+  canAccessPedidos,
+  canAccessCatalogo,
 } from "@/data/mockData";
 import AppShell from "@/components/layout/AppShell";
 import SectionTitle from "@/components/common/SectionTitle";
@@ -14,8 +16,11 @@ import Overview from "@/components/dashboard/Overview";
 import Production from "@/components/dashboard/Production";
 import Warehouse from "@/components/dashboard/Warehouse";
 import Dispatch from "@/components/dashboard/Dispatch";
-import Orders from "@/components/dashboard/Orders";
+import GestionPedidos from "@/components/dashboard/GestionPedidos";
+import SeguimientoPedidos from "@/components/dashboard/SeguimientoPedidos";
 import Clientes from "@/components/dashboard/Clientes";
+import Productos from "@/components/dashboard/Productos";
+import ListaPrecios from "@/components/dashboard/ListaPrecios";
 import Reports from "@/components/dashboard/Reports";
 import ITAdmin from "@/components/dashboard/itadmin/ITAdmin";
 import RolesParams from "@/components/dashboard/itadmin/RolesParams";
@@ -60,18 +65,35 @@ export default function Dashboard() {
         return <Dispatch fakeAction={fakeAction} />;
 
       case "orders":
-        return (
-          <Orders
-            fakeAction={fakeAction}
-            query={query}
-          />
-        );
+      case "pedidos-gestion":
+        if (!canAccessPedidos(user?.id_rol)) {
+          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+        }
+        return <GestionPedidos fakeAction={fakeAction} />;
+
+      case "pedidos-seguimiento":
+        if (!canAccessPedidos(user?.id_rol)) {
+          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+        }
+        return <SeguimientoPedidos fakeAction={fakeAction} />;
 
       case "clients":
         if (!canAccessClientes(user?.id_rol, user?.rol_modulos)) {
           return <Overview navigate={navigate} fakeAction={fakeAction} />;
         }
         return <Clientes fakeAction={fakeAction} />;
+
+      case "productos":
+        if (!canAccessCatalogo(user?.id_rol, user?.rol_modulos, "productos")) {
+          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+        }
+        return <Productos fakeAction={fakeAction} />;
+
+      case "lista-precios":
+        if (!canAccessCatalogo(user?.id_rol, user?.rol_modulos, "lista-precios")) {
+          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+        }
+        return <ListaPrecios fakeAction={fakeAction} />;
 
       case "reports":
         return <Reports />;

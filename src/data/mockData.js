@@ -4,10 +4,13 @@ import {
   Warehouse,
   Truck,
   ClipboardList,
+  PackageSearch,
   BarChart3,
   ShieldCheck,
   UsersRound,
   Building2,
+  Package,
+  Tags,
 } from "lucide-react";
 
 export const roleOptions = [
@@ -60,7 +63,10 @@ export const modules = [
   { id: "production", label: "Producción", icon: Factory },
   { id: "warehouse", label: "Depósito", icon: Warehouse },
   { id: "dispatch", label: "Expedición", icon: Truck },
-  { id: "orders", label: "Pedidos", icon: ClipboardList },
+  { id: "pedidos-gestion", label: "Gestión de Pedidos", icon: ClipboardList },
+  { id: "pedidos-seguimiento", label: "Seguimiento de Pedidos", icon: PackageSearch },
+  { id: "productos", label: "Productos", icon: Package },
+  { id: "lista-precios", label: "Lista de precios", icon: Tags },
   { id: "clients", label: "Gestión de Clientes", icon: Building2 },
   { id: "reports", label: "Reportes", icon: BarChart3 },
   { id: "it-admin", label: "IT / Sistemas", icon: ShieldCheck },
@@ -215,7 +221,7 @@ const normalize = (s = "") =>
   s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 const ROLE_MODULES = {
-  admin: ["overview", "clients", "it-admin", "rrhh"],
+  admin: ["overview", "pedidos-gestion", "pedidos-seguimiento", "clients", "it-admin", "rrhh"],
   it: ["overview", "it-admin"],
   rrhh: ["overview", "rrhh"],
 };
@@ -227,6 +233,10 @@ export const IT_ADMIN_ROLE_IDS = [1, 7];
 // Roles de base de datos con acceso a Recursos Humanos (usuarios.roles.id_rol)
 //   1 = administrador, 11 y 15 = roles habilitados para RRHH
 export const RRHH_ROLE_IDS = [1, 11, 15];
+
+// Roles de base de datos con acceso exclusivo a Gestión y Seguimiento de Pedidos
+//   1 = administrador, 9 = vendedor/generador de pedidos, 16 = supervisor/administración comercial
+export const PEDIDOS_ROLE_IDS = [1, 9, 16];
 
 export const canAccessITAdmin = (idRol, rolModulos) => {
   if (Number(idRol) === 1) return true;
@@ -244,6 +254,10 @@ export const canAccessRRHH = (idRol, rolModulos) => {
   return RRHH_ROLE_IDS.includes(Number(idRol));
 };
 
+export const canAccessPedidos = (idRol) => {
+  return PEDIDOS_ROLE_IDS.includes(Number(idRol));
+};
+
 export const canAccessClientes = (idRol, rolModulos) => {
   if (Number(idRol) === 1) return true;
   if (Array.isArray(rolModulos) && rolModulos.length > 0) {
@@ -252,6 +266,13 @@ export const canAccessClientes = (idRol, rolModulos) => {
   return true;
 };
 
+
+// Productos ("productos") y Lista de precios ("lista-precios"):
+// acceso para el administrador (rol 1) o roles con el módulo asignado en Permisos.
+export const canAccessCatalogo = (idRol, rolModulos, moduloId) => {
+  if (Number(idRol) === 1) return true;
+  return Array.isArray(rolModulos) && rolModulos.includes(moduloId);
+};
 
 export function getModulesForRole(roleId, idRol, rolModulos) {
   const numericRoleId = Number(idRol);
@@ -262,16 +283,40 @@ export function getModulesForRole(roleId, idRol, rolModulos) {
   }
 
   // Si el rol tiene módulos configurados en base de datos (usuarios.roles.modulos),
-  // se respeta exactamente esa lista ordenada según `modules`.
+  // se respeta esa lista, garantizando que Gestión y Seguimiento de Pedidos
+  // sean visibles exclusivamente para los roles 1, 9 y 16.
   if (Array.isArray(rolModulos) && rolModulos.length > 0) {
-    return modules.filter((m) => rolModulos.includes(m.id));
+    const normalizedRolModulos = new Set(rolModulos);
+    if (normalizedRolModulos.has("orders") && canAccessPedidos(numericRoleId)) {
+      normalizedRolModulos.add("pedidos-gestion");
+      normalizedRolModulos.add("pedidos-seguimiento");
+    }
+    if (canAccessPedidos(numericRoleId)) {
+      normalizedRolModulos.add("pedidos-gestion");
+      normalizedRolModulos.add("pedidos-seguimiento");
+    }
+
+    return modules.filter((m) => {
+      if (m.id === "pedidos-gestion" || m.id === "pedidos-seguimiento") {
+        return canAccessPedidos(numericRoleId) && normalizedRolModulos.has(m.id);
+      }
+      return normalizedRolModulos.has(m.id);
+    });
   }
 
   const allowed = ROLE_MODULES[roleId];
 
   const base = allowed
     ? modules.filter((m) => allowed.includes(m.id))
-    : modules.filter((m) => m.id !== "it-admin" && m.id !== "rrhh");
+    : modules.filter(
+        (m) =>
+          m.id !== "it-admin" &&
+          m.id !== "rrhh" &&
+          m.id !== "pedidos-gestion" &&
+          m.id !== "pedidos-seguimiento" &&
+          m.id !== "productos" &&
+          m.id !== "lista-precios"
+      );
 
   const withRoleModules = [...base];
 
@@ -291,11 +336,24 @@ export function getModulesForRole(roleId, idRol, rolModulos) {
     if (rrhhMod) withRoleModules.push(rrhhMod);
   }
 
-  // IT / Sistemas: solo roles autorizados.
-  // Recursos Humanos: solo roles autorizados.
+  if (canAccessPedidos(numericRoleId)) {
+    const gestMod = modules.find((m) => m.id === "pedidos-gestion");
+    const segMod = modules.find((m) => m.id === "pedidos-seguimiento");
+    if (gestMod && !withRoleModules.some((m) => m.id === "pedidos-gestion")) {
+      withRoleModules.push(gestMod);
+    }
+    if (segMod && !withRoleModules.some((m) => m.id === "pedidos-seguimiento")) {
+      withRoleModules.push(segMod);
+    }
+  }
+
+  // Filtrado estricto por permisos de rol:
   return withRoleModules.filter((m) => {
     if (m.id === "it-admin") return canAccessITAdmin(numericRoleId);
     if (m.id === "rrhh") return canAccessRRHH(numericRoleId);
+    if (m.id === "pedidos-gestion" || m.id === "pedidos-seguimiento") {
+      return canAccessPedidos(numericRoleId);
+    }
     return true;
   });
 }

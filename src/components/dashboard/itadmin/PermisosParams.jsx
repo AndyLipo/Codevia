@@ -29,7 +29,10 @@ const MODULE_DESCRIPTIONS = {
     production: "Control de extrusión, órdenes de producción, lotes y calidad.",
     warehouse: "Gestión de stock, sectores, posiciones y movimientos de depósito.",
     dispatch: "Playa de carga, hojas de ruta y seguimiento de despachos.",
-    orders: "Cartera de pedidos de clientes y estado de entregas.",
+    "pedidos-gestion": "Registro, consulta, confirmación y edición de pedidos de clientes (Roles 1, 9 y 16).",
+    "pedidos-seguimiento": "Trazabilidad de pedidos por producto, lote, picking, verificación y despacho (Roles 1, 9 y 16).",
+    productos: "Alta, modificación y baja de productos (tipo, material, unidad y vida útil).",
+    "lista-precios": "Alta, modificación y baja de precios de venta por producto, moneda y vigencia.",
     clients: "Altas, modificaciones, bajas, consultas de ficha e historial de clientes.",
     reports: "Reportes de cumplimiento y métricas semanales.",
     "it-admin": "Administración de usuarios, roles, permisos y auditoría del sistema.",
@@ -41,12 +44,14 @@ const getDefaultModulesForRole = (idRol) => {
     if (num === 1) return modules.map((m) => m.id);
     if (num === 7) return ["overview", "it-admin"];
     if (num === 11 || num === 15) return ["overview", "rrhh"];
+    if (num === 9 || num === 16) {
+        return ["overview", "pedidos-gestion", "pedidos-seguimiento", "clients"];
+    }
     return [
         "overview",
         "production",
         "warehouse",
         "dispatch",
-        "orders",
         "reports",
     ];
 };

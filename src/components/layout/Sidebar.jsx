@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   X,
   ChevronDown,
@@ -9,6 +9,8 @@ import {
 import { getModulesForRole } from "@/data/mockData";
 import logo from "/logo-final.jpg";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabaseClient";
+import { obtenerSituacion } from "@/lib/situacionLote";
 
 export default function Sidebar({
   active,
@@ -19,7 +21,7 @@ export default function Sidebar({
   setLogged,
   fakeAction,
 }) {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const fullName = user ? `${user.nombre} ${user.apellido}`.trim() : "";
   const initials = user
     ? `${user.nombre?.[0] ?? ""}${user.apellido?.[0] ?? ""}`.toUpperCase()
@@ -31,6 +33,30 @@ export default function Sidebar({
   );
 
   const [paramsOpen, setParamsOpen] = useState(false);
+  const [alertasVencimiento, setAlertasVencimiento] = useState(0);
+
+  // Cantidad de ALERTAS DE VENCIMIENTO del Depósito (lotes vencidos o próximos a vencer)
+  useEffect(() => {
+    if (!navItems.some((item) => item.id === "warehouse")) return;
+
+    let cancelado = false;
+    supabase
+      .schema("usuarios")
+      .rpc("listar_inventario_critico_deposito", { p_token: token ?? null })
+      .then(({ data, error }) => {
+        if (cancelado || error || !Array.isArray(data)) return;
+        const total = data.filter((row) => {
+          const s = obtenerSituacion(row.fecha_vencimiento);
+          return s === "Vencido" || s === "Próximo a vencer";
+        }).length;
+        setAlertasVencimiento(total);
+      });
+
+    return () => {
+      cancelado = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, token, role?.id, user?.id_rol]);
 
   const isItSectionActive =
     active === "it-admin" ||
@@ -103,11 +129,7 @@ export default function Sidebar({
                   <Icon size={16} strokeWidth={1.8} />
                   <span className="flex-1">{item.label}</span>
 
-                  {item.id === "warehouse" && (
-                    <em className="rounded-full bg-[#fff0d7] px-1.5 py-0.5 text-[10px] font-semibold not-italic text-[#b87318]">
-                      2
-                    </em>
-                  )}
+                  {item.id === "warehouse" && alertasVencimiento > 0 && (<em className="rounded-full bg-[#fff0d7] px-1.5 py-0.5 text-[10px] font-semibold not-italic text-[#b87318]">{alertasVencimiento}</em>)}
                 </button>
 
                 {/* Submenú de IT / Sistemas: Parámetros -> Roles / Permisos */}
