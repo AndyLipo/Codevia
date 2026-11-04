@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+
+import { useState } from "react";
 import {
   X,
   ChevronDown,
@@ -6,11 +7,11 @@ import {
   Settings,
   SlidersHorizontal,
 } from "lucide-react";
+
 import { getModulesForRole } from "@/data/mockData";
 import logo from "/logo-final.jpg";
 import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/lib/supabaseClient";
-import { obtenerSituacion } from "@/lib/situacionLote";
+import { useNotifications } from "@/context/NotificationsContext";
 
 export default function Sidebar({
   active,
@@ -19,13 +20,18 @@ export default function Sidebar({
   setMobileOpen,
   role,
   setLogged,
-  fakeAction,
 }) {
-  const { user, token } = useAuth();
-  const fullName = user ? `${user.nombre} ${user.apellido}`.trim() : "";
+  const { user } = useAuth();
+  const { unreadCount } = useNotifications();
+
+  const fullName = user
+    ? `${user.nombre} ${user.apellido}`.trim()
+    : "";
+
   const initials = user
     ? `${user.nombre?.[0] ?? ""}${user.apellido?.[0] ?? ""}`.toUpperCase()
     : "";
+
   const navItems = getModulesForRole(
     role?.id,
     user?.id_rol,
@@ -33,30 +39,6 @@ export default function Sidebar({
   );
 
   const [paramsOpen, setParamsOpen] = useState(false);
-  const [alertasVencimiento, setAlertasVencimiento] = useState(0);
-
-  // Cantidad de ALERTAS DE VENCIMIENTO del Depósito (lotes vencidos o próximos a vencer)
-  useEffect(() => {
-    if (!navItems.some((item) => item.id === "warehouse")) return;
-
-    let cancelado = false;
-    supabase
-      .schema("usuarios")
-      .rpc("listar_inventario_critico_deposito", { p_token: token ?? null })
-      .then(({ data, error }) => {
-        if (cancelado || error || !Array.isArray(data)) return;
-        const total = data.filter((row) => {
-          const s = obtenerSituacion(row.fecha_vencimiento);
-          return s === "Vencido" || s === "Próximo a vencer";
-        }).length;
-        setAlertasVencimiento(total);
-      });
-
-    return () => {
-      cancelado = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, token, role?.id, user?.id_rol]);
 
   const isItSectionActive =
     active === "it-admin" ||
@@ -112,6 +94,7 @@ export default function Sidebar({
           {navItems.map((item) => {
             const Icon = item.icon;
             const isItItem = item.id === "it-admin";
+
             const isActive = isItItem
               ? active === "it-admin"
               : active === item.id;
@@ -121,32 +104,39 @@ export default function Sidebar({
                 <button
                   type="button"
                   onClick={() => navigate(item.id)}
-                  className={`flex w-full items-center gap-2.75 rounded-[7px] border-0 px-3 py-2.75 text-left text-[15px] transition-all duration-150 cursor-pointer ${isActive
-                    ? "bg-brand-soft font-semibold text-brand shadow-[inset_3px_0_0_#145c73]"
-                    : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                  className={`flex w-full cursor-pointer items-center gap-2.75 rounded-[7px] border-0 px-3 py-2.75 text-left text-[15px] transition-all duration-150 ${isActive
+                      ? "bg-brand-soft font-semibold text-brand shadow-[inset_3px_0_0_#145c73]"
+                      : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
                     }`}
                 >
                   <Icon size={16} strokeWidth={1.8} />
+
                   <span className="flex-1">{item.label}</span>
 
-                  {item.id === "warehouse" && alertasVencimiento > 0 && (<em className="rounded-full bg-[#fff0d7] px-1.5 py-0.5 text-[10px] font-semibold not-italic text-[#b87318]">{alertasVencimiento}</em>)}
+                  {/* Alertas pendientes de vencimiento */}
+                  {item.id === "warehouse" && unreadCount > 0 && (
+                    <em className="rounded-full bg-[#fff0d7] px-1.5 py-0.5 text-[10px] font-semibold not-italic text-[#b87318]">
+                      {unreadCount}
+                    </em>
+                  )}
                 </button>
 
-                {/* Submenú de IT / Sistemas: Parámetros -> Roles / Permisos */}
+                {/* Submenú de IT / Sistemas */}
                 {isItItem && (
                   <div className="mt-1 ml-4 border-l border-[#dfe7e9] pl-2.5">
                     <button
                       type="button"
                       onClick={() => setParamsOpen((p) => !p)}
                       className={`flex w-full cursor-pointer items-center justify-between rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] font-medium transition-colors ${isItSectionActive
-                        ? "text-[#214451]"
-                        : "text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                          ? "text-[#214451]"
+                          : "text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
                         }`}
                     >
                       <span className="flex items-center gap-2">
                         <SlidersHorizontal size={13} />
                         <span>Parámetros</span>
                       </span>
+
                       <ChevronDown
                         size={13}
                         className={`transition-transform ${paramsOpen ? "rotate-180" : ""
@@ -160,8 +150,8 @@ export default function Sidebar({
                           type="button"
                           onClick={() => navigate("it-params-roles")}
                           className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${active === "it-params-roles"
-                            ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
-                            : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                              ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
+                              : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
                             }`}
                         >
                           Roles
@@ -171,8 +161,8 @@ export default function Sidebar({
                           type="button"
                           onClick={() => navigate("it-params-permisos")}
                           className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${active === "it-params-permisos"
-                            ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
-                            : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                              ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
+                              : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
                             }`}
                         >
                           Permisos
@@ -197,18 +187,22 @@ export default function Sidebar({
             <span>Configuración</span>
           </button>
 
+          {/* Usuario */}
           <div className="mt-2 flex shrink-0 items-center gap-2.25 border-t border-[#e4eaec] px-2 pt-2">
             <div className="grid h-7.75 w-7.75 shrink-0 place-items-center rounded-full bg-brand font-barlow text-[12px] font-bold text-white">
               {initials}
             </div>
+
             <div className="min-w-0 flex-1 cursor-pointer">
               <strong className="block overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-[#35535d]">
                 {fullName}
               </strong>
+
               <span className="mt-0.5 block overflow-hidden text-ellipsis whitespace-nowrap text-[9px] text-[#8b9ba0]">
                 {user?.rol_nombre || role?.label || "Administrador"}
               </span>
             </div>
+
             <button
               type="button"
               onClick={() => setLogged?.(false)}

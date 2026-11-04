@@ -1,60 +1,68 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Bell,
   Menu,
   Search,
+  RefreshCw,
+  X,
 } from "lucide-react";
 
 import { modules } from "@/data/mockData";
-import { useAuth } from "@/context/AuthContext";
+import { useNotifications } from "@/context/NotificationsContext";
 
-const pad2 = (n) => String(n).padStart(2, "0");
+const formatDate = (date) => {
+  if (!date) return "Sin fecha";
 
-const formatLiveDateTime = (date) => {
-  const day = pad2(date.getDate());
-  const month = pad2(date.getMonth() + 1);
-  const year = date.getFullYear();
-  const hours = pad2(date.getHours());
-  const minutes = pad2(date.getMinutes());
-  return `${day}-${month}-${year} ${hours}:${minutes}hs`;
+  return new Date(date).toLocaleDateString("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 };
 
 export default function Topbar({
   active,
-  role,
   setMobileOpen,
   setQuery,
-  fakeAction,
+  navigate,
 }) {
-  const { user } = useAuth();
-  const [now, setNow] = useState(() => new Date());
+  const {
+    notifications,
+    loading: loadingNotifications,
+    error: notificationsError,
+    refreshNotifications: cargarNotificaciones,
+    markAsRead,
+    readIds,
+  } = useNotifications();
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setNow(new Date());
-    }, 10000);
-    return () => clearInterval(interval);
-  }, []);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+  // Comprueba si todavía hay notificaciones sin leer.
+  const hayNotificacionesSinLeer = useMemo(
+    () =>
+      notifications.some(
+        (notificacion) =>
+          !readIds.includes(notificacion.id_lote_producto)
+      ),
+    [notifications, readIds]
+  );
+
+  // Marca la notificación como leída y navega al depósito.
+  const abrirNotificacion = (notificacion) => {
+    markAsRead(notificacion.id_lote_producto);
+    setNotificationsOpen(false);
+    navigate?.("warehouse");
+  };
 
   const currentModule =
     active === "it-params-roles"
       ? { label: "IT / Sistemas · Parámetros · Roles" }
       : active === "it-params-permisos"
         ? { label: "IT / Sistemas · Parámetros · Permisos" }
-        : modules.find((m) => m.id === active);
-
-  const initials = user
-    ? `${user.nombre?.trim()?.[0] ?? ""}${user.apellido?.trim()?.[0] ?? ""}`.toUpperCase()
-    : role?.initials ?? "";
-
-  const fullName = user
-    ? `${user.nombre?.trim() ?? ""} ${user.apellido?.trim() ?? ""}`.trim()
-    : "";
-
-  const rolLabel = user?.rol_nombre?.trim() || role?.label || "";
+        : modules.find((module) => module.id === active);
 
   return (
-    <header className="sticky top-0 z-10 flex h-18 items-center justify-between border-b border-[#dfe7e9] bg-white px-4 lg:px-8.5">
+    <header className="sticky top-0 z-30 flex h-18 items-center justify-between border-b border-[#dfe7e9] bg-white px-4 lg:px-8.5">
 
       {/* Menú mobile */}
       <button
@@ -92,43 +100,180 @@ export default function Topbar({
         </div>
 
         {/* Notificaciones */}
-        <button
-          type="button"
-          onClick={() =>
-            fakeAction?.("No hay nuevas notificaciones")
-          }
-          aria-label="Notificaciones"
-          className="relative grid h-8 w-8 place-items-center rounded-md border border-[#dce5e7] bg-white text-[#67808a] transition-colors hover:border-[#9ebbc5] hover:text-brand"
-        >
-          <Bell size={18} />
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setNotificationsOpen((prev) => !prev)}
+            aria-label="Notificaciones"
+            aria-expanded={notificationsOpen}
+            className="relative grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-[#dce5e7] bg-white text-[#67808a] transition-colors hover:border-[#9ebbc5] hover:text-brand"
+          >
+            <Bell size={18} />
 
-          <i className="absolute right-1.5 top-1.25 h-1.25 w-1.25 rounded-full bg-amber" />
-        </button>
+            {/* Punto amarillo: solo si hay alertas sin leer */}
+            {hayNotificacionesSinLeer && (
+              <i className="absolute right-1.5 top-1.25 h-1.25 w-1.25 rounded-full bg-[#e9b949]" />
+            )}
+          </button>
 
-        {/* Info del usuario en sesión + fecha y hora en vivo */}
-        <div className="flex items-center gap-2.5 border-l border-[#e6ecee] pl-3.5">
+          {/* Desplegable */}
+          {notificationsOpen && (
+            <>
+              {/* Cierre al hacer clic fuera */}
+              <button
+                type="button"
+                aria-label="Cerrar notificaciones"
+                onClick={() => setNotificationsOpen(false)}
+                className="fixed inset-0 z-40 cursor-default bg-transparent"
+              />
 
-          {/* 1. Iniciales Nombre + Apellido */}
-          <div className="grid h-8.5 w-8.5 shrink-0 place-items-center rounded-full bg-brand font-barlow text-[12px] font-bold text-white">
-            {initials}
-          </div>
+              <div className="absolute right-0 top-11 z-50 w-[min(360px,calc(100vw-24px))] overflow-hidden rounded-xl border border-[#dfe7e9] bg-white shadow-[0_12px_35px_rgba(22,50,61,0.14)]">
 
-          <div className="hidden leading-tight sm:block">
-            {/* 2. Nombre y apellido */}
-            <div className="text-[11px] font-bold text-[#214451]">
-              {fullName}
-            </div>
+                {/* Encabezado */}
+                <div className="flex items-center justify-between border-b border-slate-soft px-4 py-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#345460]">
+                      Notificaciones
+                    </h3>
 
-            {/* 3. Rol */}
-            <div className="text-[10px] font-medium capitalize text-[#49636c]">
-              {rolLabel}
-            </div>
+                    <p className="mt-0.5 text-[11px] text-[#9aa8ad]">
+                      Vencimientos de inventario
+                    </p>
+                  </div>
 
-            {/* 4. Fecha y hora en vivo DD-MM-AAAA HH:MMhs */}
-            <div className="font-mono text-[9.5px] text-[#82979e]">
-              {formatLiveDateTime(now)}
-            </div>
-          </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={cargarNotificaciones}
+                      disabled={loadingNotifications}
+                      aria-label="Actualizar notificaciones"
+                      className="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-[#81939a] transition-colors hover:bg-[#f5f7f8] hover:text-brand disabled:opacity-50"
+                    >
+                      <RefreshCw
+                        size={14}
+                        className={
+                          loadingNotifications ? "animate-spin" : ""
+                        }
+                      />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setNotificationsOpen(false)}
+                      aria-label="Cerrar"
+                      className="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-[#81939a] transition-colors hover:bg-[#f5f7f8] hover:text-brand"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Contenido */}
+                <div className="max-h-95 overflow-y-auto p-3">
+
+                  {loadingNotifications && notifications.length === 0 && (
+                    <div className="py-8 text-center text-xs text-[#81939a]">
+                      Cargando notificaciones...
+                    </div>
+                  )}
+
+                  {notificationsError && (
+                    <div className="py-6 text-center text-xs text-[#81939a]">
+                      No se pudieron cargar las notificaciones.
+
+                      <button
+                        type="button"
+                        onClick={cargarNotificaciones}
+                        className="mt-2 block w-full cursor-pointer text-center font-semibold text-[#b17a25] hover:underline"
+                      >
+                        Intentar nuevamente
+                      </button>
+                    </div>
+                  )}
+
+                  {!loadingNotifications &&
+                    !notificationsError &&
+                    notifications.length === 0 && (
+                      <div className="py-8 text-center">
+                        <Bell
+                          size={22}
+                          className="mx-auto mb-2 text-[#c1cdd1]"
+                        />
+
+                        <p className="text-xs font-medium text-[#67808a]">
+                          No hay alertas de vencimiento
+                        </p>
+
+                        <p className="mt-1 text-[11px] text-[#9aa8ad]">
+                          El inventario está al día.
+                        </p>
+                      </div>
+                    )}
+
+                  <div className="flex flex-col gap-2">
+                    {notifications.map((notificacion) => {
+                      const leida = readIds.includes(
+                        notificacion.id_lote_producto
+                      );
+
+                      const titulo = notificacion.vencido
+                        ? "Lote vencido"
+                        : notificacion.dias === 0
+                          ? "Vence hoy"
+                          : `Vence en ${notificacion.dias} ${notificacion.dias === 1 ? "día" : "días"
+                          }`;
+
+                      return (
+                        <button
+                          key={notificacion.id_lote_producto}
+                          type="button"
+                          onClick={() => abrirNotificacion(notificacion)}
+                          className={`w-full cursor-pointer rounded-lg border p-3 text-left transition-colors ${leida
+                            ? "border-[#e5e7eb] bg-white hover:bg-[#f8fafb]"
+                            : "border-[#f0dfb5] bg-[#fff8e9] hover:bg-[#fff3d8]"
+                            }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-[#345460]">
+                                {titulo}
+                              </p>
+
+                              <p className="mt-1 truncate text-[12px] font-medium text-ink-soft">
+                                {notificacion.producto_nombre || "Producto"}
+                              </p>
+
+                              <p className="mt-0.5 text-[11px] text-[#81939a]">
+                                Lote:{" "}
+                                {notificacion.codigo_lote ||
+                                  notificacion.id_lote_producto}
+                              </p>
+
+                              <p className="mt-1 text-[11px] text-[#81939a]">
+                                Vencimiento:{" "}
+                                {formatDate(notificacion.fechaVencimiento)}
+                              </p>
+                            </div>
+
+                            {!leida && (
+                              <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[#e9b949]" />
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Pie */}
+                <div className="border-t border-slate-soft bg-[#fafcfc] px-4 py-2.5">
+                  <p className="text-center text-[10px] text-[#9aa8ad]">
+                    Alertas de lotes vencidos y próximos a vencer
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </header>

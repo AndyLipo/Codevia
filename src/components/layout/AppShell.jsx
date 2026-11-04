@@ -1,13 +1,14 @@
+
 import { useState } from "react";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import Footer from "./Footer";
+import { NotificationsProvider } from "@/context/NotificationsContext";
 
 export default function AppShell({
   active,
   navigate,
   role,
-  setRole,
   setLogged,
   fakeAction,
   setQuery,
@@ -21,33 +22,32 @@ export default function AppShell({
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f6f7]">
-      <Sidebar
-        active={active}
-        navigate={handleNavigate}
-        mobileOpen={mobileOpen}
-        setMobileOpen={setMobileOpen}
-        role={role}
-        setLogged={setLogged}
-        fakeAction={fakeAction}
-      />
-
-      <main className="ml-62 min-h-screen min-w-0 max-lg:ml-0">
-        <Topbar
+    <NotificationsProvider>
+      <div className="min-h-screen bg-[#f4f6f7]">
+        <Sidebar
           active={active}
-          role={role}
-          setRole={setRole}
+          navigate={handleNavigate}
+          mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
-          setQuery={setQuery}
-          fakeAction={fakeAction}
+          role={role}
+          setLogged={setLogged}
         />
 
-        <div className="mx-auto max-w-360 px-6 pb-4 pt-8.5 max-md:px-4 max-md:pt-6">
-          {children}
-        </div>
+        <main className="ml-62 min-h-screen min-w-0 max-lg:ml-0">
+          <Topbar
+            active={active}
+            setMobileOpen={setMobileOpen}
+            setQuery={setQuery}
+            navigate={handleNavigate}
+          />
 
-        <Footer />
-      </main>
-    </div>
+          <div className="mx-auto max-w-360 px-6 pb-4 pt-8.5 max-md:px-4 max-md:pt-6">
+            {children}
+          </div>
+
+          <Footer />
+        </main>
+      </div>
+    </NotificationsProvider>
   );
 }

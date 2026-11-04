@@ -276,7 +276,7 @@ export default function SeguimientoPedidos() {
     setLoadingDetail(true);
     setDetailTab("productos");
     try {
-      const [ { data, error }, _ ] = await Promise.all([
+      const [{ data, error }, _] = await Promise.all([
         supabase.schema("usuarios").rpc("obtener_detalle_seguimiento_pedido", {
           p_token: token,
           p_id_pedido: idPedido,
@@ -360,7 +360,7 @@ export default function SeguimientoPedidos() {
 
         {/* 4 Recuadros pequeños a la derecha */}
         <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-4">
-          <div className="min-w-[125px] rounded-lg border border-[#e1e8ea] bg-white px-3 py-2 shadow-xs">
+          <div className="min-w-31.25 rounded-lg border border-[#e1e8ea] bg-white px-3 py-2 shadow-xs">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] font-semibold text-[#6b7c83]">
                 Total pedidos
@@ -374,7 +374,7 @@ export default function SeguimientoPedidos() {
             </div>
           </div>
 
-          <div className="min-w-[125px] rounded-lg border border-[#e1e8ea] bg-white px-3 py-2 shadow-xs">
+          <div className="min-w-31.25 rounded-lg border border-[#e1e8ea] bg-white px-3 py-2 shadow-xs">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] font-semibold text-[#6b7c83]">
                 Por confirmar
@@ -388,7 +388,7 @@ export default function SeguimientoPedidos() {
             </div>
           </div>
 
-          <div className="min-w-[125px] rounded-lg border border-[#e1e8ea] bg-white px-3 py-2 shadow-xs">
+          <div className="min-w-31.25 rounded-lg border border-[#e1e8ea] bg-white px-3 py-2 shadow-xs">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] font-semibold text-[#6b7c83]">
                 En operatoria
@@ -402,13 +402,17 @@ export default function SeguimientoPedidos() {
             </div>
           </div>
 
-          <div className="min-w-[125px] rounded-lg border border-[#e1e8ea] bg-white px-3 py-2 shadow-xs">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] font-semibold text-[#6b7c83]">
+          <div className="min-w-0 rounded-lg border border-[#e1e8ea] bg-white px-2.5 py-2 shadow-xs sm:min-w-31.25 sm:px-3">
+            <div className="flex items-center justify-between gap-1.5">
+              <span className="text-[9px] font-semibold text-[#6b7c83] sm:text-[10px]">
                 Despachados
               </span>
-              <Badge tone="green">Entregados</Badge>
+
+              <div className="shrink-0 [&>span]:px-1.5 [&>span]:py-0.5 [&>span]:text-[9px] sm:[&>span]:px-2 sm:[&>span]:py-1 sm:[&>span]:text-[10px]">
+                <Badge tone="green">Entregados</Badge>
+              </div>
             </div>
+
             <div className="mt-0.5 flex items-baseline justify-between gap-1.5">
               <span className="font-barlow text-[22px] font-bold leading-none text-[#163946]">
                 {metrics.despachados}
@@ -446,7 +450,7 @@ export default function SeguimientoPedidos() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Nº de pedido, usuario u observación..."
-              className="h-9 w-full rounded-md border border-[#d8e2e5] bg-[#f8fafb] pl-8 pr-3 text-[12px] text-[#173d4b] outline-none transition-colors focus:border-[#145c73] focus:bg-white"
+              className="h-9 w-full rounded-md border border-[#d8e2e5] bg-[#f8fafb] pl-8 pr-3 text-[12px] text-[#173d4b] outline-none transition-colors focus:border-brand focus:bg-white"
             />
           </div>
 
@@ -455,7 +459,7 @@ export default function SeguimientoPedidos() {
             value={clienteFilter}
             onChange={(e) => setClienteFilter(e.target.value)}
             placeholder="Filtrar por cliente o CUIT..."
-            className="h-9 rounded-md border border-[#d8e2e5] bg-white px-3 text-[12px] text-[#173d4b] outline-none focus:border-[#145c73]"
+            className="h-9 rounded-md border border-[#d8e2e5] bg-white px-3 text-[12px] text-[#173d4b] outline-none focus:border-brand"
           />
 
           <input
@@ -463,7 +467,7 @@ export default function SeguimientoPedidos() {
             value={fechaDesde}
             onChange={(e) => setFechaDesde(e.target.value)}
             title="Fecha desde"
-            className="h-9 rounded-md border border-[#d8e2e5] bg-white px-2.5 text-[11.5px] text-[#173d4b] outline-none focus:border-[#145c73]"
+            className="h-9 rounded-md border border-[#d8e2e5] bg-white px-2.5 text-[11.5px] text-[#173d4b] outline-none focus:border-brand"
           />
 
           <input
@@ -471,13 +475,13 @@ export default function SeguimientoPedidos() {
             value={fechaHasta}
             onChange={(e) => setFechaHasta(e.target.value)}
             title="Fecha hasta"
-            className="h-9 rounded-md border border-[#d8e2e5] bg-white px-2.5 text-[11.5px] text-[#173d4b] outline-none focus:border-[#145c73]"
+            className="h-9 rounded-md border border-[#d8e2e5] bg-white px-2.5 text-[11.5px] text-[#173d4b] outline-none focus:border-brand"
           />
 
           <select
             value={estadoFilter}
             onChange={(e) => setEstadoFilter(e.target.value)}
-            className="h-9 rounded-md border border-[#d8e2e5] bg-white px-2.5 text-[12px] text-[#173d4b] outline-none focus:border-[#145c73]"
+            className="h-9 rounded-md border border-[#d8e2e5] bg-white px-2.5 text-[12px] text-[#173d4b] outline-none focus:border-brand"
           >
             <option value="ALL">Estado: Todos</option>
             <option value="P">P · Pendiente</option>
@@ -503,7 +507,7 @@ export default function SeguimientoPedidos() {
         <div className="overflow-x-auto rounded-lg border border-[#e3eaec]">
           <table className="w-full border-collapse text-left text-[12px]">
             <thead>
-              <tr className="border-b border-[#e3eaec] bg-[#f4f8f9] text-[10px] font-bold uppercase tracking-[0.1em] text-[#697e86]">
+              <tr className="border-b border-[#e3eaec] bg-[#f4f8f9] text-[10px] font-bold uppercase tracking-widest text-[#697e86]">
                 <th className="px-3 py-2.5">Nº Pedido / Fecha</th>
                 <th className="px-3 py-2.5">Cliente</th>
                 <th className="px-3 py-2.5">Estado General</th>
@@ -551,16 +555,16 @@ export default function SeguimientoPedidos() {
                   const pctReserva =
                     cantSolicitada > 0
                       ? Math.min(
-                          100,
-                          Math.round((cantReservada / cantSolicitada) * 100)
-                        )
+                        100,
+                        Math.round((cantReservada / cantSolicitada) * 100)
+                      )
                       : 0;
                   const pctPicking =
                     cantSolicitada > 0
                       ? Math.min(
-                          100,
-                          Math.round((cantRecogida / cantSolicitada) * 100)
-                        )
+                        100,
+                        Math.round((cantRecogida / cantSolicitada) * 100)
+                      )
                       : 0;
 
                   return (
@@ -569,7 +573,7 @@ export default function SeguimientoPedidos() {
                       className="transition-colors hover:bg-[#f8fbfc]"
                     >
                       <td className="px-3 py-2.5 align-middle">
-                        <div className="font-mono text-[12px] font-bold text-[#145c73]">
+                        <div className="font-mono text-[12px] font-bold text-brand">
                           {formatNroPedido(row.id_pedido, row.numero_pedido)}
                         </div>
                         <div className="text-[10.5px] text-[#6d8088]">
@@ -614,7 +618,7 @@ export default function SeguimientoPedidos() {
                         </div>
                         <div className="mt-1 h-1.5 w-32 overflow-hidden rounded-full bg-[#e6eef0]">
                           <div
-                            className="h-full rounded-full bg-[#145c73] transition-all"
+                            className="h-full rounded-full bg-brand transition-all"
                             style={{ width: `${pctReserva}%` }}
                           />
                         </div>
@@ -657,7 +661,7 @@ export default function SeguimientoPedidos() {
                           type="button"
                           variant="outline"
                           onClick={() => handleOpenTracking(row.id_pedido)}
-                          className="h-7 border-[#cfe0e6] bg-[#f4f9fb] px-2.5 text-[11px] font-semibold text-[#145c73] hover:bg-[#e6f2f6]"
+                          className="h-7 border-[#cfe0e6] bg-[#f4f9fb] px-2.5 text-[11px] font-semibold text-brand hover:bg-[#e6f2f6]"
                         >
                           <Eye size={13} className="mr-1" />
                           Ver trazabilidad
@@ -706,15 +710,15 @@ export default function SeguimientoPedidos() {
 
       {/* MODAL DETALLE COMPLETO DEL SEGUIMIENTO */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="max-h-[92vh] overflow-y-auto border border-[#e1e8ea] bg-white shadow-card sm:max-w-[1040px]">
+        <DialogContent className="max-h-[92vh] overflow-y-auto border border-[#e1e8ea] bg-white shadow-card sm:max-w-260">
           <DialogHeader>
             <DialogTitle className="font-barlow text-[22px] text-[#163946]">
               Seguimiento detallado del pedido{" "}
               {currentPedido
                 ? formatNroPedido(
-                    currentPedido.id_pedido,
-                    currentPedido.numero_pedido
-                  )
+                  currentPedido.id_pedido,
+                  currentPedido.numero_pedido
+                )
                 : ""}
             </DialogTitle>
             <DialogDescription className="text-[12px] text-[#6b7d85]">
@@ -782,22 +786,20 @@ export default function SeguimientoPedidos() {
                     return (
                       <div
                         key={st.code}
-                        className={`flex items-center gap-2 rounded-md border px-2.5 py-2 ${
-                          isCurrent
-                            ? "border-[#145c73] bg-[#eaf3f6] text-[#145c73]"
-                            : isCompleted
-                              ? "border-[#cce8da] bg-[#f2faf5] text-[#256349]"
-                              : "border-[#e3eaec] bg-white text-[#82979e]"
-                        }`}
+                        className={`flex items-center gap-2 rounded-md border px-2.5 py-2 ${isCurrent
+                          ? "border-brand bg-[#eaf3f6] text-brand"
+                          : isCompleted
+                            ? "border-[#cce8da] bg-[#f2faf5] text-[#256349]"
+                            : "border-[#e3eaec] bg-white text-[#82979e]"
+                          }`}
                       >
                         <div
-                          className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold ${
-                            isCurrent
-                              ? "bg-[#145c73] text-white"
-                              : isCompleted
-                                ? "bg-[#2e8b62] text-white"
-                                : "bg-[#e6eef0] text-[#6d8088]"
-                          }`}
+                          className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold ${isCurrent
+                            ? "bg-brand text-white"
+                            : isCompleted
+                              ? "bg-[#2e8b62] text-white"
+                              : "bg-[#e6eef0] text-[#6d8088]"
+                            }`}
                         >
                           {isCompleted ? "✓" : st.code}
                         </div>
@@ -855,11 +857,11 @@ export default function SeguimientoPedidos() {
                       <div className="text-[11px] text-[#6d8088]">
                         {currentPedido.fec_finalizacion
                           ? `Fin: ${formatDateTime(
-                              currentPedido.fec_finalizacion
-                            )} (${currentPedido.usu_finalizacion})`
+                            currentPedido.fec_finalizacion
+                          )} (${currentPedido.usu_finalizacion})`
                           : `Iniciada: ${formatDateTime(
-                              currentPedido.prep_fec_alta
-                            )}`}
+                            currentPedido.prep_fec_alta
+                          )}`}
                       </div>
                     </>
                   ) : (
@@ -873,14 +875,14 @@ export default function SeguimientoPedidos() {
                   <div className="text-[10px] font-bold uppercase text-[#697e86]">
                     Despacho / Importe
                   </div>
-                  <div className="mt-0.5 font-mono text-[14px] font-bold text-[#145c73]">
+                  <div className="mt-0.5 font-mono text-[14px] font-bold text-brand">
                     $ {formatCurrency(currentTotalImporte)}
                   </div>
                   <div className="text-[11px] text-[#6d8088]">
                     {currentPedido.fec_despacho
                       ? `Despachado: ${formatDateTime(
-                          currentPedido.fec_despacho
-                        )} (${currentPedido.usu_despacho})`
+                        currentPedido.fec_despacho
+                      )} (${currentPedido.usu_despacho})`
                       : "Pendiente de despacho"}
                   </div>
                 </div>
@@ -902,11 +904,10 @@ export default function SeguimientoPedidos() {
                 <button
                   type="button"
                   onClick={() => setDetailTab("productos")}
-                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-[11.5px] font-semibold transition-colors ${
-                    detailTab === "productos"
-                      ? "bg-[#145c73] text-white"
-                      : "bg-[#f2f6f8] text-[#4f646c] hover:bg-[#e5eef1]"
-                  }`}
+                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-[11.5px] font-semibold transition-colors ${detailTab === "productos"
+                    ? "bg-brand text-white"
+                    : "bg-[#f2f6f8] text-[#4f646c] hover:bg-[#e5eef1]"
+                    }`}
                 >
                   <Layers size={13} />
                   Seguimiento por Producto y Lote (
@@ -916,11 +917,10 @@ export default function SeguimientoPedidos() {
                 <button
                   type="button"
                   onClick={() => setDetailTab("movimientos")}
-                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-[11.5px] font-semibold transition-colors ${
-                    detailTab === "movimientos"
-                      ? "bg-[#145c73] text-white"
-                      : "bg-[#f2f6f8] text-[#4f646c] hover:bg-[#e5eef1]"
-                  }`}
+                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-[11.5px] font-semibold transition-colors ${detailTab === "movimientos"
+                    ? "bg-brand text-white"
+                    : "bg-[#f2f6f8] text-[#4f646c] hover:bg-[#e5eef1]"
+                    }`}
                 >
                   <History size={13} />
                   Movimientos de Stock (
@@ -940,9 +940,9 @@ export default function SeguimientoPedidos() {
                       estadoPickingKey
                     ] ??
                       ESTADO_PICKING_LOTE_META[estadoPickingKey] ?? {
-                        label: estadoPickingKey,
-                        tone: "amber",
-                      };
+                      label: estadoPickingKey,
+                      tone: "amber",
+                    };
 
                     const lotes = Array.isArray(linea.lotes)
                       ? linea.lotes
@@ -965,12 +965,12 @@ export default function SeguimientoPedidos() {
                         {/* Encabezado del producto */}
                         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e8eff1] bg-[#f6fafb] px-3.5 py-2.5">
                           <div className="flex items-center gap-2">
-                            <Box size={16} className="text-[#145c73]" />
+                            <Box size={16} className="text-brand" />
                             <div>
                               <span className="font-semibold text-[#173d4b]">
                                 {prodNombre}
                               </span>
-                              <span className="ml-2 rounded bg-[#e5eff3] px-1.5 py-0.5 font-mono text-[10.5px] font-semibold text-[#145c73]">
+                              <span className="ml-2 rounded bg-[#e5eff3] px-1.5 py-0.5 font-mono text-[10.5px] font-semibold text-brand">
                                 {prodCodigo}
                               </span>
                             </div>
@@ -986,7 +986,7 @@ export default function SeguimientoPedidos() {
                             </div>
                             <div>
                               Reservado:{" "}
-                              <strong className="font-mono text-[#145c73]">
+                              <strong className="font-mono text-brand">
                                 {formatQty(linea.cantidad_reservada)}
                               </strong>
                             </div>
@@ -1004,11 +1004,10 @@ export default function SeguimientoPedidos() {
                             {linea.verificado ? (
                               <span
                                 className="inline-flex items-center gap-1 rounded-full bg-[#e7f4ed] px-2.5 py-0.5 text-[10.5px] font-semibold text-[#256349]"
-                                title={`Verificado por ${
-                                  linea.usu_verificacion || "—"
-                                } el ${formatDateTime(
-                                  linea.fec_verificacion
-                                )}`}
+                                title={`Verificado por ${linea.usu_verificacion || "—"
+                                  } el ${formatDateTime(
+                                    linea.fec_verificacion
+                                  )}`}
                               >
                                 <CheckCircle2 size={12} /> Verificado: Sí (
                                 {linea.usu_verificacion})
@@ -1023,7 +1022,7 @@ export default function SeguimientoPedidos() {
 
                         {/* Subtabla de lotes asignados a este producto */}
                         <div className="p-3">
-                          <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-[#6d8088]">
+                          <div className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-[#6d8088]">
                             Detalle por cada lote asignado (FIFO)
                           </div>
 
@@ -1068,7 +1067,7 @@ export default function SeguimientoPedidos() {
                                     };
                                     return (
                                       <tr key={lt.id_detalle_preparacion}>
-                                        <td className="px-2.5 py-1.5 font-mono font-bold text-[#145c73]">
+                                        <td className="px-2.5 py-1.5 font-mono font-bold text-brand">
                                           {lt.nro_lote}
                                         </td>
                                         <td className="px-2.5 py-1.5 font-mono text-[#173d4b]">
@@ -1094,8 +1093,8 @@ export default function SeguimientoPedidos() {
                                         <td className="px-2.5 py-1.5 text-[10.5px] text-[#6d8088]">
                                           {lt.usu_picking
                                             ? `${lt.usu_picking} (${formatDateTime(
-                                                lt.fec_picking
-                                              )})`
+                                              lt.fec_picking
+                                            )})`
                                             : "Sin registrar"}
                                         </td>
                                       </tr>
@@ -1175,7 +1174,7 @@ export default function SeguimientoPedidos() {
                                   ({prodCod})
                                 </span>
                               </td>
-                              <td className="px-3 py-2 font-mono font-semibold text-[#145c73]">
+                              <td className="px-3 py-2 font-mono font-semibold text-brand">
                                 {mov.nro_lote}
                               </td>
                               <td className="px-3 py-2 text-right font-mono font-bold text-[#173d4b]">
