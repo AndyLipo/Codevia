@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   Factory,
+  ClipboardCheck,
   Warehouse,
   Truck,
   ClipboardList,
@@ -61,6 +62,7 @@ export const roleOptions = [
 export const modules = [
   { id: "overview", label: "Vista general", icon: LayoutDashboard },
   { id: "production", label: "Producción", icon: Factory },
+  { id: "mis-ordenes", label: "Mis Órdenes", icon: ClipboardCheck },
   { id: "warehouse", label: "Depósito", icon: Warehouse },
   { id: "dispatch", label: "Expedición", icon: Truck },
   { id: "pedidos-gestion", label: "Gestión de Pedidos", icon: ClipboardList },

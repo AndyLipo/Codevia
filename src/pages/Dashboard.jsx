@@ -14,6 +14,7 @@ import SectionTitle from "@/components/common/SectionTitle";
 
 import Overview from "@/components/dashboard/Overview";
 import Production from "@/components/dashboard/Production";
+import MisOrdenes from "@/components/dashboard/MisOrdenes";
 import Warehouse from "@/components/dashboard/Warehouse";
 import Dispatch from "@/components/dashboard/Dispatch";
 import GestionPedidos from "@/components/dashboard/GestionPedidos";
@@ -30,7 +31,7 @@ import RRHH from "@/components/dashboard/RRHH";
 export default function Dashboard() {
   const { user, role, logout } = useAuth();
   const [active, setActive] = useState("overview");
-  const [query, setQuery] = useState("");
+  const [, setQuery] = useState("");
 
   const navigate = (id) => {
     setActive(id);
@@ -52,6 +53,9 @@ export default function Dashboard() {
 
       case "production":
         return <Production fakeAction={fakeAction} />;
+
+      case "mis-ordenes":
+        return <MisOrdenes fakeAction={fakeAction} />;
 
       case "warehouse":
         return (
