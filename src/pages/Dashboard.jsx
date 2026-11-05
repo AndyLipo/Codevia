@@ -67,7 +67,9 @@ export default function Dashboard() {
       case "orders":
       case "pedidos-gestion":
         if (!canAccessPedidos(user?.id_rol)) {
-          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+          return <Overview
+            navigate={navigate}
+            fakeAction={fakeAction} />;
         }
         return <GestionPedidos fakeAction={fakeAction} />;
 

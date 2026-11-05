@@ -4,7 +4,6 @@ import {
   X,
   ChevronDown,
   LogOut,
-  Settings,
   SlidersHorizontal,
 } from "lucide-react";
 
@@ -105,8 +104,8 @@ export default function Sidebar({
                   type="button"
                   onClick={() => navigate(item.id)}
                   className={`flex w-full cursor-pointer items-center gap-2.75 rounded-[7px] border-0 px-3 py-2.75 text-left text-[15px] transition-all duration-150 ${isActive
-                      ? "bg-brand-soft font-semibold text-brand shadow-[inset_3px_0_0_#145c73]"
-                      : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                    ? "bg-brand-soft font-semibold text-brand shadow-[inset_3px_0_0_#145c73]"
+                    : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
                     }`}
                 >
                   <Icon size={16} strokeWidth={1.8} />
@@ -128,8 +127,8 @@ export default function Sidebar({
                       type="button"
                       onClick={() => setParamsOpen((p) => !p)}
                       className={`flex w-full cursor-pointer items-center justify-between rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] font-medium transition-colors ${isItSectionActive
-                          ? "text-[#214451]"
-                          : "text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                        ? "text-[#214451]"
+                        : "text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
                         }`}
                     >
                       <span className="flex items-center gap-2">
@@ -150,8 +149,8 @@ export default function Sidebar({
                           type="button"
                           onClick={() => navigate("it-params-roles")}
                           className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${active === "it-params-roles"
-                              ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
-                              : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                            ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
+                            : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
                             }`}
                         >
                           Roles
@@ -161,8 +160,8 @@ export default function Sidebar({
                           type="button"
                           onClick={() => navigate("it-params-permisos")}
                           className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${active === "it-params-permisos"
-                              ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
-                              : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                            ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
+                            : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
                             }`}
                         >
                           Permisos
@@ -178,15 +177,6 @@ export default function Sidebar({
 
         {/* Parte inferior */}
         <div className="mt-auto">
-          <button
-            type="button"
-            onClick={() => navigate("settings")}
-            className="mt-2 flex w-full items-center gap-2.75 rounded-[7px] border-0 bg-transparent px-3 py-2.75 text-left text-[11px] text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
-          >
-            <Settings size={16} strokeWidth={1.8} />
-            <span>Configuración</span>
-          </button>
-
           {/* Usuario */}
           <div className="mt-2 flex shrink-0 items-center gap-2.25 border-t border-[#e4eaec] px-2 pt-2">
             <div className="grid h-7.75 w-7.75 shrink-0 place-items-center rounded-full bg-brand font-barlow text-[12px] font-bold text-white">

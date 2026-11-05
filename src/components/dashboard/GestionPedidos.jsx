@@ -916,7 +916,7 @@ export default function GestionPedidos({ fakeAction }) {
 
         return [
             openDetailCell(
-                <span className="font-mono text-[11.5px] font-bold text-[#145c73]">
+                <span className="font-mono text-[11.5px] font-bold text-brand">
                     #{String(item.id_pedido).padStart(5, "0")}
                 </span>
             ),
@@ -953,7 +953,7 @@ export default function GestionPedidos({ fakeAction }) {
                 </span>
             ),
             openDetailCell(
-                <span className="font-mono text-[11px] text-[#145c73]">
+                <span className="font-mono text-[11px] text-brand">
                     {item.usu_alta || "—"}
                 </span>
             ),
@@ -980,7 +980,7 @@ export default function GestionPedidos({ fakeAction }) {
                     <button
                         type="button"
                         onClick={() => handleOpenPedidoDetalle(item, true)}
-                        className="inline-flex cursor-pointer items-center gap-1 rounded border border-[#dce5e8] bg-white px-2 py-1 text-[10px] font-semibold text-[#145c73] hover:bg-[#eef5f7]"
+                        className="inline-flex cursor-pointer items-center gap-1 rounded border border-[#dce5e8] bg-white px-2 py-1 text-[10px] font-semibold text-brand hover:bg-[#eef5f7]"
                         title="Modificar pedido"
                     >
                         <FileEdit size={11} />
@@ -1021,7 +1021,7 @@ export default function GestionPedidos({ fakeAction }) {
     return (
         <>
             {/* Cabecera con título a la izquierda y 4 recuadros pequeños a la derecha */}
-            <div className="mb-3.5 flex flex-col justify-between gap-3.5 xl:flex-row xl:items-center">
+            <div className="mb-3.5 flex flex-col gap-4">
                 <div className="min-w-0">
                     <div className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-[#82979e]">
                         10 · COMERCIAL Y VENTAS
@@ -1039,13 +1039,13 @@ export default function GestionPedidos({ fakeAction }) {
                 </div>
 
                 {/* 4 recuadros pequeños a la derecha */}
-                <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
                     <div className="rounded-lg border border-[#e1e8ea] bg-white px-3 py-2 shadow-card">
                         <div className="flex items-center justify-between gap-2">
                             <span className="text-[10px] font-semibold text-[#5b727b]">
                                 Total pedidos
                             </span>
-                            <span className="rounded bg-[#e8f2f6] px-1.5 py-0.5 text-[8.5px] font-bold uppercase text-[#145c73]">
+                            <span className="rounded bg-[#e8f2f6] px-1.5 py-0.5 text-[8.5px] font-bold uppercase text-brand">
                                 Cartera
                             </span>
                         </div>
@@ -1077,12 +1077,12 @@ export default function GestionPedidos({ fakeAction }) {
                             <span className="text-[10px] font-semibold text-[#5b727b]">
                                 Confirmados (C)
                             </span>
-                            <span className="rounded bg-[#e8f2f6] px-1.5 py-0.5 text-[8.5px] font-bold uppercase text-[#145c73]">
+                            <span className="rounded bg-[#e8f2f6] px-1.5 py-0.5 text-[8.5px] font-bold uppercase text-brand">
                                 Reservados
                             </span>
                         </div>
                         <div className="mt-0.5">
-                            <strong className="font-barlow text-[22px] leading-none text-[#145c73]">
+                            <strong className="font-barlow text-[22px] leading-none text-brand">
                                 {stats.confirmados}
                             </strong>
                         </div>
@@ -1113,11 +1113,10 @@ export default function GestionPedidos({ fakeAction }) {
                         <button
                             type="button"
                             onClick={() => setActiveSection("listado")}
-                            className={`inline-flex cursor-pointer items-center gap-2 rounded-md px-3.5 py-2 text-[12px] font-semibold transition-all ${
-                                activeSection === "listado"
-                                    ? "bg-[#145c73] text-white shadow-xs"
-                                    : "bg-[#f4f7f8] text-[#587079] hover:bg-[#e8eff1] hover:text-[#214451]"
-                            }`}
+                            className={`inline-flex cursor-pointer items-center gap-2 rounded-md px-3.5 py-2 text-[12px] font-semibold transition-all ${activeSection === "listado"
+                                ? "bg-brand text-white shadow-xs"
+                                : "bg-[#f4f7f8] text-[#587079] hover:bg-[#e8eff1] hover:text-[#214451]"
+                                }`}
                         >
                             <ShoppingCart size={14} />
                             <span>Listado de Pedidos ({pedidos.length})</span>
@@ -1127,11 +1126,10 @@ export default function GestionPedidos({ fakeAction }) {
                             <button
                                 type="button"
                                 onClick={() => setActiveSection("pendientes")}
-                                className={`inline-flex cursor-pointer items-center gap-2 rounded-md px-3.5 py-2 text-[12px] font-semibold transition-all ${
-                                    activeSection === "pendientes"
-                                        ? "bg-[#145c73] text-white shadow-xs"
-                                        : "bg-[#f4f7f8] text-[#587079] hover:bg-[#e8eff1] hover:text-[#214451]"
-                                }`}
+                                className={`inline-flex cursor-pointer items-center gap-2 rounded-md px-3.5 py-2 text-[12px] font-semibold transition-all ${activeSection === "pendientes"
+                                    ? "bg-brand text-white shadow-xs"
+                                    : "bg-[#f4f7f8] text-[#587079] hover:bg-[#e8eff1] hover:text-[#214451]"
+                                    }`}
                             >
                                 <ClipboardCheck size={14} />
                                 <span>
@@ -1389,7 +1387,7 @@ export default function GestionPedidos({ fakeAction }) {
                                                 onClick={() =>
                                                     setReadOnlyMode(false)
                                                 }
-                                                className="inline-flex cursor-pointer items-center gap-1 rounded border border-[#145c73] bg-[#eef6f8] px-2.5 py-1 text-[11px] font-semibold text-[#145c73] hover:bg-[#dfeef3]"
+                                                className="inline-flex cursor-pointer items-center gap-1 rounded border border-brand bg-[#eef6f8] px-2.5 py-1 text-[11px] font-semibold  hover:bg-[#dfeef3]"
                                             >
                                                 <FileEdit size={12} />
                                                 Habilitar edición
@@ -1427,7 +1425,7 @@ export default function GestionPedidos({ fakeAction }) {
 
                             {/* 1. Selección e información del Cliente */}
                             <div className="rounded-md border border-[#e1e8ea] bg-[#f8fafb] p-3.5">
-                                <div className="mb-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#145c73]">
+                                <div className="mb-2.5 text-[10px] font-bold uppercase tracking-[0.14em] ">
                                     1 · Cliente y modalidad de entrega
                                 </div>
 
@@ -1444,7 +1442,7 @@ export default function GestionPedidos({ fakeAction }) {
                                                     : editingPedido?.cliente_nombre || "—"}
                                             </div>
                                         ) : selectedClienteObj && !clienteDropdownOpen ? (
-                                            <div className="flex h-9 items-center justify-between gap-2 rounded-md border border-[#145c73] bg-white px-3 text-[11.5px] shadow-2xs">
+                                            <div className="flex h-9 items-center justify-between gap-2 rounded-md border border-brand bg-white px-3 text-[11.5px] shadow-2xs">
                                                 <div className="min-w-0 truncate">
                                                     <strong className="font-semibold text-[#173c4b]">
                                                         {selectedClienteObj.nombre_razon_social}
@@ -1458,7 +1456,7 @@ export default function GestionPedidos({ fakeAction }) {
                                                 <button
                                                     type="button"
                                                     onClick={handleClearCliente}
-                                                    className="shrink-0 cursor-pointer rounded border border-[#d6e2e6] bg-[#f4f8f9] px-2 py-0.5 text-[10px] font-semibold text-[#145c73] hover:bg-[#e5f0f4]"
+                                                    className="shrink-0 cursor-pointer rounded border border-[#d6e2e6] bg-[#f4f8f9] px-2 py-0.5 text-[10px] font-semibold  hover:bg-[#e5f0f4]"
                                                 >
                                                     Cambiar cliente
                                                 </button>
@@ -1517,7 +1515,7 @@ export default function GestionPedidos({ fakeAction }) {
                                                 {clienteDropdownOpen && (
                                                     <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 max-h-56 overflow-y-auto rounded-md border border-[#cfdce0] bg-white shadow-lg">
                                                         {filteredClientesSelector.length ===
-                                                        0 ? (
+                                                            0 ? (
                                                             <div className="px-3 py-3 text-center text-[11px] text-[#758990]">
                                                                 No se encontraron
                                                                 clientes activos
@@ -1562,7 +1560,7 @@ export default function GestionPedidos({ fakeAction }) {
                                                                                     "Sin domicilio registrado"}
                                                                             </div>
                                                                         </div>
-                                                                        <div className="shrink-0 text-right font-mono text-[10.5px] text-[#145c73]">
+                                                                        <div className="shrink-0 text-right font-mono text-[10.5px] ">
                                                                             {c.cuit
                                                                                 ? `CUIT ${c.cuit}`
                                                                                 : c.nro_documento
@@ -1734,7 +1732,7 @@ export default function GestionPedidos({ fakeAction }) {
                             {/* 2. Grilla dinámica de Productos */}
                             <div className="rounded-md border border-[#e1e8ea] bg-white p-3.5">
                                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                                    <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#145c73]">
+                                    <div className="text-[10px] font-bold uppercase tracking-[0.14em] ">
                                         2 · Productos del pedido
                                     </div>
                                 </div>
@@ -1806,8 +1804,8 @@ export default function GestionPedidos({ fakeAction }) {
                                                 max={
                                                     selectedProdForAdd
                                                         ? Number(
-                                                              selectedProdForAdd.stock_disponible
-                                                          )
+                                                            selectedProdForAdd.stock_disponible
+                                                        )
                                                         : undefined
                                                 }
                                                 value={prodCantidadInput}
@@ -1882,21 +1880,21 @@ export default function GestionPedidos({ fakeAction }) {
                                                     const maxDisp =
                                                         Number(
                                                             l.stock_disponible ??
-                                                                0
+                                                            0
                                                         ) +
                                                         Number(
                                                             l.cantidad_reservada_propia ??
-                                                                0
+                                                            0
                                                         );
                                                     const excedeStock =
                                                         cantNum > maxDisp;
                                                     const importe =
                                                         Math.round(
                                                             cantNum *
-                                                                Number(
-                                                                    l.precio_unitario
-                                                                ) *
-                                                                100
+                                                            Number(
+                                                                l.precio_unitario
+                                                            ) *
+                                                            100
                                                         ) / 100;
 
                                                     return (
@@ -1907,7 +1905,7 @@ export default function GestionPedidos({ fakeAction }) {
                                                             <td className="px-3 py-2 font-medium text-[#214451]">
                                                                 {l.nombre}
                                                             </td>
-                                                            <td className="px-3 py-2 font-mono text-[11px] text-[#145c73]">
+                                                            <td className="px-3 py-2 font-mono text-[11px] ">
                                                                 {l.codigo}
                                                             </td>
                                                             <td className="px-3 py-2 text-right font-mono text-[11px] text-[#49636c]">
@@ -1950,13 +1948,12 @@ export default function GestionPedidos({ fakeAction }) {
                                                                                         .value
                                                                                 )
                                                                             }
-                                                                            className={`h-8 w-28 rounded border px-2 text-right font-mono text-[11px] outline-none ${
-                                                                                excedeStock ||
+                                                                            className={`h-8 w-28 rounded border px-2 text-right font-mono text-[11px] outline-none ${excedeStock ||
                                                                                 cantNum <=
-                                                                                    0
-                                                                                    ? "border-[#ba584d] bg-[#fbe9e7] text-[#ba584d]"
-                                                                                    : "border-[#cfdce0] bg-white text-[#173c4b]"
-                                                                            }`}
+                                                                                0
+                                                                                ? "border-[#ba584d] bg-[#fbe9e7] text-[#ba584d]"
+                                                                                : "border-[#cfdce0] bg-white text-[#173c4b]"
+                                                                                }`}
                                                                         />
                                                                         {excedeStock && (
                                                                             <span className="mt-0.5 text-[9.5px] font-semibold text-[#ba584d]">
@@ -2028,7 +2025,7 @@ export default function GestionPedidos({ fakeAction }) {
                                     </div>
 
                                     <div className="flex items-baseline gap-2 rounded-md bg-[#eef5f7] px-3.5 py-2">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#145c73]">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider ">
                                             Total General:
                                         </span>
                                         <strong className="font-barlow text-[22px] leading-none text-[#173c4b]">
@@ -2063,7 +2060,7 @@ export default function GestionPedidos({ fakeAction }) {
                                         disabled={
                                             savingPedido ||
                                             confirmingId ===
-                                                editingPedido.id_pedido
+                                            editingPedido.id_pedido
                                         }
                                         onClick={() =>
                                             handleConfirmarPedido(editingPedido)
@@ -2075,7 +2072,7 @@ export default function GestionPedidos({ fakeAction }) {
                                             className="mr-1.5"
                                         />
                                         {confirmingId ===
-                                        editingPedido.id_pedido
+                                            editingPedido.id_pedido
                                             ? "Confirmando..."
                                             : "Confirmar Pedido (Reservar FIFO)"}
                                     </Button>
@@ -2175,8 +2172,8 @@ export default function GestionPedidos({ fakeAction }) {
                             Confirmar Pedido #
                             {confirmDialogPedido
                                 ? String(
-                                      confirmDialogPedido.id_pedido
-                                  ).padStart(5, "0")
+                                    confirmDialogPedido.id_pedido
+                                ).padStart(5, "0")
                                 : ""}
                         </DialogTitle>
                         <DialogDescription className="text-[12px] text-muted-ink">

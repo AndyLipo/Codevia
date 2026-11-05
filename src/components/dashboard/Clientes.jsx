@@ -396,7 +396,7 @@ export default function Clientes({ fakeAction }) {
                     <Badge tone="blue">
                         {item.categoria_cliente}
                         {item.categoria_cliente_nombre &&
-                        item.categoria_cliente_nombre !==
+                            item.categoria_cliente_nombre !==
                             item.categoria_cliente
                             ? ` · ${item.categoria_cliente_nombre}`
                             : ""}
@@ -577,7 +577,7 @@ export default function Clientes({ fakeAction }) {
     return (
         <>
             {/* Cabecera con título a la izquierda y 4 recuadros pequeños de KPIs a la derecha */}
-            <div className="mb-3.5 flex flex-col justify-between gap-3.5 xl:flex-row xl:items-center">
+            <div className="mb-3.5 flex flex-col gap-4">
                 <div className="min-w-0">
                     <div className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-[#82979e]">
                         09 · ADMINISTRACIÓN Y COMERCIAL
@@ -593,7 +593,7 @@ export default function Clientes({ fakeAction }) {
                 </div>
 
                 {/* 4 recuadros pequeños a la derecha */}
-                <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
                     <div className="rounded-lg border border-[#e1e8ea] bg-white px-3 py-2 shadow-card">
                         <div className="flex items-center justify-between gap-2">
                             <span className="text-[10px] font-semibold text-[#5b727b]">
@@ -667,11 +667,10 @@ export default function Clientes({ fakeAction }) {
                         <button
                             type="button"
                             onClick={() => setActiveTab("padron")}
-                            className={`inline-flex cursor-pointer items-center gap-2 rounded-md px-3.5 py-2 text-[12px] font-semibold transition-all ${
-                                activeTab === "padron"
-                                    ? "bg-[#145c73] text-white shadow-xs"
-                                    : "bg-[#f4f7f8] text-[#587079] hover:bg-[#e8eff1] hover:text-[#214451]"
-                            }`}
+                            className={`inline-flex cursor-pointer items-center gap-2 rounded-md px-3.5 py-2 text-[12px] font-semibold transition-all ${activeTab === "padron"
+                                ? "bg-[#145c73] text-white shadow-xs"
+                                : "bg-[#f4f7f8] text-[#587079] hover:bg-[#e8eff1] hover:text-[#214451]"
+                                }`}
                         >
                             <Building2 size={14} />
                             <span>Padrón de clientes ({clientes.length})</span>
@@ -680,11 +679,10 @@ export default function Clientes({ fakeAction }) {
                         <button
                             type="button"
                             onClick={() => setActiveTab("historial")}
-                            className={`inline-flex cursor-pointer items-center gap-2 rounded-md px-3.5 py-2 text-[12px] font-semibold transition-all ${
-                                activeTab === "historial"
-                                    ? "bg-[#145c73] text-white shadow-xs"
-                                    : "bg-[#f4f7f8] text-[#587079] hover:bg-[#e8eff1] hover:text-[#214451]"
-                            }`}
+                            className={`inline-flex cursor-pointer items-center gap-2 rounded-md px-3.5 py-2 text-[12px] font-semibold transition-all ${activeTab === "historial"
+                                ? "bg-[#145c73] text-white shadow-xs"
+                                : "bg-[#f4f7f8] text-[#587079] hover:bg-[#e8eff1] hover:text-[#214451]"
+                                }`}
                         >
                             <History size={14} />
                             <span>
