@@ -12,6 +12,8 @@ import {
   Building2,
   Package,
   Tags,
+  Boxes,
+  MapPinCheck,
 } from "lucide-react";
 
 export const roleOptions = [
@@ -63,6 +65,8 @@ export const modules = [
   { id: "overview", label: "Vista general", icon: LayoutDashboard },
   { id: "production", label: "Producción", icon: Factory },
   { id: "mis-ordenes", label: "Mis Órdenes", icon: ClipboardCheck },
+  { id: "lotes", label: "Lotes", icon: Boxes },
+  { id: "ubicar-lotes", label: "Ubicar Lotes", icon: MapPinCheck },
   { id: "warehouse", label: "Depósito", icon: Warehouse },
   { id: "dispatch", label: "Expedición", icon: Truck },
   { id: "pedidos-gestion", label: "Gestión de Pedidos", icon: ClipboardList },
@@ -276,6 +280,31 @@ export const canAccessCatalogo = (idRol, rolModulos, moduloId) => {
   return Array.isArray(rolModulos) && rolModulos.includes(moduloId);
 };
 
+export const canAccessLotes = (idRol, rolModulos) => {
+  if (Number(idRol) === 1) return true;
+  if (Array.isArray(rolModulos) && rolModulos.length > 0) {
+    return (
+      rolModulos.includes("lotes") ||
+      rolModulos.includes("warehouse") ||
+      rolModulos.includes("production")
+    );
+  }
+  return true;
+};
+
+export const canAccessUbicarLotes = (idRol, rolModulos) => {
+  if (Number(idRol) === 1) return true;
+  if (Array.isArray(rolModulos) && rolModulos.length > 0) {
+    return (
+      rolModulos.includes("ubicar-lotes") ||
+      rolModulos.includes("lotes") ||
+      rolModulos.includes("warehouse") ||
+      rolModulos.includes("production")
+    );
+  }
+  return true;
+};
+
 export function getModulesForRole(roleId, idRol, rolModulos) {
   const numericRoleId = Number(idRol);
 
@@ -296,6 +325,10 @@ export function getModulesForRole(roleId, idRol, rolModulos) {
     if (canAccessPedidos(numericRoleId)) {
       normalizedRolModulos.add("pedidos-gestion");
       normalizedRolModulos.add("pedidos-seguimiento");
+    }
+    if (normalizedRolModulos.has("production") || normalizedRolModulos.has("warehouse")) {
+      normalizedRolModulos.add("lotes");
+      normalizedRolModulos.add("ubicar-lotes");
     }
 
     return modules.filter((m) => {

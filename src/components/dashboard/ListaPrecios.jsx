@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { FileEdit, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, FileEdit, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import SectionTitle from "@/components/common/SectionTitle";
@@ -75,6 +75,27 @@ export default function ListaPrecios({ fakeAction }) {
   const [form, setForm] = useState(formInicial());
   const [saving, setSaving] = useState(false);
 
+  const [productoSearchInput, setProductoSearchInput] = useState("");
+  const [productoDropdownOpen, setProductoDropdownOpen] = useState(false);
+  const productoDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        productoDropdownRef.current &&
+        !productoDropdownRef.current.contains(event.target)
+      ) {
+        setProductoDropdownOpen(false);
+      }
+    };
+    if (productoDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [productoDropdownOpen]);
+
   const [aEliminar, setAEliminar] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -145,6 +166,8 @@ export default function ListaPrecios({ fakeAction }) {
   const abrirNuevo = () => {
     setEditando(null);
     setForm(formInicial());
+    setProductoSearchInput("");
+    setProductoDropdownOpen(false);
     setModalOpen(true);
   };
 
@@ -157,26 +180,70 @@ export default function ListaPrecios({ fakeAction }) {
       fechaDesde: String(p.fecha_desde ?? "").slice(0, 10),
       fechaHasta: p.fecha_hasta ? String(p.fecha_hasta).slice(0, 10) : "",
     });
+    setProductoSearchInput(`${p.producto_codigo} · ${p.producto_nombre}`);
+    setProductoDropdownOpen(false);
     setModalOpen(true);
   };
 
-  // En edición se conserva el producto aunque ya no esté activo
-  const opcionesProducto = useMemo(() => {
-    if (
-      editando &&
-      !productos.some((p) => p.id_producto === editando.id_producto)
-    ) {
-      return [
-        ...productos,
-        {
+  // Mostrar solo productos que no tengan asignado un valor todavía
+  const productosSinPrecio = useMemo(() => {
+    const idsConPrecio = new Set(
+      precios
+        .filter((pr) => pr.estado !== "E")
+        .map((pr) => Number(pr.id_producto))
+    );
+
+    if (editando) {
+      const lista = productos.filter(
+        (p) =>
+          Number(p.id_producto) === Number(editando.id_producto) ||
+          !idsConPrecio.has(Number(p.id_producto))
+      );
+      if (!lista.some((p) => Number(p.id_producto) === Number(editando.id_producto))) {
+        lista.unshift({
           id_producto: editando.id_producto,
           codigo: editando.producto_codigo,
           nombre: editando.producto_nombre,
-        },
-      ];
+        });
+      }
+      return lista;
     }
-    return productos;
-  }, [productos, editando]);
+
+    return productos.filter((p) => !idsConPrecio.has(Number(p.id_producto)));
+  }, [productos, precios, editando]);
+
+  const productosModalFiltrados = useMemo(() => {
+    const q = productoSearchInput.trim().toLowerCase();
+    if (!q) return productosSinPrecio;
+
+    const selectedProd = productosSinPrecio.find(
+      (p) => String(p.id_producto) === String(form.idProducto)
+    );
+    if (
+      selectedProd &&
+      `${selectedProd.codigo} · ${selectedProd.nombre}`.toLowerCase() === q
+    ) {
+      return productosSinPrecio;
+    }
+
+    return productosSinPrecio.filter(
+      (p) =>
+        String(p.nombre || "").toLowerCase().includes(q) ||
+        String(p.codigo || "").toLowerCase().includes(q)
+    );
+  }, [productosSinPrecio, productoSearchInput, form.idProducto]);
+
+  const handleSelectProducto = (p) => {
+    setForm((f) => ({ ...f, idProducto: String(p.id_producto) }));
+    setProductoSearchInput(`${p.codigo} · ${p.nombre}`);
+    setProductoDropdownOpen(false);
+  };
+
+  const handleClearProducto = () => {
+    setForm((f) => ({ ...f, idProducto: "" }));
+    setProductoSearchInput("");
+    setProductoDropdownOpen(false);
+  };
 
   const handleGuardar = async (e) => {
     e.preventDefault();
@@ -425,10 +492,10 @@ export default function ListaPrecios({ fakeAction }) {
           if (!saving) setModalOpen(open);
         }}
       >
-        <DialogContent className="max-w-130 border border-[#e1e8ea] bg-white p-0 shadow-card">
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="max-w-130 border border-[#e1e8ea] bg-white p-0 shadow-card">
           <DialogHeader className="border-b border-slate-soft bg-white px-6 py-4">
             <DialogTitle className="font-barlow text-[22px] font-normal text-ink">
-              {editando ? `Modificar valor #${editando.id_precio_producto}` : "Nuevo valor de precio"}
+              {editando ? `Modificar valor #${editando.id_precio_producto}` : "Nuevo valor de Producto"}
             </DialogTitle>
             <DialogDescription className="text-[12px] text-muted-ink">
               Los pedidos ya generados conservan el precio aplicado en su momento.
@@ -439,19 +506,95 @@ export default function ListaPrecios({ fakeAction }) {
             <div className="space-y-3.5 bg-white px-6 py-4">
               <div className="space-y-1">
                 <Label className={labelCls}>Producto *</Label>
-                <select
-                  value={form.idProducto}
-                  onChange={(e) => setForm((f) => ({ ...f, idProducto: e.target.value }))}
-                  className={selectCls}
-                  required
-                >
-                  <option value="">Seleccionar producto...</option>
-                  {opcionesProducto.map((p) => (
-                    <option key={p.id_producto} value={String(p.id_producto)}>
-                      {p.codigo} · {p.nombre}
-                    </option>
-                  ))}
-                </select>
+                <div ref={productoDropdownRef} className="relative">
+                  <div className="relative flex items-center">
+                    <Search
+                      size={14}
+                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#82979e]"
+                    />
+                    <input
+                      type="text"
+                      value={productoSearchInput}
+                      onClick={() => setProductoDropdownOpen((prev) => !prev)}
+                      onChange={(e) => {
+                        setProductoSearchInput(e.target.value);
+                        if (form.idProducto) {
+                          setForm((f) => ({ ...f, idProducto: "" }));
+                        }
+                        setProductoDropdownOpen(true);
+                      }}
+                      placeholder="Buscar o seleccionar producto..."
+                      className="h-9 w-full rounded-md border border-[#dfe7e9] bg-white pl-9 pr-16 text-[12px] text-[#173d4b] outline-none transition-colors focus:border-[#214451]"
+                      required={!form.idProducto}
+                    />
+
+                    <div className="absolute right-2 flex items-center gap-0.5">
+                      {form.idProducto && (
+                        <button
+                          type="button"
+                          onClick={handleClearProducto}
+                          className="grid h-6 w-6 cursor-pointer place-items-center rounded text-[#82979e] transition-colors hover:bg-[#f4f7f8] hover:text-[#173d4b]"
+                          title="Limpiar selección"
+                        >
+                          <X size={13} />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setProductoDropdownOpen((prev) => !prev)}
+                        className="grid h-6 w-6 cursor-pointer place-items-center rounded text-[#82979e] transition-colors hover:bg-[#f4f7f8] hover:text-[#173d4b]"
+                        title="Desplegar lista"
+                      >
+                        <ChevronDown
+                          size={14}
+                          className={`transition-transform duration-150 ${productoDropdownOpen ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Menú desplegable */}
+                  {productoDropdownOpen && (
+                    <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 max-h-56 overflow-y-auto rounded-md border border-[#cfdce0] bg-white py-1 shadow-lg">
+                      {productosModalFiltrados.length === 0 ? (
+                        <div className="px-3 py-3 text-center text-[11px] text-[#758990]">
+                          {productosSinPrecio.length === 0
+                            ? "Todos los productos ya tienen un valor asignado."
+                            : "No se encontraron productos que coincidan con la búsqueda."}
+                        </div>
+                      ) : (
+                        productosModalFiltrados.map((p) => {
+                          const isSelected = String(p.id_producto) === String(form.idProducto);
+                          return (
+                            <button
+                              key={p.id_producto}
+                              type="button"
+                              onClick={() => handleSelectProducto(p)}
+                              className={`flex w-full cursor-pointer items-center justify-between border-b border-[#f0f4f5] px-3 py-2 text-left text-[11px] transition-colors last:border-b-0 ${isSelected ? "bg-[#e9f2f5] font-semibold text-[#145c73]" : "text-[#173d4b] hover:bg-[#f4f8f9]"}`}
+                            >
+                              <div>
+                                <span className="mr-1.5 font-mono font-semibold text-[#145c73]">
+                                  [{p.codigo}]
+                                </span>
+                                <span className="font-medium text-[#214451]">{p.nombre}</span>
+                                {p.unidad_codigo && (
+                                  <span className="ml-1.5 text-[10px] text-[#7b8f96]">
+                                    · {p.unidad_codigo}
+                                  </span>
+                                )}
+                              </div>
+                              {isSelected && (
+                                <span className="text-[10px] font-bold text-[#145c73]">
+                                  Seleccionado
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const pool = require('./src/db/database');
 const productoRoutes = require('./src/routes/productoRoutes');
+const loteRoutes = require('./src/routes/loteRoutes');
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/productos', productoRoutes);  //api para usar el router.get('/', obtenerProductos);
+app.use('/api/lotes', loteRoutes);
 
 
 app.get('/', (req, res) => {

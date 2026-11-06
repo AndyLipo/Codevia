@@ -27,6 +27,8 @@ const ESTADO_META = {
 const MODULE_DESCRIPTIONS = {
     overview: "Panel general de indicadores operativos, alertas y actividad de planta.",
     production: "Control de extrusión, órdenes de producción, lotes y calidad.",
+    lotes: "Listado de lotes, estados, stock disponible, ubicaciones e ingreso de lotes externos.",
+    "ubicar-lotes": "Recepción física de lotes, asignación de posiciones en depósito y traslados entre casillas.",
     warehouse: "Gestión de stock, sectores, posiciones y movimientos de depósito.",
     dispatch: "Playa de carga, hojas de ruta y seguimiento de despachos.",
     "pedidos-gestion": "Registro, consulta, confirmación y edición de pedidos de clientes (Roles 1, 9 y 16).",
@@ -50,6 +52,9 @@ const getDefaultModulesForRole = (idRol) => {
     return [
         "overview",
         "production",
+        "mis-ordenes",
+        "lotes",
+        "ubicar-lotes",
         "warehouse",
         "dispatch",
         "reports",

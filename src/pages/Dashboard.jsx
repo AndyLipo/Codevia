@@ -8,6 +8,8 @@ import {
   canAccessClientes,
   canAccessPedidos,
   canAccessCatalogo,
+  canAccessLotes,
+  canAccessUbicarLotes,
 } from "@/data/mockData";
 import AppShell from "@/components/layout/AppShell";
 import SectionTitle from "@/components/common/SectionTitle";
@@ -15,6 +17,8 @@ import SectionTitle from "@/components/common/SectionTitle";
 import Overview from "@/components/dashboard/Overview";
 import Production from "@/components/dashboard/Production";
 import MisOrdenes from "@/components/dashboard/MisOrdenes";
+import Lotes from "@/components/dashboard/Lotes";
+import UbicarLotes from "@/components/dashboard/UbicarLotes";
 import Warehouse from "@/components/dashboard/Warehouse";
 import Dispatch from "@/components/dashboard/Dispatch";
 import GestionPedidos from "@/components/dashboard/GestionPedidos";
@@ -56,6 +60,18 @@ export default function Dashboard() {
 
       case "mis-ordenes":
         return <MisOrdenes fakeAction={fakeAction} />;
+
+      case "lotes":
+        if (!canAccessLotes(user?.id_rol, user?.rol_modulos)) {
+          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+        }
+        return <Lotes fakeAction={fakeAction} />;
+
+      case "ubicar-lotes":
+        if (!canAccessUbicarLotes(user?.id_rol, user?.rol_modulos)) {
+          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+        }
+        return <UbicarLotes fakeAction={fakeAction} />;
 
       case "warehouse":
         return (
