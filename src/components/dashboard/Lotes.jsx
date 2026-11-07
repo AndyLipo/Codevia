@@ -114,12 +114,15 @@ export default function Lotes({ fakeAction }) {
   const [productos, setProductos] = useState([]);
   const [stocksMap, setStocksMap] = useState(new Map());
   const [ubicacionesMap, setUbicacionesMap] = useState(new Map());
+  const [ubicacionesZonaMap, setUbicacionesZonaMap] = useState(new Map());
+  const [zonas, setZonas] = useState([]);
   const [unidadesMap, setUnidadesMap] = useState(new Map());
   const [loading, setLoading] = useState(true);
 
   // Filtros y búsquedas
   const [search, setSearch] = useState("");
   const [estadoLoteFilter, setEstadoLoteFilter] = useState("ALL");
+  const [ubicacionFilter, setUbicacionFilter] = useState("ALL");
   const [estadoRegistroFilter, setEstadoRegistroFilter] = useState("A"); // Por defecto lotes activos
 
   // Modal Ingreso de Lote Externo
@@ -165,6 +168,10 @@ export default function Lotes({ fakeAction }) {
         resStocks,
         resLotePos,
         resPos,
+        resZonas,
+        resPasillos,
+        resModulos,
+        resNiveles,
       ] = await Promise.all([
         supabase
           .schema("produccion")
@@ -205,7 +212,32 @@ export default function Lotes({ fakeAction }) {
         supabase
           .schema("deposito")
           .from("posicion")
-          .select("id_posicion, codigo, estado")
+          .select("id_posicion, id_nivel, codigo, estado")
+          .eq("estado", "A"),
+
+        supabase
+          .schema("deposito")
+          .from("zona")
+          .select("id_zona, id_deposito, codigo, nombre, descripcion, estado")
+          .eq("estado", "A")
+          .order("codigo", { ascending: true }),
+
+        supabase
+          .schema("deposito")
+          .from("pasillo")
+          .select("id_pasillo, id_zona, codigo, estado")
+          .eq("estado", "A"),
+
+        supabase
+          .schema("deposito")
+          .from("modulo")
+          .select("id_modulo, id_pasillo, numero, estado")
+          .eq("estado", "A"),
+
+        supabase
+          .schema("deposito")
+          .from("nivel")
+          .select("id_nivel, id_modulo, numero, estado")
           .eq("estado", "A"),
       ]);
 
@@ -226,21 +258,64 @@ export default function Lotes({ fakeAction }) {
       }
       setStocksMap(mapStocks);
 
-      // Mapa de posiciones: id_posicion -> codigo
-      const mapPosCodigos = new Map();
-      for (const p of resPos.data || []) {
-        mapPosCodigos.set(Number(p.id_posicion), p.codigo);
+      // Jerarquía de depósito para resolver a qué zona pertenece cada posición
+      const zonasActivas = resZonas.data || [];
+      setZonas(zonasActivas);
+
+      const mapZonaById = new Map();
+      for (const z of zonasActivas) {
+        mapZonaById.set(Number(z.id_zona), z);
       }
 
-      // Mapa de ubicaciones activas: id_lote_producto -> codigo_posicion
+      const mapPasilloZona = new Map();
+      for (const pas of resPasillos.data || []) {
+        mapPasilloZona.set(Number(pas.id_pasillo), Number(pas.id_zona));
+      }
+
+      const mapModuloPasillo = new Map();
+      for (const mod of resModulos.data || []) {
+        mapModuloPasillo.set(Number(mod.id_modulo), Number(mod.id_pasillo));
+      }
+
+      const mapNivelModulo = new Map();
+      for (const niv of resNiveles.data || []) {
+        mapNivelModulo.set(Number(niv.id_nivel), Number(niv.id_modulo));
+      }
+
+      // Mapa de posiciones: id_posicion -> { codigo, id_zona, zona_codigo }
+      const mapPosCodigos = new Map();
+      const mapPosZonaInfo = new Map();
+      for (const p of resPos.data || []) {
+        const idPos = Number(p.id_posicion);
+        const idMod = mapNivelModulo.get(Number(p.id_nivel));
+        const idPas = idMod != null ? mapModuloPasillo.get(idMod) : null;
+        const idZona = idPas != null ? mapPasilloZona.get(idPas) : null;
+        const zonaObj = idZona != null ? mapZonaById.get(idZona) : null;
+
+        mapPosCodigos.set(idPos, p.codigo);
+        mapPosZonaInfo.set(idPos, {
+          id_zona: idZona ?? null,
+          zona_codigo: zonaObj?.codigo ? String(zonaObj.codigo).trim() : null,
+        });
+      }
+
+      // Mapa de ubicaciones activas: id_lote_producto -> codigo_posicion y zona
       const mapUbic = new Map();
+      const mapUbicZona = new Map();
       for (const lp of resLotePos.data || []) {
-        const codigoPos = mapPosCodigos.get(Number(lp.id_posicion));
+        const idLote = Number(lp.id_lote_producto);
+        const idPos = Number(lp.id_posicion);
+        const codigoPos = mapPosCodigos.get(idPos);
         if (codigoPos) {
-          mapUbic.set(Number(lp.id_lote_producto), codigoPos);
+          mapUbic.set(idLote, codigoPos);
+          const zInfo = mapPosZonaInfo.get(idPos);
+          if (zInfo) {
+            mapUbicZona.set(idLote, zInfo);
+          }
         }
       }
       setUbicacionesMap(mapUbic);
+      setUbicacionesZonaMap(mapUbicZona);
 
       setLotes(resLotes.data || []);
       setProductos(resProductos.data || []);
@@ -285,8 +360,16 @@ export default function Lotes({ fakeAction }) {
 
       // Estados: P y R permanecen con ubicación NULL según especificación
       let ubicacionCodigo = null;
+      let ubicacionIdZona = null;
+      let ubicacionZonaCodigo = null;
       if (lote.estado_lote === "U") {
-        ubicacionCodigo = ubicacionesMap.get(Number(lote.id_lote_producto)) || null;
+        const idLote = Number(lote.id_lote_producto);
+        ubicacionCodigo = ubicacionesMap.get(idLote) || null;
+        const zInfo = ubicacionesZonaMap.get(idLote);
+        if (zInfo) {
+          ubicacionIdZona = zInfo.id_zona ?? null;
+          ubicacionZonaCodigo = zInfo.zona_codigo ?? null;
+        }
       }
 
       return {
@@ -299,9 +382,11 @@ export default function Lotes({ fakeAction }) {
         cantidadConsumidaNum: cantConsumida,
         cantidadDisponibleNum: cantDisponible,
         ubicacionCodigo,
+        ubicacionIdZona,
+        ubicacionZonaCodigo,
       };
     });
-  }, [lotes, productosMap, stocksMap, ubicacionesMap, unidadesMap]);
+  }, [lotes, productosMap, stocksMap, ubicacionesMap, ubicacionesZonaMap, unidadesMap]);
 
   // Métricas / KPIs
   const stats = useMemo(() => {
@@ -329,6 +414,13 @@ export default function Lotes({ fakeAction }) {
   // Filtrado de la tabla principal
   const filtrados = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const zonaSeleccionada =
+      ubicacionFilter !== "ALL"
+        ? zonas.find((z) => String(z.id_zona) === String(ubicacionFilter))
+        : null;
+    const codZonaSel = zonaSeleccionada?.codigo
+      ? String(zonaSeleccionada.codigo).trim().toUpperCase()
+      : null;
 
     const items = lotesEnriquecidos.filter((l) => {
       // Filtro de estado general (Activo / Eliminado)
@@ -339,6 +431,28 @@ export default function Lotes({ fakeAction }) {
       // Filtro de estado de lote (P, R, U, A)
       if (estadoLoteFilter !== "ALL" && l.estado_lote !== estadoLoteFilter) {
         return false;
+      }
+
+      // Filtro de ubicación por Zona de depósito (ALL incluye todas las ubicaciones y también los que no tienen ubicación)
+      if (ubicacionFilter !== "ALL") {
+        if (!l.ubicacionCodigo) {
+          return false;
+        }
+        const matchByIdZona =
+          l.ubicacionIdZona != null &&
+          String(l.ubicacionIdZona) === String(ubicacionFilter);
+        const codUbicUpper = String(l.ubicacionCodigo).trim().toUpperCase();
+        const matchByPrefix =
+          codZonaSel &&
+          (String(l.ubicacionZonaCodigo || "").toUpperCase() === codZonaSel ||
+            codUbicUpper === codZonaSel ||
+            codUbicUpper.startsWith(`${codZonaSel}-`) ||
+            codUbicUpper.startsWith(`Z${codZonaSel}-`) ||
+            codUbicUpper.startsWith(`ZONA-${codZonaSel}`));
+
+        if (!matchByIdZona && !matchByPrefix) {
+          return false;
+        }
       }
 
       // Búsqueda en nro_lote, producto, código o ubicación
@@ -363,7 +477,14 @@ export default function Lotes({ fakeAction }) {
       }
       return Number(b.id_lote_producto) - Number(a.id_lote_producto);
     });
-  }, [lotesEnriquecidos, search, estadoLoteFilter, estadoRegistroFilter]);
+  }, [
+    lotesEnriquecidos,
+    search,
+    estadoLoteFilter,
+    ubicacionFilter,
+    estadoRegistroFilter,
+    zonas,
+  ]);
 
   // Abrir modal de Ingreso de Lote Externo
   const abrirModalIngreso = () => {
@@ -735,9 +856,9 @@ export default function Lotes({ fakeAction }) {
       {/* Contenedor principal con filtros y tabla */}
       <div className="rounded-lg border border-[#e1e8ea] bg-white p-5 shadow-card">
         {/* Barra de Filtros */}
-        <div className="mb-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
           {/* Búsqueda */}
-          <div className="relative min-w-0 lg:col-span-2">
+          <div className="relative min-w-0 sm:col-span-2 lg:col-span-2">
             <Search
               size={14}
               className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#82979e]"
@@ -749,6 +870,29 @@ export default function Lotes({ fakeAction }) {
               placeholder="Buscar por nro de lote, producto, código o ubicación..."
               className="h-9 w-full rounded-md border border-[#dfe7e9] bg-white pl-9 pr-3 text-[12px] text-[#173d4b] outline-none transition-colors focus:border-[#214451]"
             />
+          </div>
+
+          {/* Filtro Ubicación (Todas las ubicaciones / Zonas de depósito existentes) */}
+          <div className="min-w-0">
+            <select
+              value={ubicacionFilter}
+              onChange={(e) => setUbicacionFilter(e.target.value)}
+              className={selectCls}
+            >
+              <option value="ALL">Todas las ubicaciones</option>
+              {zonas.map((z) => {
+                const cod = String(z.codigo || "").trim();
+                const nom = String(z.nombre || "").trim();
+                const labelZona = nom.toLowerCase().startsWith("zona")
+                  ? nom
+                  : `Zona ${cod}${nom ? ` · ${nom}` : ""}`;
+                return (
+                  <option key={z.id_zona} value={String(z.id_zona)}>
+                    {labelZona}
+                  </option>
+                );
+              })}
+            </select>
           </div>
 
           {/* Filtro Estado de Lote (P, R, U, A) */}

@@ -53,9 +53,14 @@ AS $$
         u.usuario_login::text,
         u.id_rol::integer
     FROM usuarios.usuarios u
+    LEFT JOIN usuarios.roles r ON r.id_rol = u.id_rol
     WHERE u.id_usuario = usuarios.fn_usuario_de_token(p_token)
       AND u.estado = 'A'
-      AND u.id_rol IN (1, 9, 16);
+      AND (
+          u.id_rol IN (1, 9, 16)
+          OR 'pedidos-gestion' = ANY(coalesce(r.modulos, ARRAY[]::TEXT[]))
+          OR 'pedidos-seguimiento' = ANY(coalesce(r.modulos, ARRAY[]::TEXT[]))
+      );
 $$;
 
 REVOKE ALL ON FUNCTION usuarios.fn_actor_pedidos(UUID) FROM PUBLIC, anon, authenticated;
@@ -993,7 +998,10 @@ AS $$
             OR coalesce(prep_tot.alguno_pickeado, false)
         ) AS picking_iniciado
     FROM administracion.pedido p
-    JOIN actor a ON (a.id_rol IN (1, 16) OR p.usu_alta = a.usuario_login)
+    JOIN actor a ON (
+        a.id_rol IN (1, 16)
+        OR lower(trim(coalesce(p.usu_alta, ''))) = lower(trim(coalesce(a.usuario_login, '')))
+    )
     JOIN administracion.cliente c ON c.id_cliente = p.id_cliente
     LEFT JOIN LATERAL (
         SELECT
@@ -1021,7 +1029,127 @@ AS $$
            AND vdp.verificado = true
         WHERE dp2.id_pedido = p.id_pedido
     ) verif ON true
-    ORDER BY p.id_pedido DESC;
+    ORDER BY
+        CASE WHEN trim(p.estado) = 'A' THEN 1 ELSE 0 END ASC,
+        p.id_pedido DESC;
+$$;
+
+-- ---------------------------------------------------------------------
+-- 8b. LISTAR PEDIDOS PARA SEGUIMIENTO GENERAL (Todos los roles ven el listado general)
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION usuarios.listar_pedidos_seguimiento(p_token UUID)
+RETURNS TABLE(
+    id_pedido                integer,
+    fecha_pedido             timestamp,
+    id_cliente               integer,
+    cliente_nombre           text,
+    cliente_cuit             text,
+    cliente_tipo             text,
+    modalidad_entrega        text,
+    domicilio_entrega        text,
+    localidad_entrega        text,
+    provincia_entrega        text,
+    observaciones            text,
+    estado                   text,
+    cantidad_lineas          integer,
+    cantidad_productos       numeric,
+    importe_total            numeric,
+    usu_alta                 text,
+    fec_alta                 timestamp,
+    usu_mod                  text,
+    fec_mod                  timestamp,
+    usu_despacho             text,
+    fec_despacho             timestamp,
+    usu_anulacion            text,
+    fec_anulacion            timestamp,
+    motivo_anulacion         text,
+    id_preparacion           integer,
+    estado_preparacion       text,
+    finalizada_con_excepcion boolean,
+    observacion_excepcion    text,
+    usu_finalizacion         text,
+    fec_finalizacion         timestamp,
+    total_reservado          numeric,
+    total_recogido           numeric,
+    lineas_verificadas       integer,
+    picking_iniciado         boolean
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path TO 'pg_catalog', 'administracion', 'deposito', 'produccion', 'usuarios', 'public'
+AS $$
+    SELECT
+        p.id_pedido::integer,
+        p.fecha_pedido,
+        p.id_cliente::integer,
+        c.nombre_razon_social::text AS cliente_nombre,
+        coalesce(c.cuit, '')::text AS cliente_cuit,
+        trim(c.tipo_cliente)::text AS cliente_tipo,
+        trim(p.modalidad_entrega)::text AS modalidad_entrega,
+        p.domicilio_entrega::text,
+        p.localidad_entrega::text,
+        p.provincia_entrega::text,
+        p.observaciones::text,
+        trim(p.estado)::text AS estado,
+        coalesce(det.cant_lineas, 0)::integer AS cantidad_lineas,
+        coalesce(det.cant_productos, 0)::numeric AS cantidad_productos,
+        coalesce(det.imp_total, 0)::numeric AS importe_total,
+        p.usu_alta::text,
+        p.fec_alta,
+        p.usu_mod::text,
+        p.fec_mod,
+        p.usu_despacho::text,
+        p.fec_despacho,
+        p.usu_anulacion::text,
+        p.fec_anulacion,
+        p.motivo_anulacion::text,
+        prep.id_preparacion::integer,
+        trim(coalesce(prep.estado, ''))::text AS estado_preparacion,
+        coalesce(prep.finalizada_con_excepcion, false) AS finalizada_con_excepcion,
+        prep.observacion_excepcion::text,
+        prep.usu_finalizacion::text,
+        prep.fec_finalizacion,
+        coalesce(prep_tot.tot_reservado, 0)::numeric AS total_reservado,
+        coalesce(prep_tot.tot_recogido, 0)::numeric AS total_recogido,
+        coalesce(verif.cant_verificadas, 0)::integer AS lineas_verificadas,
+        (
+            coalesce(prep.estado, 'P') <> 'P'
+            OR coalesce(prep_tot.tot_recogido, 0) > 0
+            OR coalesce(prep_tot.alguno_pickeado, false)
+        ) AS picking_iniciado
+    FROM administracion.pedido p
+    JOIN administracion.cliente c ON c.id_cliente = p.id_cliente
+    LEFT JOIN LATERAL (
+        SELECT
+            COUNT(*) AS cant_lineas,
+            SUM(dp.cantidad) AS cant_productos,
+            SUM(dp.importe_total) AS imp_total
+        FROM administracion.detalle_pedido dp
+        WHERE dp.id_pedido = p.id_pedido
+    ) det ON true
+    LEFT JOIN deposito.preparacion_pedido prep
+        ON prep.id_pedido = p.id_pedido
+    LEFT JOIN LATERAL (
+        SELECT
+            SUM(dpp.cantidad) FILTER (WHERE dpp.estado = 'A') AS tot_reservado,
+            SUM(dpp.cantidad_recogida) FILTER (WHERE dpp.estado = 'A') AS tot_recogido,
+            BOOL_OR(dpp.estado_picking <> 'P' OR dpp.cantidad_recogida > 0) AS alguno_pickeado
+        FROM deposito.detalle_preparacion_pedido dpp
+        WHERE dpp.id_preparacion = prep.id_preparacion
+    ) prep_tot ON true
+    LEFT JOIN LATERAL (
+        SELECT COUNT(*) AS cant_verificadas
+        FROM administracion.detalle_pedido dp2
+        JOIN deposito.verificacion_detalle_pedido vdp
+            ON vdp.id_detalle_pedido = dp2.id_detalle_pedido
+           AND vdp.verificado = true
+        WHERE dp2.id_pedido = p.id_pedido
+    ) verif ON true
+    WHERE usuarios.fn_usuario_de_token(p_token) IS NOT NULL
+    ORDER BY
+        CASE WHEN trim(p.estado) = 'A' THEN 1 ELSE 0 END ASC,
+        p.id_pedido DESC;
 $$;
 
 -- ---------------------------------------------------------------------
@@ -1092,8 +1220,7 @@ BEGIN
     FROM administracion.pedido p
     JOIN administracion.cliente c ON c.id_cliente = p.id_cliente
     LEFT JOIN deposito.preparacion_pedido prep ON prep.id_pedido = p.id_pedido
-    WHERE p.id_pedido = p_id_pedido
-      AND (v_actor.id_rol IN (1, 16) OR p.usu_alta = v_actor.usuario_login);
+    WHERE p.id_pedido = p_id_pedido;
 
     IF NOT FOUND THEN
         RAISE EXCEPTION 'No se encontró el pedido #% o no tiene permisos para visualizarlo', p_id_pedido;
@@ -1221,4 +1348,5 @@ GRANT EXECUTE ON FUNCTION usuarios.crear_pedido_cliente(UUID, INTEGER, TEXT, TEX
 GRANT EXECUTE ON FUNCTION usuarios.confirmar_pedido_autorizado(UUID, INTEGER) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION usuarios.modificar_pedido_autorizado(UUID, INTEGER, INTEGER, TEXT, TEXT, TEXT, TEXT, TEXT, JSONB) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION usuarios.listar_pedidos_gestion(UUID) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION usuarios.listar_pedidos_seguimiento(UUID) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION usuarios.obtener_detalle_seguimiento_pedido(UUID, INTEGER) TO anon, authenticated;

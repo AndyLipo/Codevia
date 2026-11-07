@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
     AlertCircle,
+    AlertTriangle,
     CheckCircle2,
     ClipboardCheck,
     Eye,
@@ -12,6 +13,7 @@ import {
     Search,
     ShoppingCart,
     Trash2,
+    XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -102,6 +104,7 @@ export default function GestionPedidos({ fakeAction }) {
     const { token, user } = useAuth();
     const idRol = Number(user?.id_rol);
     const canConfirmOrEdit = idRol === 1 || idRol === 16;
+    const canViewAllPedidos = idRol === 1 || idRol === 16;
 
     // Sub-navegación: "listado" | "pendientes" | "nuevo"
     const [activeSection, setActiveSection] = useState("listado");
@@ -131,6 +134,13 @@ export default function GestionPedidos({ fakeAction }) {
     const [savingPedido, setSavingPedido] = useState(false);
     const [confirmingId, setConfirmingId] = useState(null);
     const [confirmDialogPedido, setConfirmDialogPedido] = useState(null);
+
+    // Estado del modal de Anulación de Pedido (2 pasos: confirmación Sí/No -> Motivo obligatorio)
+    const [anularDialogPedido, setAnularDialogPedido] = useState(null);
+    const [anularStep, setAnularStep] = useState("confirm"); // "confirm" | "motivo"
+    const [motivoAnulacion, setMotivoAnulacion] = useState("");
+    const [motivoAnulacionError, setMotivoAnulacionError] = useState("");
+    const [anulandoId, setAnulandoId] = useState(null);
 
     // Campos del formulario de pedido
     const [clienteSearch, setClienteSearch] = useState("");
@@ -337,6 +347,83 @@ export default function GestionPedidos({ fakeAction }) {
         }
     }, [token]);
 
+    const cargarPedidosFallback = useCallback(async () => {
+        try {
+            let query = supabase
+                .schema("administracion")
+                .from("pedido")
+                .select("*")
+                .order("id_pedido", { ascending: false });
+
+            if (!canViewAllPedidos && user?.usuario_login) {
+                query = query.eq("usu_alta", user.usuario_login);
+            }
+
+            const [resPed, resCli, resDet, resPrep] = await Promise.all([
+                query,
+                supabase
+                    .schema("administracion")
+                    .from("cliente")
+                    .select("id_cliente, nombre_razon_social, cuit, tipo_cliente"),
+                supabase
+                    .schema("administracion")
+                    .from("detalle_pedido")
+                    .select("id_pedido, cantidad, importe_total"),
+                supabase
+                    .schema("deposito")
+                    .from("preparacion_pedido")
+                    .select("id_preparacion, id_pedido, estado, finalizada_con_excepcion, observacion_excepcion"),
+            ]);
+
+            const pedRows = resPed.data ?? [];
+            const cliMap = new Map(
+                (resCli.data ?? []).map((c) => [Number(c.id_cliente), c])
+            );
+            const prepMap = new Map(
+                (resPrep.data ?? []).map((pr) => [Number(pr.id_pedido), pr])
+            );
+            const detByPedido = new Map();
+            for (const d of resDet.data ?? []) {
+                const idP = Number(d.id_pedido);
+                const prev = detByPedido.get(idP) || {
+                    cant_lineas: 0,
+                    cant_productos: 0,
+                    imp_total: 0,
+                };
+                prev.cant_lineas += 1;
+                prev.cant_productos += Number(d.cantidad ?? 0);
+                prev.imp_total += Number(d.importe_total ?? 0);
+                detByPedido.set(idP, prev);
+            }
+
+            return pedRows.map((p) => {
+                const cli = cliMap.get(Number(p.id_cliente));
+                const det = detByPedido.get(Number(p.id_pedido));
+                const prep = prepMap.get(Number(p.id_pedido));
+                return {
+                    ...p,
+                    estado: String(p.estado ?? "").trim(),
+                    modalidad_entrega: String(p.modalidad_entrega ?? "").trim(),
+                    cliente_nombre: cli?.nombre_razon_social || "—",
+                    cliente_cuit: cli?.cuit || "",
+                    cliente_tipo: String(cli?.tipo_cliente ?? "").trim(),
+                    cantidad_lineas: det?.cant_lineas ?? 0,
+                    cantidad_productos: det?.cant_productos ?? 0,
+                    importe_total: det?.imp_total ?? 0,
+                    id_preparacion: prep?.id_preparacion ?? null,
+                    estado_preparacion: String(prep?.estado ?? "").trim(),
+                    finalizada_con_excepcion: Boolean(prep?.finalizada_con_excepcion),
+                    observacion_excepcion: prep?.observacion_excepcion ?? null,
+                    picking_iniciado:
+                        Boolean(prep?.estado) && String(prep.estado).trim() !== "P",
+                };
+            });
+        } catch (err) {
+            console.error("Error en fallback de pedidos:", err);
+            return [];
+        }
+    }, [canViewAllPedidos, user?.usuario_login]);
+
     const cargarDatos = useCallback(async () => {
         if (!token) {
             setPedidos([]);
@@ -362,7 +449,8 @@ export default function GestionPedidos({ fakeAction }) {
 
             if (resPedidos.error) {
                 console.error("Error al listar pedidos:", resPedidos.error);
-                setPedidos([]);
+                const fallbackPed = await cargarPedidosFallback();
+                setPedidos(fallbackPed);
             } else {
                 setPedidos(resPedidos.data ?? []);
             }
@@ -394,7 +482,7 @@ export default function GestionPedidos({ fakeAction }) {
         } finally {
             setLoading(false);
         }
-    }, [token, cargarClientesFallback, cargarProductosFallback]);
+    }, [token, cargarClientesFallback, cargarProductosFallback, cargarPedidosFallback]);
 
     useEffect(() => {
         cargarDatos();
@@ -791,22 +879,249 @@ export default function GestionPedidos({ fakeAction }) {
         }
     };
 
+    // Operación C: Anular Pedido (Estados P, M, C, E, L — excepto D y A)
+    const handleOpenAnularDialog = (pedidoObj) => {
+        if (!pedidoObj) return;
+        const est = String(pedidoObj.estado ?? "").trim();
+        if (est === "D") {
+            toast.error("No se puede anular un pedido que ya fue Despachado (D).");
+            return;
+        }
+        if (est === "A") {
+            toast.error("Este pedido ya se encuentra anulado.");
+            return;
+        }
+        setAnularDialogPedido(pedidoObj);
+        setAnularStep("confirm");
+        setMotivoAnulacion("");
+        setMotivoAnulacionError("");
+    };
+
+    const handleConfirmarAnulacionPedido = async () => {
+        if (!token || !anularDialogPedido) return;
+
+        const motivoTrim = motivoAnulacion.trim();
+        if (!motivoTrim) {
+            setMotivoAnulacionError(
+                "Debe ingresar obligatoriamente el motivo de anulación del pedido."
+            );
+            return;
+        }
+
+        const idPedido = anularDialogPedido.id_pedido;
+        setAnulandoId(idPedido);
+        try {
+            const { error } = await supabase
+                .schema("usuarios")
+                .rpc("anular_pedido_autorizado", {
+                    p_token: token,
+                    p_id_pedido: idPedido,
+                    p_motivo_anulacion: motivoTrim,
+                });
+
+            if (error) {
+                // Fallback directo sobre las tablas si aún no se ejecutó la migración 61 actualizada
+                const nowIso = new Date().toISOString();
+                const usuLogin = user?.usuario_login || "operador";
+
+                // 1. Obtener detalle_pedido para limpiar verificacion_detalle_pedido
+                const { data: detRows } = await supabase
+                    .schema("administracion")
+                    .from("detalle_pedido")
+                    .select("id_detalle_pedido")
+                    .eq("id_pedido", idPedido);
+
+                for (const det of detRows || []) {
+                    await supabase
+                        .schema("deposito")
+                        .from("verificacion_detalle_pedido")
+                        .update({
+                            disponible_verificar: false,
+                            verificado: false,
+                            usu_verificacion: null,
+                            fec_verificacion: null,
+                            estado: "C",
+                            usu_mod: usuLogin,
+                            fec_mod: nowIso,
+                        })
+                        .eq("id_detalle_pedido", det.id_detalle_pedido);
+                }
+
+                // 2. Si existe preparación, liberar stock reservado y revertir avances
+                const { data: prepRow } = await supabase
+                    .schema("deposito")
+                    .from("preparacion_pedido")
+                    .select("id_preparacion")
+                    .eq("id_pedido", idPedido)
+                    .maybeSingle();
+
+                if (prepRow?.id_preparacion) {
+                    const { data: dppRows } = await supabase
+                        .schema("deposito")
+                        .from("detalle_preparacion_pedido")
+                        .select("*")
+                        .eq("id_preparacion", prepRow.id_preparacion)
+                        .eq("estado", "A");
+
+                    for (const dpp of dppRows || []) {
+                        const { data: stkRow } = await supabase
+                            .schema("deposito")
+                            .from("stock")
+                            .select("id_stock, cantidad_reservada")
+                            .eq("id_lote_producto", dpp.id_lote_producto)
+                            .eq("estado", "A")
+                            .maybeSingle();
+
+                        const { data: posRow } = await supabase
+                            .schema("deposito")
+                            .from("lote_posicion")
+                            .select("id_posicion")
+                            .eq("id_lote_producto", dpp.id_lote_producto)
+                            .eq("estado", "A")
+                            .maybeSingle();
+
+                        if (stkRow?.id_stock) {
+                            const nuevaRes = Math.max(
+                                0,
+                                Number(stkRow.cantidad_reservada ?? 0) -
+                                    Number(dpp.cantidad ?? 0)
+                            );
+                            await supabase
+                                .schema("deposito")
+                                .from("stock")
+                                .update({
+                                    cantidad_reservada: nuevaRes,
+                                    usu_mod: usuLogin,
+                                    fec_mod: nowIso,
+                                })
+                                .eq("id_stock", stkRow.id_stock);
+
+                            await supabase
+                                .schema("deposito")
+                                .from("movimiento_stock_pedido")
+                                .insert({
+                                    id_stock: stkRow.id_stock,
+                                    id_lote_producto: dpp.id_lote_producto,
+                                    id_pedido: idPedido,
+                                    id_detalle_preparacion:
+                                        dpp.id_detalle_preparacion,
+                                    tipo_movimiento: "LIBERACION",
+                                    cantidad: dpp.cantidad,
+                                    id_posicion_origen:
+                                        posRow?.id_posicion ?? null,
+                                    observacion: `Liberación de reserva por anulación de pedido: ${motivoTrim}`,
+                                    usu_alta: usuLogin,
+                                });
+                        }
+
+                        await supabase
+                            .schema("deposito")
+                            .from("detalle_preparacion_pedido")
+                            .update({
+                                estado: "C",
+                                estado_picking: "P",
+                                cantidad_recogida: 0,
+                                usu_picking: null,
+                                fec_picking: null,
+                                usu_mod: usuLogin,
+                                fec_mod: nowIso,
+                            })
+                            .eq(
+                                "id_detalle_preparacion",
+                                dpp.id_detalle_preparacion
+                            );
+                    }
+
+                    await supabase
+                        .schema("deposito")
+                        .from("preparacion_pedido")
+                        .update({
+                            estado: "C",
+                            finalizada_con_excepcion: false,
+                            observacion_excepcion: null,
+                            usu_finalizacion: null,
+                            fec_finalizacion: null,
+                            usu_mod: usuLogin,
+                            fec_mod: nowIso,
+                        })
+                        .eq("id_preparacion", prepRow.id_preparacion);
+                }
+
+                // 3. Actualizar administracion.pedido a estado 'A' con motivo_anulacion
+                const { error: directErr } = await supabase
+                    .schema("administracion")
+                    .from("pedido")
+                    .update({
+                        estado: "A",
+                        motivo_anulacion: motivoTrim,
+                        usu_anulacion: usuLogin,
+                        fec_anulacion: nowIso,
+                        usu_mod: usuLogin,
+                        fec_mod: nowIso,
+                    })
+                    .eq("id_pedido", idPedido);
+
+                if (directErr) {
+                    toast.error(
+                        error.message ||
+                            directErr.message ||
+                            "No se pudo anular el pedido"
+                    );
+                    return;
+                }
+            }
+
+            toast.success(
+                `Pedido #${String(idPedido).padStart(5, "0")} anulado correctamente. Se liberaron las reservas y se revirtieron los avances.`
+            );
+            fakeAction?.(`Pedido #${idPedido} anulado`);
+            setAnularDialogPedido(null);
+            setMotivoAnulacion("");
+            setMotivoAnulacionError("");
+            setFormModalOpen(false);
+            await cargarDatos();
+        } catch (err) {
+            console.error("Error inesperado al anular pedido:", err);
+            toast.error("Ocurrió un error al anular el pedido");
+        } finally {
+            setAnulandoId(null);
+        }
+    };
+
+    // Regla de visibilidad: cada usuario solo ve los pedidos generados por él mismo,
+    // excepto Sys-Admin (id_rol = 1) o Jefe de Ventas (id_rol = 16), quienes ven todos.
+    const pedidosVisibles = useMemo(() => {
+        if (canViewAllPedidos) return pedidos;
+        const currentLogin = String(user?.usuario_login ?? "")
+            .trim()
+            .toLowerCase();
+        if (!currentLogin) return [];
+        return pedidos.filter(
+            (p) =>
+                String(p.usu_alta ?? "")
+                    .trim()
+                    .toLowerCase() === currentLogin
+        );
+    }, [pedidos, canViewAllPedidos, user?.usuario_login]);
+
     // KPIs compactos
     const stats = useMemo(() => {
-        const total = pedidos.length;
-        const pendientes = pedidos.filter(
+        const total = pedidosVisibles.length;
+        const pendientes = pedidosVisibles.filter(
             (p) => p.estado === "P" || p.estado === "M"
         ).length;
-        const confirmados = pedidos.filter((p) => p.estado === "C").length;
-        const operativos = pedidos.filter((p) =>
+        const confirmados = pedidosVisibles.filter(
+            (p) => p.estado === "C"
+        ).length;
+        const operativos = pedidosVisibles.filter((p) =>
             ["E", "L", "D"].includes(p.estado)
         ).length;
         return { total, pendientes, confirmados, operativos };
-    }, [pedidos]);
+    }, [pedidosVisibles]);
 
     // Filtrado del listado general
     const filteredPedidos = useMemo(() => {
-        return pedidos.filter((p) => {
+        return pedidosVisibles.filter((p) => {
             if (activeSection === "pendientes") {
                 if (p.estado !== "P" && p.estado !== "M") return false;
             } else if (
@@ -858,9 +1173,17 @@ export default function GestionPedidos({ fakeAction }) {
             }
 
             return true;
+        }).sort((a, b) => {
+            const ordenEstado = { P: 1, M: 1, C: 2, E: 3, L: 4, D: 5, A: 6 };
+            const estA = String(a.estado ?? "").trim();
+            const estB = String(b.estado ?? "").trim();
+            const rankA = ordenEstado[estA] ?? 99;
+            const rankB = ordenEstado[estB] ?? 99;
+            if (rankA !== rankB) return rankA - rankB;
+            return Number(b.id_pedido ?? 0) - Number(a.id_pedido ?? 0);
         });
     }, [
-        pedidos,
+        pedidosVisibles,
         activeSection,
         filterEstado,
         filterNro,
@@ -902,6 +1225,9 @@ export default function GestionPedidos({ fakeAction }) {
             !item.picking_iniciado;
         const puedeConfirmar =
             canConfirmOrEdit && ["P", "M"].includes(item.estado);
+        const puedeAnular = ["P", "M", "C", "E", "L"].includes(
+            String(item.estado ?? "").trim()
+        );
 
         const openDetailCell = (content) => (
             <button
@@ -1000,6 +1326,21 @@ export default function GestionPedidos({ fakeAction }) {
                         {confirmingId === item.id_pedido
                             ? "Confirmando..."
                             : "Confirmar"}
+                    </button>
+                )}
+
+                {puedeAnular && (
+                    <button
+                        type="button"
+                        disabled={anulandoId === item.id_pedido}
+                        onClick={() => handleOpenAnularDialog(item)}
+                        className="inline-flex cursor-pointer items-center gap-1 rounded border border-[#f1cfcb] bg-[#fbe9e7] px-2 py-1 text-[10px] font-semibold text-[#ba584d] hover:bg-[#f5d5d1] disabled:opacity-50"
+                        title="Anular pedido y revertir reservas/avances"
+                    >
+                        <XCircle size={11} />
+                        {anulandoId === item.id_pedido
+                            ? "Anulando..."
+                            : "Anular"}
                     </button>
                 )}
             </div>,
@@ -1119,7 +1460,7 @@ export default function GestionPedidos({ fakeAction }) {
                                 }`}
                         >
                             <ShoppingCart size={14} />
-                            <span>Listado de Pedidos ({pedidos.length})</span>
+                            <span>Listado de Pedidos ({pedidosVisibles.length})</span>
                         </button>
 
                         {canConfirmOrEdit && (
@@ -1277,7 +1618,7 @@ export default function GestionPedidos({ fakeAction }) {
                     </p>
                 ) : filteredPedidos.length === 0 ? (
                     <p className="py-8 text-center text-sm text-muted-ink">
-                        {pedidos.length === 0
+                        {pedidosVisibles.length === 0
                             ? "No hay pedidos registrados. Hacé clic en «Nuevo Pedido» para generar el primero."
                             : "No se encontraron pedidos con los filtros seleccionados."}
                     </p>
@@ -1404,8 +1745,46 @@ export default function GestionPedidos({ fakeAction }) {
                         </p>
                     ) : (
                         <div className="max-h-[75vh] space-y-4 overflow-y-auto bg-white px-6 py-4">
-                            {/* Aviso de restricciones de edición cuando el pedido no es editable */}
+                            {/* Aviso de estado / restricciones de edición */}
                             {editingPedido &&
+                                String(editingPedido.estado).trim() === "L" && (
+                                    <div className="flex items-center gap-2 rounded-md border border-[#b9dec9] bg-[#e7f4ed] px-3.5 py-2 text-[11px] font-medium text-[#256349]">
+                                        <CheckCircle2 size={15} />
+                                        <span>
+                                            Este pedido se encuentra listo para su Despacho.
+                                        </span>
+                                    </div>
+                                )}
+
+                            {editingPedido &&
+                                String(editingPedido.estado).trim() === "A" && (
+                                    <div className="space-y-1 rounded-md border border-[#f1cfcb] bg-[#fbe9e7] px-3.5 py-2.5 text-[11px] text-[#9e3128]">
+                                        <div className="flex items-center gap-2 font-semibold">
+                                            <XCircle size={15} />
+                                            <span>
+                                                Este pedido se encuentra Anulado (A)
+                                                {editingPedido.usu_anulacion
+                                                    ? ` por ${editingPedido.usu_anulacion}`
+                                                    : ""}
+                                                {editingPedido.fec_anulacion
+                                                    ? ` el ${formatDateTime(editingPedido.fec_anulacion)}`
+                                                    : ""}
+                                                .
+                                            </span>
+                                        </div>
+                                        {editingPedido.motivo_anulacion && (
+                                            <div className="pl-6 text-[11px] text-[#7a241d]">
+                                                <strong>Motivo de anulación:</strong>{" "}
+                                                {editingPedido.motivo_anulacion}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                            {editingPedido &&
+                                !["L", "A"].includes(
+                                    String(editingPedido.estado).trim()
+                                ) &&
                                 !canEditCurrentModalPedido &&
                                 canConfirmOrEdit && (
                                     <div className="flex items-center gap-2 rounded-md border border-[#f3d9a4] bg-[#fff8e8] px-3.5 py-2 text-[11px] text-[#8f5d10]">
@@ -2049,6 +2428,37 @@ export default function GestionPedidos({ fakeAction }) {
                         </Button>
 
                         <div className="flex flex-wrap items-center gap-2">
+                            {/* Botón Anular Pedido: disponible para P, M, C, E, L (excepto D y A) */}
+                            {editingPedido &&
+                                ["P", "M", "C", "E", "L"].includes(
+                                    String(editingPedido.estado).trim()
+                                ) && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={
+                                            savingPedido ||
+                                            Boolean(confirmingId) ||
+                                            anulandoId ===
+                                                editingPedido.id_pedido
+                                        }
+                                        onClick={() =>
+                                            handleOpenAnularDialog(
+                                                editingPedido
+                                            )
+                                        }
+                                        className="h-9 border-[#f1cfcb] bg-[#fbe9e7] text-[11px] font-semibold text-[#ba584d] hover:bg-[#f5d5d1]"
+                                    >
+                                        <XCircle
+                                            size={14}
+                                            className="mr-1.5"
+                                        />
+                                        {anulandoId === editingPedido.id_pedido
+                                            ? "Anulando..."
+                                            : "Anular Pedido"}
+                                    </Button>
+                                )}
+
                             {/* Si es un pedido existente en P o M y el usuario es rol 1 o 16: botón Confirmar Pedido */}
                             {editingPedido &&
                                 canConfirmOrEdit &&
@@ -2228,6 +2638,151 @@ export default function GestionPedidos({ fakeAction }) {
                                 : "Sí, confirmar pedido"}
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* DIÁLOGO DE ANULACIÓN DE PEDIDO (2 PASOS: ¿SEGURO DESEA ANULAR? -> MOTIVO OBLIGATORIO) */}
+            <Dialog
+                open={Boolean(anularDialogPedido)}
+                onOpenChange={(nextOpen) => {
+                    if (!nextOpen && !anulandoId) {
+                        setAnularDialogPedido(null);
+                        setMotivoAnulacion("");
+                        setMotivoAnulacionError("");
+                    }
+                }}
+            >
+                <DialogContent className="w-[95vw] max-w-md overflow-hidden rounded-xl border border-[#e1e8ea] bg-white p-0 shadow-card sm:max-w-md sm:p-0">
+                    <div className="border-b border-[#e8eff1] bg-[#f6fafb] px-5 py-4 pr-10">
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#5e6f77]">
+                                ANULACIÓN DE PEDIDO · #
+                                {anularDialogPedido
+                                    ? String(
+                                          anularDialogPedido.id_pedido
+                                      ).padStart(5, "0")
+                                    : ""}
+                            </span>
+                            <Badge tone="red">Anulación</Badge>
+                        </div>
+                        <DialogTitle className="font-barlow text-[20px] font-bold leading-tight text-[#163946]">
+                            {anularStep === "confirm"
+                                ? "Confirmar anulación de pedido"
+                                : "Motivo de anulación del pedido"}
+                        </DialogTitle>
+                        {anularDialogPedido && (
+                            <DialogDescription className="mt-0.5 text-[12px] text-[#6b7d85]">
+                                Cliente: {anularDialogPedido.cliente_nombre} ·
+                                Estado actual: {anularDialogPedido.estado}
+                            </DialogDescription>
+                        )}
+                    </div>
+
+                    {anularStep === "confirm" ? (
+                        <>
+                            <div className="space-y-3 px-5 py-4">
+                                <div className="flex items-start gap-2.5 rounded-lg border border-[#f5d48f] bg-[#fff9eb] p-3.5 text-[#8a5a0d]">
+                                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#c27b10]" />
+                                    <div className="space-y-1 text-[12px] leading-relaxed">
+                                        <p className="font-semibold text-[#6e4607]">
+                                            ¿Seguro desea anular este Pedido?
+                                        </p>
+                                        <p className="text-[11px] text-[#8a5a0d]">
+                                            Al anular el pedido se liberarán las
+                                            reservas de stock y se volverán
+                                            atrás todos los avances realizados
+                                            en otras instancias.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-end gap-2.5 border-t border-[#e8eff1] bg-[#fafcfd] px-5 py-3.5">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setAnularDialogPedido(null);
+                                        setMotivoAnulacion("");
+                                        setMotivoAnulacionError("");
+                                    }}
+                                    className="h-9 min-w-20 border-[#d5e1e5] bg-white px-4 text-[12px] font-semibold text-[#214451] hover:bg-[#f2f6f8]"
+                                >
+                                    NO
+                                </Button>
+                                <Button
+                                    type="button"
+                                    onClick={() => setAnularStep("motivo")}
+                                    className="h-9 min-w-20 bg-[#ba584d] px-4 text-[12px] font-semibold text-white hover:bg-[#9e443a]"
+                                >
+                                    SÍ
+                                </Button>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="space-y-3 px-5 py-4">
+                                <div className="flex items-start gap-2.5 rounded-lg border border-[#f2c6c2] bg-[#fdecea] p-3 text-[#9e3128]">
+                                    <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                                    <div className="text-[11.5px] leading-relaxed">
+                                        Por favor redacte el motivo de la
+                                        anulación. Este registro es obligatorio
+                                        y revertirá las reservas y avances del
+                                        pedido.
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#214451]">
+                                        Motivo de anulación *
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={motivoAnulacion}
+                                        onChange={(e) => {
+                                            setMotivoAnulacion(e.target.value);
+                                            if (motivoAnulacionError) {
+                                                setMotivoAnulacionError("");
+                                            }
+                                        }}
+                                        placeholder="Ingrese el motivo por el cual se anula este pedido..."
+                                        className="w-full rounded-md border border-[#d8e2e5] bg-[#f8fafb] p-2.5 text-[12px] text-[#173d4b] outline-none transition-colors focus:border-brand focus:bg-white"
+                                    />
+                                    {motivoAnulacionError && (
+                                        <p className="text-[11px] font-medium text-[#c0392b]">
+                                            {motivoAnulacionError}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-end gap-2.5 border-t border-[#e8eff1] bg-[#fafcfd] px-5 py-3.5">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    disabled={Boolean(anulandoId)}
+                                    onClick={() => {
+                                        setAnularDialogPedido(null);
+                                        setMotivoAnulacion("");
+                                        setMotivoAnulacionError("");
+                                    }}
+                                    className="h-9 border-[#d5e1e5] bg-white px-3.5 text-[12px] font-semibold text-[#214451]"
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="button"
+                                    disabled={Boolean(anulandoId)}
+                                    onClick={handleConfirmarAnulacionPedido}
+                                    className="h-9 bg-[#ba584d] px-4 text-[12px] font-semibold text-white hover:bg-[#9e443a]"
+                                >
+                                    {anulandoId
+                                        ? "Anulando pedido..."
+                                        : "Confirmar Anulación"}
+                                </Button>
+                            </div>
+                        </>
+                    )}
                 </DialogContent>
             </Dialog>
         </>

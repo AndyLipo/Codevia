@@ -11,6 +11,7 @@ import {
   UsersRound,
   Building2,
   Package,
+  PackageCheck,
   Tags,
   Boxes,
   MapPinCheck,
@@ -65,18 +66,19 @@ export const modules = [
   { id: "overview", label: "Vista general", icon: LayoutDashboard },
   { id: "production", label: "Producción", icon: Factory },
   { id: "mis-ordenes", label: "Mis Órdenes", icon: ClipboardCheck },
+  { id: "productos", label: "Productos", icon: Package },
+  { id: "warehouse", label: "Depósito", icon: Warehouse },
   { id: "lotes", label: "Lotes", icon: Boxes },
   { id: "ubicar-lotes", label: "Ubicar Lotes", icon: MapPinCheck },
-  { id: "warehouse", label: "Depósito", icon: Warehouse },
-  { id: "dispatch", label: "Expedición", icon: Truck },
   { id: "pedidos-gestion", label: "Gestión de Pedidos", icon: ClipboardList },
   { id: "pedidos-seguimiento", label: "Seguimiento de Pedidos", icon: PackageSearch },
-  { id: "productos", label: "Productos", icon: Package },
-  { id: "lista-precios", label: "Lista de precios", icon: Tags },
+  { id: "preparacion-pedidos", label: "Preparación de Pedidos", icon: PackageCheck },
+  { id: "dispatch", label: "Expedición", icon: Truck },
   { id: "clients", label: "Gestión de Clientes", icon: Building2 },
+  { id: "lista-precios", label: "Lista de Precios", icon: Tags },
+  { id: "rrhh", label: "Recursos Humanos", icon: UsersRound },
   { id: "reports", label: "Reportes", icon: BarChart3 },
   { id: "it-admin", label: "IT / Sistemas", icon: ShieldCheck },
-  { id: "rrhh", label: "Recursos Humanos", icon: UsersRound },
 ];
 
 export const productionRows = [
@@ -227,7 +229,7 @@ const normalize = (s = "") =>
   s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 const ROLE_MODULES = {
-  admin: ["overview", "pedidos-gestion", "pedidos-seguimiento", "clients", "it-admin", "rrhh"],
+  admin: ["overview", "pedidos-gestion", "pedidos-seguimiento", "preparacion-pedidos", "clients", "it-admin", "rrhh"],
   it: ["overview", "it-admin"],
   rrhh: ["overview", "rrhh"],
 };
@@ -260,8 +262,16 @@ export const canAccessRRHH = (idRol, rolModulos) => {
   return RRHH_ROLE_IDS.includes(Number(idRol));
 };
 
-export const canAccessPedidos = (idRol) => {
-  return PEDIDOS_ROLE_IDS.includes(Number(idRol));
+export const canAccessPedidos = (idRol, rolModulos) => {
+  if (PEDIDOS_ROLE_IDS.includes(Number(idRol))) return true;
+  if (Array.isArray(rolModulos) && rolModulos.length > 0) {
+    return (
+      rolModulos.includes("pedidos-gestion") ||
+      rolModulos.includes("pedidos-seguimiento") ||
+      rolModulos.includes("orders")
+    );
+  }
+  return false;
 };
 
 export const canAccessClientes = (idRol, rolModulos) => {
@@ -305,6 +315,18 @@ export const canAccessUbicarLotes = (idRol, rolModulos) => {
   return true;
 };
 
+export const canAccessPreparacionPedidos = (idRol, rolModulos) => {
+  const num = Number(idRol);
+  if (num === 1 || num === 14) return true;
+  if (Array.isArray(rolModulos) && rolModulos.length > 0) {
+    return (
+      rolModulos.includes("preparacion-pedidos") ||
+      rolModulos.includes("warehouse")
+    );
+  }
+  return true;
+};
+
 export function getModulesForRole(roleId, idRol, rolModulos) {
   const numericRoleId = Number(idRol);
 
@@ -329,11 +351,15 @@ export function getModulesForRole(roleId, idRol, rolModulos) {
     if (normalizedRolModulos.has("production") || normalizedRolModulos.has("warehouse")) {
       normalizedRolModulos.add("lotes");
       normalizedRolModulos.add("ubicar-lotes");
+      normalizedRolModulos.add("preparacion-pedidos");
     }
 
     return modules.filter((m) => {
       if (m.id === "pedidos-gestion" || m.id === "pedidos-seguimiento") {
-        return canAccessPedidos(numericRoleId) && normalizedRolModulos.has(m.id);
+        return (
+          canAccessPedidos(numericRoleId, rolModulos) &&
+          normalizedRolModulos.has(m.id)
+        );
       }
       return normalizedRolModulos.has(m.id);
     });
@@ -382,8 +408,10 @@ export function getModulesForRole(roleId, idRol, rolModulos) {
     }
   }
 
-  // Filtrado estricto por permisos de rol:
-  return withRoleModules.filter((m) => {
+  // Filtrado estricto por permisos de rol respetando el orden canónico de modules:
+  const includedIds = new Set(withRoleModules.map((m) => m.id));
+  return modules.filter((m) => {
+    if (!includedIds.has(m.id)) return false;
     if (m.id === "it-admin") return canAccessITAdmin(numericRoleId);
     if (m.id === "rrhh") return canAccessRRHH(numericRoleId);
     if (m.id === "pedidos-gestion" || m.id === "pedidos-seguimiento") {

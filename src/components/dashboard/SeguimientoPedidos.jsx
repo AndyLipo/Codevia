@@ -132,7 +132,7 @@ export default function SeguimientoPedidos() {
   const { token, user } = useAuth();
 
   const idRol = Number(user?.id_rol ?? 0);
-  const canAccessModule = [1, 9, 16].includes(idRol);
+  const canAccessModule = Boolean(token);
 
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -151,6 +151,416 @@ export default function SeguimientoPedidos() {
   const [selectedTracking, setSelectedTracking] = useState(null);
   const [detailTab, setDetailTab] = useState("productos"); // "productos" | "movimientos"
 
+  const cargarSeguimientoGeneralFallback = useCallback(async () => {
+    try {
+      const [resPed, resCli, resDet, resPrep, resDpp, resVerif] =
+        await Promise.all([
+          supabase
+            .schema("administracion")
+            .from("pedido")
+            .select("*")
+            .order("id_pedido", { ascending: false }),
+          supabase
+            .schema("administracion")
+            .from("cliente")
+            .select("id_cliente, nombre_razon_social, cuit, tipo_cliente"),
+          supabase
+            .schema("administracion")
+            .from("detalle_pedido")
+            .select("id_detalle_pedido, id_pedido, cantidad, importe_total"),
+          supabase
+            .schema("deposito")
+            .from("preparacion_pedido")
+            .select("*"),
+          supabase
+            .schema("deposito")
+            .from("detalle_preparacion_pedido")
+            .select(
+              "id_preparacion, cantidad, cantidad_recogida, estado, estado_picking"
+            ),
+          supabase
+            .schema("deposito")
+            .from("verificacion_detalle_pedido")
+            .select("id_detalle_pedido, verificado")
+            .eq("verificado", true),
+        ]);
+
+      if (resPed.error) {
+        throw resPed.error;
+      }
+
+      const pedRows = resPed.data ?? [];
+      const cliMap = new Map(
+        (resCli.data ?? []).map((c) => [Number(c.id_cliente), c])
+      );
+      const prepMap = new Map(
+        (resPrep.data ?? []).map((pr) => [Number(pr.id_pedido), pr])
+      );
+
+      const verifSet = new Set(
+        (resVerif.data ?? []).map((v) => Number(v.id_detalle_pedido))
+      );
+
+      const detByPedido = new Map();
+      const verifByPedido = new Map();
+      for (const d of resDet.data ?? []) {
+        const idP = Number(d.id_pedido);
+        const prev = detByPedido.get(idP) || {
+          cant_lineas: 0,
+          cant_productos: 0,
+          imp_total: 0,
+        };
+        prev.cant_lineas += 1;
+        prev.cant_productos += Number(d.cantidad ?? 0);
+        prev.imp_total += Number(d.importe_total ?? 0);
+        detByPedido.set(idP, prev);
+
+        if (verifSet.has(Number(d.id_detalle_pedido))) {
+          verifByPedido.set(idP, (verifByPedido.get(idP) ?? 0) + 1);
+        }
+      }
+
+      const prepTotByPrep = new Map();
+      for (const dpp of resDpp.data ?? []) {
+        const idPrep = Number(dpp.id_preparacion);
+        const prev = prepTotByPrep.get(idPrep) || {
+          tot_reservado: 0,
+          tot_recogido: 0,
+          alguno_pickeado: false,
+        };
+        const estDpp = String(dpp.estado ?? "").trim();
+        const estPick = String(dpp.estado_picking ?? "P").trim();
+        const cantRec = Number(dpp.cantidad_recogida ?? 0);
+        if (estDpp === "A") {
+          prev.tot_reservado += Number(dpp.cantidad ?? 0);
+          prev.tot_recogido += cantRec;
+        }
+        if (estPick !== "P" || cantRec > 0) {
+          prev.alguno_pickeado = true;
+        }
+        prepTotByPrep.set(idPrep, prev);
+      }
+
+      return pedRows.map((p) => {
+        const idP = Number(p.id_pedido);
+        const cli = cliMap.get(Number(p.id_cliente));
+        const det = detByPedido.get(idP);
+        const prep = prepMap.get(idP);
+        const prepTot = prep
+          ? prepTotByPrep.get(Number(prep.id_preparacion))
+          : null;
+        const estPrep = String(prep?.estado ?? "").trim();
+
+        return {
+          ...p,
+          id_pedido: idP,
+          id_cliente: Number(p.id_cliente),
+          cliente_nombre: cli?.nombre_razon_social || "—",
+          cliente_cuit: cli?.cuit || "",
+          cliente_tipo: String(cli?.tipo_cliente ?? "").trim(),
+          modalidad_entrega: String(p.modalidad_entrega ?? "").trim(),
+          estado: String(p.estado ?? "").trim(),
+          cantidad_lineas: det?.cant_lineas ?? 0,
+          cantidad_productos: det?.cant_productos ?? 0,
+          importe_total: det?.imp_total ?? 0,
+          id_preparacion: prep?.id_preparacion ?? null,
+          estado_preparacion: estPrep,
+          finalizada_con_excepcion: Boolean(prep?.finalizada_con_excepcion),
+          observacion_excepcion: prep?.observacion_excepcion ?? null,
+          usu_finalizacion: prep?.usu_finalizacion ?? null,
+          fec_finalizacion: prep?.fec_finalizacion ?? null,
+          total_reservado: prepTot?.tot_reservado ?? 0,
+          total_recogido: prepTot?.tot_recogido ?? 0,
+          lineas_verificadas: verifByPedido.get(idP) ?? 0,
+          picking_iniciado:
+            (Boolean(estPrep) && estPrep !== "P") ||
+            (prepTot?.tot_recogido ?? 0) > 0 ||
+            Boolean(prepTot?.alguno_pickeado),
+        };
+      });
+    } catch (err) {
+      console.error("Error en fallback general de seguimiento:", err);
+      return [];
+    }
+  }, []);
+
+  const cargarDetalleSeguimientoFallback = useCallback(async (idPedido) => {
+    const { data: pedRow, error: errPed } = await supabase
+      .schema("administracion")
+      .from("pedido")
+      .select("*")
+      .eq("id_pedido", idPedido)
+      .maybeSingle();
+
+    if (errPed || !pedRow) {
+      throw errPed || new Error(`No se encontró el pedido #${idPedido}`);
+    }
+
+    const [
+      resCli,
+      resPrep,
+      resDet,
+      resProds,
+      resUnids,
+      resVerif,
+      resLotes,
+      resStocks,
+      resLotePos,
+      resPos,
+      resMovs,
+    ] = await Promise.all([
+      supabase
+        .schema("administracion")
+        .from("cliente")
+        .select("*")
+        .eq("id_cliente", pedRow.id_cliente)
+        .maybeSingle(),
+      supabase
+        .schema("deposito")
+        .from("preparacion_pedido")
+        .select("*")
+        .eq("id_pedido", idPedido)
+        .maybeSingle(),
+      supabase
+        .schema("administracion")
+        .from("detalle_pedido")
+        .select("*")
+        .eq("id_pedido", idPedido)
+        .order("id_detalle_pedido", { ascending: true }),
+      supabase
+        .schema("produccion")
+        .from("producto")
+        .select("id_producto, codigo, nombre, id_unidad_medida"),
+      supabase
+        .schema("produccion")
+        .from("unidad_medida")
+        .select("id_unidad_medida, codigo"),
+      supabase
+        .schema("deposito")
+        .from("verificacion_detalle_pedido")
+        .select("*"),
+      supabase
+        .schema("produccion")
+        .from("lote_producto")
+        .select("*"),
+      supabase
+        .schema("deposito")
+        .from("stock")
+        .select("*"),
+      supabase
+        .schema("deposito")
+        .from("lote_posicion")
+        .select("*")
+        .eq("estado", "A"),
+      supabase
+        .schema("deposito")
+        .from("posicion")
+        .select("*"),
+      supabase
+        .schema("deposito")
+        .from("movimiento_stock_pedido")
+        .select("*")
+        .eq("id_pedido", idPedido)
+        .order("fec_alta", { ascending: false })
+        .order("id_movimiento_stock", { ascending: false }),
+    ]);
+
+    const cli = resCli.data;
+    const prep = resPrep.data;
+
+    let dppRows = [];
+    if (prep?.id_preparacion) {
+      const { data: dppData } = await supabase
+        .schema("deposito")
+        .from("detalle_preparacion_pedido")
+        .select("*")
+        .eq("id_preparacion", prep.id_preparacion)
+        .neq("estado", "C");
+      dppRows = dppData ?? [];
+    }
+
+    const prodMap = new Map(
+      (resProds.data ?? []).map((pr) => [Number(pr.id_producto), pr])
+    );
+    const unidMap = new Map(
+      (resUnids.data ?? []).map((u) => [Number(u.id_unidad_medida), u])
+    );
+    const verifMap = new Map(
+      (resVerif.data ?? []).map((v) => [Number(v.id_detalle_pedido), v])
+    );
+    const loteMap = new Map(
+      (resLotes.data ?? []).map((l) => [Number(l.id_lote_producto), l])
+    );
+    const stockByLote = new Map(
+      (resStocks.data ?? [])
+        .filter((s) => String(s.estado).trim() === "A")
+        .map((s) => [Number(s.id_lote_producto), s])
+    );
+    const posMap = new Map(
+      (resPos.data ?? []).map((pos) => [Number(pos.id_posicion), pos])
+    );
+    const lotePosMap = new Map(
+      (resLotePos.data ?? []).map((lp) => [
+        Number(lp.id_lote_producto),
+        posMap.get(Number(lp.id_posicion)),
+      ])
+    );
+
+    const hoyIso = new Date().toISOString().slice(0, 10);
+
+    const pedidoObj = {
+      ...pedRow,
+      cliente_nombre: cli?.nombre_razon_social || "—",
+      cliente_cuit: cli?.cuit || "",
+      cliente_tipo: String(cli?.tipo_cliente ?? "").trim(),
+      cliente_telefono: cli?.telefono || "",
+      cliente_email: cli?.email || "",
+      cliente_domicilio: cli?.domicilio || "",
+      cliente_localidad: cli?.localidad || "",
+      cliente_provincia: cli?.provincia || "",
+      modalidad_entrega: String(pedRow.modalidad_entrega ?? "").trim(),
+      estado: String(pedRow.estado ?? "").trim(),
+      id_preparacion: prep?.id_preparacion ?? null,
+      estado_preparacion: String(prep?.estado ?? "").trim(),
+      prep_usu_alta: prep?.usu_alta ?? null,
+      prep_fec_alta: prep?.fec_alta ?? null,
+      prep_usu_mod: prep?.usu_mod ?? null,
+      prep_fec_mod: prep?.fec_mod ?? null,
+      finalizada_con_excepcion: Boolean(prep?.finalizada_con_excepcion),
+      observacion_excepcion: prep?.observacion_excepcion ?? null,
+      usu_finalizacion: prep?.usu_finalizacion ?? null,
+      fec_finalizacion: prep?.fec_finalizacion ?? null,
+    };
+
+    const lineas = (resDet.data ?? []).map((dp) => {
+      const idProd = Number(dp.id_producto);
+      const pr = prodMap.get(idProd);
+      const um = pr ? unidMap.get(Number(pr.id_unidad_medida)) : null;
+      const vdp = verifMap.get(Number(dp.id_detalle_pedido));
+
+      let dispActual = 0;
+      for (const l of resLotes.data ?? []) {
+        if (Number(l.id_producto) !== idProd) continue;
+        if (String(l.estado).trim() !== "A") continue;
+        if (String(l.estado_lote).trim() !== "U") continue;
+        const vto = l.fecha_vencimiento
+          ? String(l.fecha_vencimiento).slice(0, 10)
+          : null;
+        if (vto && vto < hoyIso) continue;
+        const pos = lotePosMap.get(Number(l.id_lote_producto));
+        if (
+          !pos ||
+          String(pos.estado).trim() !== "A" ||
+          String(pos.estado_posicion).trim() !== "O"
+        ) {
+          continue;
+        }
+        const st = stockByLote.get(Number(l.id_lote_producto));
+        if (!st) continue;
+        const disp =
+          Number(l.cantidad_total ?? 0) -
+          Number(st.cantidad_reservada ?? 0) -
+          Number(st.cantidad_consumida ?? 0);
+        if (disp > 0) dispActual += disp;
+      }
+
+      const dppLinea = dppRows.filter((dpp) => {
+        const lote = loteMap.get(Number(dpp.id_lote_producto));
+        return (
+          Number(dpp.id_detalle_pedido) === Number(dp.id_detalle_pedido) ||
+          (dpp.id_detalle_pedido == null &&
+            Number(lote?.id_producto) === idProd)
+        );
+      });
+
+      const cantReservada = dppLinea.reduce(
+        (acc, d) => acc + Number(d.cantidad ?? 0),
+        0
+      );
+      const cantRecogida = dppLinea.reduce(
+        (acc, d) => acc + Number(d.cantidad_recogida ?? 0),
+        0
+      );
+      const todosPickeados =
+        dppLinea.length > 0 &&
+        dppLinea.every((d) => String(d.estado_picking ?? "").trim() === "L");
+
+      let estadoPickingLinea = "PENDIENTE";
+      if (dppLinea.length === 0) estadoPickingLinea = "SIN_RESERVA";
+      else if (todosPickeados) estadoPickingLinea = "COMPLETO";
+      else if (cantRecogida > 0) estadoPickingLinea = "PARCIAL";
+
+      const lotesJson = dppLinea.map((dpp) => {
+        const lote = loteMap.get(Number(dpp.id_lote_producto));
+        const pos = lotePosMap.get(Number(dpp.id_lote_producto));
+        return {
+          id_detalle_preparacion: dpp.id_detalle_preparacion,
+          id_lote_producto: dpp.id_lote_producto,
+          nro_lote: lote?.nro_lote || "—",
+          fecha_fabricacion: lote?.fecha_fabricacion ?? null,
+          fecha_vencimiento: lote?.fecha_vencimiento ?? null,
+          posicion_codigo: pos?.codigo || "—",
+          cantidad_reservada: Number(dpp.cantidad ?? 0),
+          cantidad_recogida: Number(dpp.cantidad_recogida ?? 0),
+          estado_detalle_prep: String(dpp.estado ?? "").trim(),
+          estado_picking: String(dpp.estado_picking ?? "").trim(),
+          usu_picking: dpp.usu_picking ?? null,
+          fec_picking: dpp.fec_picking ?? null,
+        };
+      });
+
+      return {
+        id_detalle_pedido: dp.id_detalle_pedido,
+        id_producto: dp.id_producto,
+        producto_codigo: pr?.codigo || "—",
+        producto_nombre: pr?.nombre || "—",
+        unidad_codigo: um?.codigo || "un.",
+        cantidad_solicitada: Number(dp.cantidad ?? 0),
+        precio_unitario: Number(dp.precio_unitario ?? 0),
+        importe_total: Number(dp.importe_total ?? 0),
+        stock_disponible_actual: dispActual,
+        cantidad_reservada: cantReservada,
+        cantidad_recogida: cantRecogida,
+        estado_picking_linea: estadoPickingLinea,
+        verificado: Boolean(vdp?.verificado),
+        usu_verificacion: vdp?.usu_verificacion ?? null,
+        fec_verificacion: vdp?.fec_verificacion ?? null,
+        lotes: lotesJson,
+      };
+    });
+
+    const movimientos = (resMovs.data ?? []).map((m) => {
+      const lote = loteMap.get(Number(m.id_lote_producto));
+      const pr = lote ? prodMap.get(Number(lote.id_producto)) : null;
+      const posOrig = m.id_posicion_origen
+        ? posMap.get(Number(m.id_posicion_origen))
+        : null;
+      const posDest = m.id_posicion_destino
+        ? posMap.get(Number(m.id_posicion_destino))
+        : null;
+      return {
+        id_movimiento_stock: m.id_movimiento_stock,
+        tipo_movimiento: m.tipo_movimiento,
+        cantidad: Number(m.cantidad ?? 0),
+        id_lote_producto: m.id_lote_producto,
+        nro_lote: lote?.nro_lote || "—",
+        producto_codigo: pr?.codigo || "—",
+        producto_nombre: pr?.nombre || "—",
+        posicion_origen: posOrig?.codigo ?? null,
+        posicion_destino: posDest?.codigo ?? null,
+        observacion: m.observacion ?? null,
+        usu_alta: m.usu_alta ?? null,
+        fec_alta: m.fec_alta ?? null,
+      };
+    });
+
+    return {
+      pedido: pedidoObj,
+      lineas,
+      movimientos,
+    };
+  }, []);
+
   const fetchPedidos = useCallback(async () => {
     if (!token || !canAccessModule) {
       setPedidos([]);
@@ -160,27 +570,39 @@ export default function SeguimientoPedidos() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // 1. Intentar RPC dedicado para seguimiento general (retorna todos los pedidos para todos los roles)
+      const { data: segData, error: segError } = await supabase
         .schema("usuarios")
-        .rpc("listar_pedidos_gestion", { p_token: token });
+        .rpc("listar_pedidos_seguimiento", { p_token: token });
 
-      if (error) {
-        console.error("Error al listar seguimiento de pedidos:", error);
-        toast.error(
-          error.message || "No se pudo cargar el seguimiento de pedidos"
-        );
-        setPedidos([]);
+      if (!segError && Array.isArray(segData)) {
+        setPedidos(segData);
         return;
       }
 
-      setPedidos(Array.isArray(data) ? data : []);
+      // 2. Si el usuario es rol 1 o 16, listar_pedidos_gestion ya devuelve todos los pedidos
+      if (idRol === 1 || idRol === 16) {
+        const { data, error } = await supabase
+          .schema("usuarios")
+          .rpc("listar_pedidos_gestion", { p_token: token });
+
+        if (!error && Array.isArray(data)) {
+          setPedidos(data);
+          return;
+        }
+      }
+
+      // 3. Para cualquier rol (ej. rol 9 u otros roles con acceso al módulo),
+      // obtener el listado general completo sin filtrar por usuario generador
+      const generalList = await cargarSeguimientoGeneralFallback();
+      setPedidos(generalList);
     } catch (err) {
       console.error("Error inesperado al listar seguimiento:", err);
       toast.error("Error al conectar con el servidor");
     } finally {
       setLoading(false);
     }
-  }, [token, canAccessModule]);
+  }, [token, canAccessModule, idRol, cargarSeguimientoGeneralFallback]);
 
   useEffect(() => {
     fetchPedidos();
@@ -248,6 +670,14 @@ export default function SeguimientoPedidos() {
         .join(" ")
         .toLowerCase()
         .includes(q);
+    }).sort((a, b) => {
+      const ordenEstado = { P: 1, M: 1, C: 2, E: 3, L: 4, D: 5, A: 6 };
+      const estA = String(a.estado ?? a.estado_pedido ?? "").trim();
+      const estB = String(b.estado ?? b.estado_pedido ?? "").trim();
+      const rankA = ordenEstado[estA] ?? 99;
+      const rankB = ordenEstado[estB] ?? 99;
+      if (rankA !== rankB) return rankA - rankB;
+      return Number(b.id_pedido ?? 0) - Number(a.id_pedido ?? 0);
     });
   }, [
     pedidos,
@@ -284,15 +714,14 @@ export default function SeguimientoPedidos() {
         fetchPedidos(),
       ]);
 
-      if (error) {
-        toast.error(
-          error.message || "No se pudo obtener el seguimiento del pedido"
-        );
-        setDetailOpen(false);
+      if (!error && data) {
+        setSelectedTracking(data);
         return;
       }
 
-      setSelectedTracking(data);
+      // Fallback directo para permitir a cualquier rol consultar el seguimiento de cualquier pedido del listado general
+      const fallbackData = await cargarDetalleSeguimientoFallback(idPedido);
+      setSelectedTracking(fallbackData);
     } catch (err) {
       console.error("Error al obtener seguimiento:", err);
       toast.error("Ocurrió un error al consultar el seguimiento");

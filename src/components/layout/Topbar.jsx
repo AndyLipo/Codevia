@@ -59,7 +59,15 @@ export default function Topbar({
       ? { label: "IT / Sistemas · Parámetros · Roles" }
       : active === "it-params-permisos"
         ? { label: "IT / Sistemas · Parámetros · Permisos" }
-        : modules.find((module) => module.id === active);
+        : active === "dispatch-params-vehiculos"
+          ? { label: "Expedición · Parámetros · Vehículos" }
+          : active === "productos-params-unidades"
+            ? { label: "Productos · Parámetros · Unidades de Medida" }
+            : active === "productos-params-materiales"
+              ? { label: "Productos · Parámetros · Materiales" }
+              : active === "productos-params-tipos"
+                ? { label: "Productos · Parámetros · Tipo de Producto" }
+                : modules.find((module) => module.id === active);
 
   return (
     <header className="sticky top-0 z-30 flex h-18 items-center justify-between border-b border-[#dfe7e9] bg-white px-4 lg:px-8.5">

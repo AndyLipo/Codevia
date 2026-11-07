@@ -30,6 +30,7 @@ const MODULE_DESCRIPTIONS = {
     lotes: "Listado de lotes, estados, stock disponible, ubicaciones e ingreso de lotes externos.",
     "ubicar-lotes": "Recepción física de lotes, asignación de posiciones en depósito y traslados entre casillas.",
     warehouse: "Gestión de stock, sectores, posiciones y movimientos de depósito.",
+    "preparacion-pedidos": "Preparación de pedidos confirmados, control de picking de lotes y verificación para despacho.",
     dispatch: "Playa de carga, hojas de ruta y seguimiento de despachos.",
     "pedidos-gestion": "Registro, consulta, confirmación y edición de pedidos de clientes (Roles 1, 9 y 16).",
     "pedidos-seguimiento": "Trazabilidad de pedidos por producto, lote, picking, verificación y despacho (Roles 1, 9 y 16).",
@@ -56,6 +57,7 @@ const getDefaultModulesForRole = (idRol) => {
         "lotes",
         "ubicar-lotes",
         "warehouse",
+        "preparacion-pedidos",
         "dispatch",
         "reports",
     ];

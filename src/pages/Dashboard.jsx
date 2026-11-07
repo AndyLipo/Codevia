@@ -10,6 +10,7 @@ import {
   canAccessCatalogo,
   canAccessLotes,
   canAccessUbicarLotes,
+  canAccessPreparacionPedidos,
 } from "@/data/mockData";
 import AppShell from "@/components/layout/AppShell";
 import SectionTitle from "@/components/common/SectionTitle";
@@ -20,11 +21,16 @@ import MisOrdenes from "@/components/dashboard/MisOrdenes";
 import Lotes from "@/components/dashboard/Lotes";
 import UbicarLotes from "@/components/dashboard/UbicarLotes";
 import Warehouse from "@/components/dashboard/Warehouse";
+import PreparacionPedidos from "@/components/dashboard/PreparacionPedidos";
 import Dispatch from "@/components/dashboard/Dispatch";
+import VehiculosParams from "@/components/dashboard/expedicion/VehiculosParams";
 import GestionPedidos from "@/components/dashboard/GestionPedidos";
 import SeguimientoPedidos from "@/components/dashboard/SeguimientoPedidos";
 import Clientes from "@/components/dashboard/Clientes";
 import Productos from "@/components/dashboard/Productos";
+import UnidadesMedidaParams from "@/components/dashboard/productos/UnidadesMedidaParams";
+import MaterialesParams from "@/components/dashboard/productos/MaterialesParams";
+import TiposProductoParams from "@/components/dashboard/productos/TiposProductoParams";
 import ListaPrecios from "@/components/dashboard/ListaPrecios";
 import Reports from "@/components/dashboard/Reports";
 import ITAdmin from "@/components/dashboard/itadmin/ITAdmin";
@@ -81,12 +87,21 @@ export default function Dashboard() {
           />
         );
 
+      case "preparacion-pedidos":
+        if (!canAccessPreparacionPedidos(user?.id_rol, user?.rol_modulos)) {
+          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+        }
+        return <PreparacionPedidos fakeAction={fakeAction} />;
+
       case "dispatch":
-        return <Dispatch fakeAction={fakeAction} />;
+        return <Dispatch fakeAction={fakeAction} navigate={navigate} />;
+
+      case "dispatch-params-vehiculos":
+        return <VehiculosParams fakeAction={fakeAction} />;
 
       case "orders":
       case "pedidos-gestion":
-        if (!canAccessPedidos(user?.id_rol)) {
+        if (!canAccessPedidos(user?.id_rol, user?.rol_modulos)) {
           return <Overview
             navigate={navigate}
             fakeAction={fakeAction} />;
@@ -94,7 +109,7 @@ export default function Dashboard() {
         return <GestionPedidos fakeAction={fakeAction} />;
 
       case "pedidos-seguimiento":
-        if (!canAccessPedidos(user?.id_rol)) {
+        if (!canAccessPedidos(user?.id_rol, user?.rol_modulos)) {
           return <Overview navigate={navigate} fakeAction={fakeAction} />;
         }
         return <SeguimientoPedidos fakeAction={fakeAction} />;
@@ -110,6 +125,24 @@ export default function Dashboard() {
           return <Overview navigate={navigate} fakeAction={fakeAction} />;
         }
         return <Productos fakeAction={fakeAction} />;
+
+      case "productos-params-unidades":
+        if (!canAccessCatalogo(user?.id_rol, user?.rol_modulos, "productos")) {
+          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+        }
+        return <UnidadesMedidaParams fakeAction={fakeAction} />;
+
+      case "productos-params-materiales":
+        if (!canAccessCatalogo(user?.id_rol, user?.rol_modulos, "productos")) {
+          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+        }
+        return <MaterialesParams fakeAction={fakeAction} />;
+
+      case "productos-params-tipos":
+        if (!canAccessCatalogo(user?.id_rol, user?.rol_modulos, "productos")) {
+          return <Overview navigate={navigate} fakeAction={fakeAction} />;
+        }
+        return <TiposProductoParams fakeAction={fakeAction} />;
 
       case "lista-precios":
         if (!canAccessCatalogo(user?.id_rol, user?.rol_modulos, "lista-precios")) {
