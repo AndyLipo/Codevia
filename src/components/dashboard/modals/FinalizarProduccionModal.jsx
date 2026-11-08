@@ -316,7 +316,7 @@ export default function FinalizarProduccionModal({
             {/* Info producto */}
             <div className="rounded-lg border border-[#e1e8ea] bg-[#f8fafb] p-3 text-[11.5px]">
               <div className="flex items-center justify-between">
-                <span className="font-mono font-semibold text-[#145c73]">
+                <span className="font-mono font-semibold text-brand">
                   {producto?.codigo || "—"}
                 </span>
                 <span className="text-[#657d85] font-medium">
@@ -327,7 +327,7 @@ export default function FinalizarProduccionModal({
                 {producto?.nombre || "Producto"}
               </strong>
               {!esAnulacion && (
-                <div className="mt-1.5 flex items-center justify-between border-t border-[#edf1f2] pt-1.5 text-[11px]">
+                <div className="mt-1.5 flex items-center justify-between border-t border-slate-soft pt-1.5 text-[11px]">
                   <span className="text-[#657d85]">Faltante a producir:</span>
                   <strong className="font-mono text-[#a76e1a]">
                     {faltanteMaximo.toLocaleString("es-AR")} {producto?.unidad_codigo || "UN"}

@@ -68,7 +68,7 @@ export default function FormLogin() {
                 disabled={loading || !usuario.trim() || !password}
                 className="flex w-full items-center justify-center gap-1.75 rounded-md bg-brand py-2.5 text-[11px] font-bold text-white shadow-[0_4px_10px_rgba(20,92,115,0.16)] transition-all hover:-translate-y-px hover:bg-brand-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
             >
-                {loading ? "Verificando..." : "Entrar al puesto"}
+                {loading ? "Verificando..." : "Ingresar"}
                 {!loading && <ArrowUpRight size={18} />}
             </button>
         </form>

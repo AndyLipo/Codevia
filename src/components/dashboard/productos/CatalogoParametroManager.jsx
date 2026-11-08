@@ -121,7 +121,7 @@ export default function CatalogoParametroManager({
         console.error(`Error al cargar ${pluralLabel}:`, error || fbErr);
         toast.error(
           (error || fbErr)?.message ||
-            `No se pudo cargar el listado de ${pluralLabel}`
+          `No se pudo cargar el listado de ${pluralLabel}`
         );
         setItems([]);
         return;
@@ -289,8 +289,8 @@ export default function CatalogoParametroManager({
           if (fbErr) {
             toast.error(
               error.message ||
-                fbErr.message ||
-                `No se pudo actualizar ${singularLabel}`
+              fbErr.message ||
+              `No se pudo actualizar ${singularLabel}`
             );
             return;
           }
@@ -323,8 +323,8 @@ export default function CatalogoParametroManager({
           if (fbErr) {
             toast.error(
               error.message ||
-                fbErr.message ||
-                `No se pudo registrar ${singularLabel}`
+              fbErr.message ||
+              `No se pudo registrar ${singularLabel}`
             );
             return;
           }
@@ -371,8 +371,8 @@ export default function CatalogoParametroManager({
         if (fbErr) {
           toast.error(
             error.message ||
-              fbErr.message ||
-              `No se pudo eliminar ${singularLabel}`
+            fbErr.message ||
+            `No se pudo eliminar ${singularLabel}`
           );
           return;
         }
@@ -420,8 +420,8 @@ export default function CatalogoParametroManager({
         if (fbErr) {
           toast.error(
             error.message ||
-              fbErr.message ||
-              `No se pudo reactivar ${singularLabel}`
+            fbErr.message ||
+            `No se pudo reactivar ${singularLabel}`
           );
           return;
         }
@@ -630,9 +630,8 @@ export default function CatalogoParametroManager({
                   return (
                     <tr
                       key={rowId}
-                      className={`transition-colors hover:bg-[#f8fbfc] ${
-                        est === "E" ? "bg-[#fcf8f8]/70 opacity-75" : ""
-                      }`}
+                      className={`transition-colors hover:bg-[#f8fbfc] ${est === "E" ? "bg-[#fcf8f8]/70 opacity-75" : ""
+                        }`}
                     >
                       <td className="whitespace-nowrap px-3 py-2.5 align-middle font-mono text-[11px] font-semibold text-[#145c73]">
                         #{rowId}
@@ -773,7 +772,7 @@ export default function CatalogoParametroManager({
           <div className="border-b border-[#e8eff1] bg-[#f6fafb] px-5 py-4 pr-10">
             <div className="mb-1 flex items-center justify-between gap-2">
               <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#5e6f77]">
-                PRODUCCION.{tableName.toUpperCase()}
+                PRODUCCION
               </span>
               <Badge tone="blue">{editingItem ? "Edición" : "Alta"}</Badge>
             </div>
@@ -783,8 +782,7 @@ export default function CatalogoParametroManager({
                 : newButtonLabel}
             </DialogTitle>
             <DialogDescription className="mt-0.5 text-[12px] text-[#6b7d85]">
-              Completá el código, nombre, descripción y estado en{" "}
-              <code>produccion.{tableName}</code>.
+              Completá el código, nombre, descripción y estado
             </DialogDescription>
           </div>
 
@@ -796,7 +794,7 @@ export default function CatalogoParametroManager({
                     htmlFor="param-codigo"
                     className="text-[10px] font-bold uppercase tracking-widest text-muted-ink"
                   >
-                    Código (`codigo`) *
+                    Código *
                   </Label>
                   <Input
                     id="param-codigo"
@@ -819,7 +817,7 @@ export default function CatalogoParametroManager({
                     htmlFor="param-estado"
                     className="text-[10px] font-bold uppercase tracking-widest text-muted-ink"
                   >
-                    Estado (`estado`) *
+                    Estado *
                   </Label>
                   <select
                     id="param-estado"
@@ -839,7 +837,7 @@ export default function CatalogoParametroManager({
                     htmlFor="param-nombre"
                     className="text-[10px] font-bold uppercase tracking-widest text-muted-ink"
                   >
-                    Nombre (`nombre`) *
+                    Nombre *
                   </Label>
                   <Input
                     id="param-nombre"
@@ -859,7 +857,7 @@ export default function CatalogoParametroManager({
                     htmlFor="param-descripcion"
                     className="text-[10px] font-bold uppercase tracking-widest text-muted-ink"
                   >
-                    Descripción (`descripcion`)
+                    Descripción
                   </Label>
                   <Textarea
                     id="param-descripcion"
@@ -906,7 +904,7 @@ export default function CatalogoParametroManager({
                   ? "Guardando..."
                   : editingItem
                     ? "Guardar cambios"
-                    : newButtonLabel}
+                    : "Crear"}
               </Button>
             </div>
           </form>

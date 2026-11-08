@@ -2,9 +2,7 @@
 import logo from "/logo-codevia1.png";
 import FormLogin from "@/components/login/FormLogin";
 
-export default function Login({
-  onAnatomy,
-}) {
+export default function Login() {
 
   return (
     <div className="grid min-h-screen grid-cols-[1.08fr_0.92fr] bg-[#f4f6f7] max-[760px]:grid-cols-1">
@@ -81,30 +79,17 @@ export default function Login({
       <div className="mb-2.5 flex flex-col justify-between">
         <div className="mx-auto my-auto w-[min(460px,calc(100%-80px))] py-6.25 max-[760px]:w-[calc(100%-42px)]">
           <div className="text-[9px] tracking-[0.16em] text-[#82979e]">
-            ACCESO AL SISTEMA
+            PANTALLA DE INGRESO
           </div>
 
           <h2 className="m-0 font-barlow text-[38px] tracking-[-0.4px] text-[#173d4b]">
-            Ingresá a tu puesto
+            ACCESO AL SISTEMA
           </h2>
 
           <p className="mb-3.75 mt-2.25 text-xs text-[#829298]">
             Ingresá tu usuario que querés utilizar.
           </p>
-
-          <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#82979e]">
-            Rol de la vista
-          </div>
           <FormLogin />
-          {onAnatomy && (
-            <button
-              type="button"
-              onClick={onAnatomy}
-              className="mt-3 w-full text-center text-[10px] text-[#829298] hover:underline"
-            >
-              Ver anatomía del sistema
-            </button>
-          )}
         </div>
       </div>
     </div>

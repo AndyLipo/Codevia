@@ -3,10 +3,10 @@ import {
   Plus,
   Search,
   Eye,
-  Play,
+  CircleCheck,
   RefreshCw,
   Pencil,
-  Ban,
+  CircleX,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -383,9 +383,10 @@ export default function Production({ fakeAction }) {
             type="button"
             onClick={() => handleTomarOrden(o)}
             className="inline-flex cursor-pointer items-center gap-1 rounded border border-[#b8dfce] bg-[#eaf6f0] px-2 py-1 text-[10px] font-semibold text-[#1f6b4d] hover:bg-[#d8efe3]"
-            title="Tomar orden y pasar a estado T"
+            title="Tomar orden y pasar a estado Tomado"
           >
-            <Play size={11} className="fill-current" />
+            <CircleCheck
+              size={11} className="" />
             Tomar Orden
           </button>
         )}
@@ -397,7 +398,7 @@ export default function Production({ fakeAction }) {
             className="inline-flex cursor-pointer items-center gap-1 rounded border border-[#f2c4be] bg-[#fbe9e7] px-2 py-1 text-[10px] font-semibold text-[#ba584d] hover:bg-[#f7d8d4]"
             title="Anular orden de producción"
           >
-            <Ban size={11} />
+            <CircleX size={11} />
             Anular
           </button>
         )}
@@ -406,10 +407,9 @@ export default function Production({ fakeAction }) {
   });
 
   const tabClass = (tab) =>
-    `relative pb-3 text-[11px] font-semibold transition-colors ${
-      activeTab === tab
-        ? "text-brand after:absolute after:-bottom-px after:left-0 after:right-0 after:h-0.5 after:bg-brand"
-        : "text-[#82949a] hover:text-brand cursor-pointer"
+    `relative pb-3 text-[11px] font-semibold transition-colors ${activeTab === tab
+      ? "text-brand after:absolute after:-bottom-px after:left-0 after:right-0 after:h-0.5 after:bg-brand"
+      : "text-[#82949a] hover:text-brand cursor-pointer"
     }`;
 
   return (
@@ -437,9 +437,8 @@ export default function Production({ fakeAction }) {
             onClick={() =>
               setEstadoFilter((prev) => (prev === "PENDIENTES" ? "ALL" : "PENDIENTES"))
             }
-            className={`min-w-31.25 cursor-pointer rounded-lg border bg-white px-3 py-2 shadow-xs transition-all hover:border-[#a76e1a] ${
-              estadoFilter === "PENDIENTES" ? "ring-2 ring-[#a76e1a]" : "border-[#e1e8ea]"
-            }`}
+            className={`min-w-31.25 cursor-pointer rounded-lg border bg-white px-3 py-2 shadow-xs transition-all hover:border-[#a76e1a] ${estadoFilter === "PENDIENTES" ? "ring-2 ring-[#a76e1a]" : "border-[#e1e8ea]"
+              }`}
             title="Filtrar por órdenes Pendientes (P, T, D)"
           >
             <div className="flex items-center justify-between gap-2">
@@ -457,9 +456,8 @@ export default function Production({ fakeAction }) {
           {/* En ejecución */}
           <div
             onClick={() => setEstadoFilter((prev) => (prev === "E" ? "ALL" : "E"))}
-            className={`min-w-31.25 cursor-pointer rounded-lg border bg-white px-3 py-2 shadow-xs transition-all hover:border-[#145c73] ${
-              estadoFilter === "E" ? "ring-2 ring-[#145c73]" : "border-[#e1e8ea]"
-            }`}
+            className={`min-w-31.25 cursor-pointer rounded-lg border bg-white px-3 py-2 shadow-xs transition-all hover:border-[#145c73] ${estadoFilter === "E" ? "ring-2 ring-[#145c73]" : "border-[#e1e8ea]"
+              }`}
             title="Filtrar por órdenes En ejecución"
           >
             <div className="flex items-center justify-between gap-2">
@@ -477,9 +475,8 @@ export default function Production({ fakeAction }) {
           {/* Incompleta */}
           <div
             onClick={() => setEstadoFilter((prev) => (prev === "I" ? "ALL" : "I"))}
-            className={`min-w-31.25 cursor-pointer rounded-lg border bg-white px-3 py-2 shadow-xs transition-all hover:border-[#6f8087] ${
-              estadoFilter === "I" ? "ring-2 ring-[#6f8087]" : "border-[#e1e8ea]"
-            }`}
+            className={`min-w-31.25 cursor-pointer rounded-lg border bg-white px-3 py-2 shadow-xs transition-all hover:border-[#6f8087] ${estadoFilter === "I" ? "ring-2 ring-[#6f8087]" : "border-[#e1e8ea]"
+              }`}
             title="Filtrar por órdenes Incompletas"
           >
             <div className="flex items-center justify-between gap-2">
@@ -497,9 +494,8 @@ export default function Production({ fakeAction }) {
           {/* Completa */}
           <div
             onClick={() => setEstadoFilter((prev) => (prev === "C" ? "ALL" : "C"))}
-            className={`min-w-31.25 cursor-pointer rounded-lg border bg-white px-3 py-2 shadow-xs transition-all hover:border-[#256349] ${
-              estadoFilter === "C" ? "ring-2 ring-[#256349]" : "border-[#e1e8ea]"
-            }`}
+            className={`min-w-31.25 cursor-pointer rounded-lg border bg-white px-3 py-2 shadow-xs transition-all hover:border-[#256349] ${estadoFilter === "C" ? "ring-2 ring-[#256349]" : "border-[#e1e8ea]"
+              }`}
             title="Filtrar por órdenes Completas"
           >
             <div className="flex items-center justify-between gap-2">
@@ -517,9 +513,8 @@ export default function Production({ fakeAction }) {
           {/* Anulada */}
           <div
             onClick={() => setEstadoFilter((prev) => (prev === "A" ? "ALL" : "A"))}
-            className={`min-w-31.25 cursor-pointer rounded-lg border bg-white px-3 py-2 shadow-xs transition-all hover:border-[#ba584d] ${
-              estadoFilter === "A" ? "ring-2 ring-[#ba584d]" : "border-[#e1e8ea]"
-            }`}
+            className={`min-w-31.25 cursor-pointer rounded-lg border bg-white px-3 py-2 shadow-xs transition-all hover:border-[#ba584d] ${estadoFilter === "A" ? "ring-2 ring-[#ba584d]" : "border-[#e1e8ea]"
+              }`}
             title="Filtrar por órdenes Anuladas"
           >
             <div className="flex items-center justify-between gap-2">
@@ -560,7 +555,7 @@ export default function Production({ fakeAction }) {
           <div className="pb-2">
             <ActionButton
               onClick={handleAbrirNuevaOrden}
-              className="cursor-pointer"
+              className="cursor-pointer border"
             >
               <Plus size={16} /> Generar Orden
             </ActionButton>

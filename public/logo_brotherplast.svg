@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="180" viewBox="0 0 880 180" role="img" aria-label="brotherplast Gestión Industrial">
+  <title>brotherplast — Gestión Industrial</title>
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&amp;display=swap');
+      .word { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 97px; }
+      .tag { font-family: 'Barlow Condensed', sans-serif; font-weight: 500; font-size: 28px; letter-spacing: 5.7px; }
+    </style>
+  </defs>
+  <!-- Icono vectorial inspirado en el símbolo de la captura -->
+  <rect x="12" y="14" width="145" height="145" fill="#153d4c"/>
+  <path d="M130 43 A59 59 0 1 0 130 129" fill="none" stroke="#d58b27" stroke-width="12" stroke-linecap="butt"/>
+  <path d="M52 38 C22 53 22 121 52 139 C35 119 34 60 52 38Z" fill="#ffffff"/>
+  <ellipse cx="92" cy="87" rx="45" ry="16" transform="rotate(-18 92 87)" fill="none" stroke="#ffffff" stroke-width="9"/>
+  <ellipse cx="98" cy="88" rx="17" ry="42" transform="rotate(-33 98 88)" fill="none" stroke="#d58b27" stroke-width="8"/>
+  <path d="M80 83 Q94 91 107 94" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+  <text x="181" y="102" class="word" fill="#153d4c">brother<tspan fill="#d58b27">plast</tspan></text>
+  <text x="185" y="140" class="tag" fill="#153d4c">GESTIÓN INDUSTRIAL</text>
+</svg>

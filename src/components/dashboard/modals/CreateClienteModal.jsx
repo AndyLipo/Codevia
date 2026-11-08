@@ -85,6 +85,12 @@ const formatCuitInput = (value = "") => {
     return `${digits.slice(0, 2)}-${digits.slice(2, 10)}-${digits.slice(10, 11)}`;
 };
 
+// El email es opcional, pero si se completa debe tener un formato válido.
+const isValidEmail = (email = "") => {
+    if (!String(email).trim()) return true;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(email).trim());
+};
+
 // Normaliza una fila de tipo_cliente o tipo_categoria_cliente aunque la RPC aún
 // tenga la versión anterior en Supabase.
 const normalizeOption = (item, maxCodeLen = 3) => {
@@ -157,6 +163,7 @@ export default function CreateClienteModal({
     const [form, setForm] = useState(initialForm);
     const [loading, setLoading] = useState(false);
     const [changingState, setChangingState] = useState(false);
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
     const [historial, setHistorial] = useState([]);
     const [loadingHistorial, setLoadingHistorial] = useState(false);
@@ -229,14 +236,14 @@ export default function CreateClienteModal({
                     cliente.nombre_razon_social ?? ""
                 ),
                 tipo_documento: String(cliente.tipo_documento ?? "").trim(),
-                nro_documento: String(cliente.nro_documento ?? ""),
+                nro_documento: String(cliente.nro_documento ?? "").replace(/\D/g, ""),
                 cuit: formatCuitInput(cliente.cuit || ""),
-                telefono: String(cliente.telefono ?? ""),
+                telefono: String(cliente.telefono ?? "").replace(/\D/g, ""),
                 email: String(cliente.email ?? ""),
                 domicilio: String(cliente.domicilio ?? ""),
                 localidad: String(cliente.localidad ?? ""),
                 provincia: String(cliente.provincia ?? ""),
-                codigo_postal: String(cliente.codigo_postal ?? ""),
+                codigo_postal: String(cliente.codigo_postal ?? "").replace(/\D/g, ""),
                 observaciones: String(cliente.observaciones ?? ""),
                 estado: String(cliente.estado ?? "A").trim() || "A",
             });
@@ -261,7 +268,7 @@ export default function CreateClienteModal({
             existingClientes.find(
                 (c) =>
                     String(c.cuit ?? "").replace(/\D/g, "") ===
-                        cleanCuitDigits &&
+                    cleanCuitDigits &&
                     c.id_cliente !== cliente?.id_cliente
             ) ?? null
         );
@@ -291,6 +298,7 @@ export default function CreateClienteModal({
 
     const cuitLengthInvalid =
         cleanCuitDigits.length > 0 && cleanCuitDigits.length !== 11;
+    const emailInvalid = !isValidEmail(form.email);
 
     const tipoClienteVal = String(form.tipo_cliente ?? "").trim();
     const nombreRazonVal = String(form.nombre_razon_social ?? "").trim();
@@ -318,7 +326,7 @@ export default function CreateClienteModal({
                 console.error("Error al cambiar estado del cliente:", error);
                 toast.error(
                     error.message ||
-                        "No se pudo actualizar el estado del cliente"
+                    "No se pudo actualizar el estado del cliente"
                 );
                 return;
             }
@@ -331,6 +339,7 @@ export default function CreateClienteModal({
                         : `Cliente #${cliente.id_cliente} reactivado correctamente`;
 
             toast.success(msg);
+            setConfirmDeleteOpen(false);
             await onSaved?.();
             onOpenChange(false);
         } catch (err) {
@@ -352,6 +361,11 @@ export default function CreateClienteModal({
 
         if (!nombreRazonVal) {
             toast.error("El nombre o razón social es obligatorio.");
+            return;
+        }
+
+        if (emailInvalid) {
+            toast.error("Ingresá un email de contacto válido.");
             return;
         }
 
@@ -443,649 +457,717 @@ export default function CreateClienteModal({
         "h-9 w-full rounded-md border border-[#dfe7e9] bg-white px-2.5 text-[11px] text-ink-soft outline-none focus:border-[#214451]";
 
     return (
-        <Dialog
-            open={open}
-            onOpenChange={(nextOpen) => {
-                if (!loading && !changingState) {
-                    onOpenChange(nextOpen);
-                }
-            }}
-        >
-            <DialogContent className="max-w-185 border border-[#e1e8ea] bg-white p-0 shadow-card">
-                <DialogHeader className="border-b border-slate-soft bg-white px-6 pt-5 pb-3.5">
-                    <div className="flex flex-wrap items-center justify-between gap-2 pr-6">
-                        <div>
-                            <DialogTitle className="font-barlow text-[25px] font-normal text-ink">
-                                {cliente
-                                    ? `Cliente #${cliente.id_cliente} · ${cliente.nombre_razon_social}`
-                                    : "Alta de nuevo cliente"}
-                            </DialogTitle>
+        <>
+            <Dialog
+                open={open}
+                onOpenChange={(nextOpen) => {
+                    if (!loading && !changingState) {
+                        onOpenChange(nextOpen);
+                    }
+                }}
+            >
+                <DialogContent className="max-w-185 border border-[#e1e8ea] bg-white p-0 shadow-card">
+                    <DialogHeader className="border-b border-slate-soft bg-white px-6 pt-5 pb-3.5">
+                        <div className="flex flex-wrap items-center justify-between gap-2 pr-6">
+                            <div>
+                                <DialogTitle className="font-barlow text-[25px] font-normal text-ink">
+                                    {cliente
+                                        ? `Cliente #${cliente.id_cliente} · ${cliente.nombre_razon_social}`
+                                        : "Alta de nuevo cliente"}
+                                </DialogTitle>
 
-                            <DialogDescription className="text-[12px] text-muted-ink">
-                                {cliente
-                                    ? "Consultá o modificá los datos comerciales, fiscales, ubicación e historial del cliente."
-                                    : "Completá los datos fiscales, de contacto y clasificación para dar de alta al cliente."}
-                            </DialogDescription>
-                        </div>
-
-                        {cliente && (
-                            <div className="flex rounded-md border border-[#dce5e8] bg-[#f4f7f8] p-0.5">
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab("datos")}
-                                    className={`inline-flex cursor-pointer items-center gap-1.5 rounded px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                                        activeTab === "datos"
-                                            ? "bg-white text-[#145c73] shadow-xs"
-                                            : "text-[#667b83] hover:text-[#214451]"
-                                    }`}
-                                >
-                                    <FileText size={12} />
-                                    Ficha de datos
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab("historial")}
-                                    className={`inline-flex cursor-pointer items-center gap-1.5 rounded px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                                        activeTab === "historial"
-                                            ? "bg-white text-[#145c73] shadow-xs"
-                                            : "text-[#667b83] hover:text-[#214451]"
-                                    }`}
-                                >
-                                    <History size={12} />
-                                    Historial ({historial.length})
-                                </button>
+                                <DialogDescription className="text-[12px] text-muted-ink">
+                                    {cliente
+                                        ? "Consultá o modificá los datos comerciales, fiscales, ubicación e historial del cliente."
+                                        : "Completá los datos fiscales, de contacto y clasificación para dar de alta al cliente."}
+                                </DialogDescription>
                             </div>
-                        )}
-                    </div>
-                </DialogHeader>
 
-                {activeTab === "historial" && cliente ? (
-                    <div className="max-h-[72vh] space-y-3 overflow-y-auto bg-white px-6 py-5">
-                        {/* Resumen de auditoría en cabecera de historial */}
-                        <div className="grid grid-cols-1 gap-2.5 rounded-md border border-[#e1e8ea] bg-[#f8fafb] p-3.5 sm:grid-cols-2">
-                            <div className="flex items-center gap-2.5 text-[11px]">
-                                <Clock size={15} className="text-[#145c73]" />
-                                <div>
-                                    <span className="block text-[9.5px] font-bold uppercase tracking-wider text-[#82979e]">
-                                        Alta inicial
-                                    </span>
-                                    <strong className="text-[#214451]">
-                                        {cliente.usu_alta || "—"}
-                                    </strong>{" "}
-                                    <span className="text-[#6f8087]">
-                                        · {formatDateTime(cliente.fec_alta)}
-                                    </span>
+                            {cliente && (
+                                <div className="flex rounded-md border border-[#dce5e8] bg-[#f4f7f8] p-0.5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab("datos")}
+                                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded px-2.5 py-1 text-[11px] font-semibold transition-colors ${activeTab === "datos"
+                                            ? "bg-white text-[#145c73] shadow-xs"
+                                            : "text-[#667b83] hover:text-[#214451]"
+                                            }`}
+                                    >
+                                        <FileText size={12} />
+                                        Ficha de datos
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab("historial")}
+                                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded px-2.5 py-1 text-[11px] font-semibold transition-colors ${activeTab === "historial"
+                                            ? "bg-white text-[#145c73] shadow-xs"
+                                            : "text-[#667b83] hover:text-[#214451]"
+                                            }`}
+                                    >
+                                        <History size={12} />
+                                        Historial ({historial.length})
+                                    </button>
                                 </div>
-                            </div>
+                            )}
+                        </div>
+                    </DialogHeader>
 
-                            <div className="flex items-center gap-2.5 text-[11px]">
-                                <History size={15} className="text-[#145c73]" />
-                                <div>
-                                    <span className="block text-[9.5px] font-bold uppercase tracking-wider text-[#82979e]">
-                                        Última modificación
-                                    </span>
-                                    <strong className="text-[#214451]">
-                                        {cliente.usu_mod || "Sin modificaciones"}
-                                    </strong>{" "}
-                                    {cliente.fec_mod && (
-                                        <span className="text-[#6f8087]">
-                                            · {formatDateTime(cliente.fec_mod)}
+                    {activeTab === "historial" && cliente ? (
+                        <div className="max-h-[72vh] space-y-3 overflow-y-auto bg-white px-6 py-5">
+                            {/* Resumen de auditoría en cabecera de historial */}
+                            <div className="grid grid-cols-1 gap-2.5 rounded-md border border-[#e1e8ea] bg-[#f8fafb] p-3.5 sm:grid-cols-2">
+                                <div className="flex items-center gap-2.5 text-[11px]">
+                                    <Clock size={15} className="text-[#145c73]" />
+                                    <div>
+                                        <span className="block text-[9.5px] font-bold uppercase tracking-wider text-[#82979e]">
+                                            Alta inicial
                                         </span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {loadingHistorial ? (
-                            <p className="py-10 text-center text-[11px] text-muted-ink">
-                                Cargando historial del cliente...
-                            </p>
-                        ) : historial.length === 0 ? (
-                            <p className="py-10 text-center text-[12px] text-muted-ink">
-                                No hay movimientos registrados para este cliente.
-                            </p>
-                        ) : (
-                            <div className="space-y-2.5">
-                                {historial.map((item) => {
-                                    const meta = ACCION_META[item.accion] ?? {
-                                        label: item.accion,
-                                        tone: "slate",
-                                    };
-                                    return (
-                                        <div
-                                            key={item.id_historial}
-                                            className="rounded-md border border-[#e3ebed] bg-white p-3.5 shadow-2xs"
-                                        >
-                                            <div className="flex flex-wrap items-center justify-between gap-2">
-                                                <div className="flex items-center gap-2">
-                                                    <Badge tone={meta.tone}>
-                                                        {meta.label}
-                                                    </Badge>
-                                                    <span className="text-[11px] font-semibold text-[#214451]">
-                                                        Usuario:{" "}
-                                                        <span className="font-mono text-[#145c73]">
-                                                            {item.usuario}
-                                                        </span>
-                                                    </span>
-                                                </div>
-
-                                                <span className="font-mono text-[10.5px] text-[#788b92]">
-                                                    {formatDateTime(item.fecha)}
-                                                </span>
-                                            </div>
-
-                                            <p className="mt-1.5 mb-0 text-[11.5px] text-[#425b65]">
-                                                {item.detalle ||
-                                                    "Movimiento registrado"}
-                                            </p>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-
-                        <div className="flex justify-end border-t border-slate-soft pt-3">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setActiveTab("datos")}
-                                className="h-9 border-[#dce5e8] bg-white text-[11px] text-ink-soft hover:bg-slate-soft"
-                            >
-                                Volver a la ficha
-                            </Button>
-                        </div>
-                    </div>
-                ) : (
-                    <form onSubmit={handleSubmit}>
-                        <div className="max-h-[72vh] space-y-4 overflow-y-auto bg-white px-6 py-5">
-                            {/* Bloque 1: Clasificación y Estado */}
-                            <div className="rounded-md border border-[#e1e8ea] bg-[#f8fafb] p-3.5">
-                                <div className="mb-2.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#145c73]">
-                                    <Building2 size={12} />
-                                    <span>Clasificación comercial y estado</span>
-                                </div>
-
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                                    {/* Tipo de cliente (administracion.tipo_cliente) */}
-                                    <div className="space-y-1.5">
-                                        <Label className={labelCls}>
-                                            Tipo de cliente *
-                                        </Label>
-                                        <select
-                                            value={form.tipo_cliente}
-                                            onChange={(e) =>
-                                                setForm((p) => ({
-                                                    ...p,
-                                                    tipo_cliente:
-                                                        e.target.value,
-                                                }))
-                                            }
-                                            className={selectNativeCls}
-                                            required
-                                        >
-                                            <option value="" disabled>
-                                                Seleccionar tipo...
-                                            </option>
-                                            {safeTiposCliente.map(
-                                                (tc, idx) => (
-                                                    <option
-                                                        key={`${tc.codigo}-${idx}`}
-                                                        value={tc.codigo}
-                                                    >
-                                                        {tc.codigo} ·{" "}
-                                                        {tc.nombre}
-                                                    </option>
-                                                )
-                                            )}
-                                        </select>
-                                    </div>
-
-                                    {/* Categoría de cliente (administracion.tipo_categoria_cliente) */}
-                                    <div className="space-y-1.5">
-                                        <Label className={labelCls}>
-                                            Categoría de cliente
-                                        </Label>
-                                        <select
-                                            value={form.categoria_cliente}
-                                            onChange={(e) =>
-                                                setForm((p) => ({
-                                                    ...p,
-                                                    categoria_cliente:
-                                                        e.target.value,
-                                                }))
-                                            }
-                                            className={selectNativeCls}
-                                        >
-                                            <option value="">
-                                                Sin categoría asignada
-                                            </option>
-                                            {safeCategoriasCliente.map(
-                                                (cat, idx) => (
-                                                    <option
-                                                        key={`${cat.codigo}-${idx}`}
-                                                        value={cat.codigo}
-                                                    >
-                                                        {cat.codigo} ·{" "}
-                                                        {cat.nombre}
-                                                    </option>
-                                                )
-                                            )}
-                                        </select>
-                                    </div>
-
-                                    {/* Estado (A / I / E) */}
-                                    <div className="space-y-1.5">
-                                        <Label className={labelCls}>
-                                            Estado *
-                                        </Label>
-                                        <select
-                                            value={form.estado}
-                                            onChange={(e) =>
-                                                setForm((p) => ({
-                                                    ...p,
-                                                    estado: e.target.value,
-                                                }))
-                                            }
-                                            className={selectNativeCls}
-                                        >
-                                            <option value="A">
-                                                Activo (A)
-                                            </option>
-                                            <option value="I">
-                                                Inactivo (I)
-                                            </option>
-                                            <option value="E">
-                                                Eliminado / Baja (E)
-                                            </option>
-                                        </select>
+                                        <strong className="text-[#214451]">
+                                            {cliente.usu_alta || "—"}
+                                        </strong>{" "}
+                                        <span className="text-[#6f8087]">
+                                            · {formatDateTime(cliente.fec_alta)}
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Bloque 2: Nombre / Razón Social e Identificación Fiscal */}
-                            <div className="space-y-3">
-                                <div className="space-y-1.5">
-                                    <Label className={labelCls}>
-                                        Nombre o Razón Social *
-                                    </Label>
-                                    <Input
-                                        placeholder="Ej: Plásticos del Sur S.R.L. o Juan Pérez"
-                                        maxLength={150}
-                                        value={form.nombre_razon_social}
-                                        onChange={(e) =>
-                                            setForm((p) => ({
-                                                ...p,
-                                                nombre_razon_social:
-                                                    e.target.value,
-                                            }))
-                                        }
-                                        className={inputCls}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                                    <div className="space-y-1.5">
-                                        <Label className={labelCls}>
-                                            CUIT (11 dígitos)
-                                        </Label>
-                                        <Input
-                                            placeholder="30-71234567-9"
-                                            maxLength={13}
-                                            value={form.cuit}
-                                            onChange={(e) =>
-                                                setForm((p) => ({
-                                                    ...p,
-                                                    cuit: formatCuitInput(
-                                                        e.target.value
-                                                    ),
-                                                }))
-                                            }
-                                            className={inputCls}
-                                        />
-                                        {cuitConflict ? (
-                                            <p className="text-[10px] font-medium text-[#ba584d]">
-                                                CUIT ya registrado en #
-                                                {cuitConflict.id_cliente} (
-                                                {
-                                                    cuitConflict.nombre_razon_social
-                                                }
-                                                ).
-                                            </p>
-                                        ) : cuitLengthInvalid ? (
-                                            <p className="text-[10px] font-medium text-[#ba584d]">
-                                                Completá los 11 dígitos del CUIT.
-                                            </p>
-                                        ) : null}
-                                    </div>
-
-                                    <div className="space-y-1.5">
-                                        <Label className={labelCls}>
-                                            Tipo de documento
-                                        </Label>
-                                        <select
-                                            value={form.tipo_documento}
-                                            onChange={(e) =>
-                                                setForm((p) => ({
-                                                    ...p,
-                                                    tipo_documento:
-                                                        e.target.value,
-                                                }))
-                                            }
-                                            className={selectNativeCls}
-                                        >
-                                            <option value="">
-                                                Sin especificar
-                                            </option>
-                                            {TIPOS_DOCUMENTO.map((td) => (
-                                                <option key={td} value={td}>
-                                                    {td}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div className="space-y-1.5">
-                                        <Label className={labelCls}>
-                                            Nro. de documento
-                                        </Label>
-                                        <Input
-                                            placeholder="Ej: 30123456"
-                                            maxLength={20}
-                                            value={form.nro_documento}
-                                            onChange={(e) =>
-                                                setForm((p) => ({
-                                                    ...p,
-                                                    nro_documento:
-                                                        e.target.value,
-                                                }))
-                                            }
-                                            className={inputCls}
-                                        />
-                                        {docConflict && (
-                                            <p className="text-[10px] font-medium text-[#ba584d]">
-                                                Documento ya registrado en #
-                                                {docConflict.id_cliente}.
-                                            </p>
+                                <div className="flex items-center gap-2.5 text-[11px]">
+                                    <History size={15} className="text-[#145c73]" />
+                                    <div>
+                                        <span className="block text-[9.5px] font-bold uppercase tracking-wider text-[#82979e]">
+                                            Última modificación
+                                        </span>
+                                        <strong className="text-[#214451]">
+                                            {cliente.usu_mod || "Sin modificaciones"}
+                                        </strong>{" "}
+                                        {cliente.fec_mod && (
+                                            <span className="text-[#6f8087]">
+                                                · {formatDateTime(cliente.fec_mod)}
+                                            </span>
                                         )}
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Bloque 3: Contacto */}
-                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                <div className="space-y-1.5">
-                                    <Label className={labelCls}>
-                                        <span className="inline-flex items-center gap-1">
-                                            <Phone size={11} />
-                                            Teléfono
-                                        </span>
-                                    </Label>
-                                    <Input
-                                        placeholder="Ej: 011 4555-8900"
-                                        maxLength={30}
-                                        value={form.telefono}
-                                        onChange={(e) =>
-                                            setForm((p) => ({
-                                                ...p,
-                                                telefono: e.target.value,
-                                            }))
-                                        }
-                                        className={inputCls}
-                                    />
-                                </div>
+                            {loadingHistorial ? (
+                                <p className="py-10 text-center text-[11px] text-muted-ink">
+                                    Cargando historial del cliente...
+                                </p>
+                            ) : historial.length === 0 ? (
+                                <p className="py-10 text-center text-[12px] text-muted-ink">
+                                    No hay movimientos registrados para este cliente.
+                                </p>
+                            ) : (
+                                <div className="space-y-2.5">
+                                    {historial.map((item) => {
+                                        const meta = ACCION_META[item.accion] ?? {
+                                            label: item.accion,
+                                            tone: "slate",
+                                        };
+                                        return (
+                                            <div
+                                                key={item.id_historial}
+                                                className="rounded-md border border-[#e3ebed] bg-white p-3.5 shadow-2xs"
+                                            >
+                                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <Badge tone={meta.tone}>
+                                                            {meta.label}
+                                                        </Badge>
+                                                        <span className="text-[11px] font-semibold text-[#214451]">
+                                                            Usuario:{" "}
+                                                            <span className="font-mono text-[#145c73]">
+                                                                {item.usuario}
+                                                            </span>
+                                                        </span>
+                                                    </div>
 
-                                <div className="space-y-1.5">
-                                    <Label className={labelCls}>
-                                        Email de contacto
-                                    </Label>
-                                    <Input
-                                        type="email"
-                                        placeholder="compras@empresa.com.ar"
-                                        maxLength={150}
-                                        value={form.email}
-                                        onChange={(e) =>
-                                            setForm((p) => ({
-                                                ...p,
-                                                email: e.target.value,
-                                            }))
-                                        }
-                                        className={inputCls}
-                                    />
+                                                    <span className="font-mono text-[10.5px] text-[#788b92]">
+                                                        {formatDateTime(item.fecha)}
+                                                    </span>
+                                                </div>
+
+                                                <p className="mt-1.5 mb-0 text-[11.5px] text-[#425b65]">
+                                                    {item.detalle ||
+                                                        "Movimiento registrado"}
+                                                </p>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
+                            )}
+
+                            <div className="flex justify-end border-t border-slate-soft pt-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setActiveTab("datos")}
+                                    className="h-9 border-[#dce5e8] bg-white text-[11px] text-ink-soft hover:bg-slate-soft"
+                                >
+                                    Volver a la ficha
+                                </Button>
                             </div>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleSubmit}>
+                            <div className="max-h-[72vh] space-y-4 overflow-y-auto bg-white px-6 py-5">
+                                {/* Bloque 1: Clasificación y Estado */}
+                                <div className="rounded-md border border-[#e1e8ea] bg-[#f8fafb] p-3.5">
+                                    <div className="mb-2.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#145c73]">
+                                        <Building2 size={12} />
+                                        <span>Clasificación comercial y estado</span>
+                                    </div>
 
-                            {/* Bloque 4: Ubicación y Domicilio */}
-                            <div className="rounded-md border border-[#e1e8ea] bg-[#f8fafb] p-3.5">
-                                <div className="mb-2.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#145c73]">
-                                    <MapPin size={12} />
-                                    <span>Domicilio y localidad</span>
+                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                        {/* Tipo de cliente (administracion.tipo_cliente) */}
+                                        <div className="space-y-1.5">
+                                            <Label className={labelCls}>
+                                                Tipo de cliente *
+                                            </Label>
+                                            <select
+                                                value={form.tipo_cliente}
+                                                onChange={(e) =>
+                                                    setForm((p) => ({
+                                                        ...p,
+                                                        tipo_cliente:
+                                                            e.target.value,
+                                                    }))
+                                                }
+                                                className={selectNativeCls}
+                                                required
+                                            >
+                                                <option value="" disabled>
+                                                    Seleccionar tipo...
+                                                </option>
+                                                {safeTiposCliente.map(
+                                                    (tc, idx) => (
+                                                        <option
+                                                            key={`${tc.codigo}-${idx}`}
+                                                            value={tc.codigo}
+                                                        >
+                                                            {tc.codigo} ·{" "}
+                                                            {tc.nombre}
+                                                        </option>
+                                                    )
+                                                )}
+                                            </select>
+                                        </div>
+
+                                        {/* Categoría de cliente (administracion.tipo_categoria_cliente) */}
+                                        <div className="space-y-1.5">
+                                            <Label className={labelCls}>
+                                                Categoría de cliente
+                                            </Label>
+                                            <select
+                                                value={form.categoria_cliente}
+                                                onChange={(e) =>
+                                                    setForm((p) => ({
+                                                        ...p,
+                                                        categoria_cliente:
+                                                            e.target.value,
+                                                    }))
+                                                }
+                                                className={selectNativeCls}
+                                            >
+                                                <option value="">
+                                                    Sin categoría asignada
+                                                </option>
+                                                {safeCategoriasCliente.map(
+                                                    (cat, idx) => (
+                                                        <option
+                                                            key={`${cat.codigo}-${idx}`}
+                                                            value={cat.codigo}
+                                                        >
+                                                            {cat.codigo} ·{" "}
+                                                            {cat.nombre}
+                                                        </option>
+                                                    )
+                                                )}
+                                            </select>
+                                        </div>
+
+                                        {/* Estado (A / I / E) */}
+                                        <div className="space-y-1.5">
+                                            <Label className={labelCls}>
+                                                Estado *
+                                            </Label>
+                                            <select
+                                                value={form.estado}
+                                                onChange={(e) =>
+                                                    setForm((p) => ({
+                                                        ...p,
+                                                        estado: e.target.value,
+                                                    }))
+                                                }
+                                                className={selectNativeCls}
+                                            >
+                                                <option value="A">
+                                                    Activo (A)
+                                                </option>
+                                                <option value="I">
+                                                    Inactivo (I)
+                                                </option>
+                                                <option value="E">
+                                                    Eliminado / Baja (E)
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
 
+                                {/* Bloque 2: Nombre / Razón Social e Identificación Fiscal */}
                                 <div className="space-y-3">
                                     <div className="space-y-1.5">
                                         <Label className={labelCls}>
-                                            Domicilio (Calle, número, piso,
-                                            parque industrial)
+                                            Nombre o Razón Social *
                                         </Label>
                                         <Input
-                                            placeholder="Ej: Av. Hipólito Yrigoyen 4520"
-                                            maxLength={200}
-                                            value={form.domicilio}
+                                            placeholder="Ej: Plásticos del Sur S.R.L. o Juan Pérez"
+                                            maxLength={150}
+                                            value={form.nombre_razon_social}
                                             onChange={(e) =>
                                                 setForm((p) => ({
                                                     ...p,
-                                                    domicilio: e.target.value,
+                                                    nombre_razon_social:
+                                                        e.target.value,
                                                 }))
                                             }
                                             className={inputCls}
+                                            required
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                         <div className="space-y-1.5">
                                             <Label className={labelCls}>
-                                                Localidad
+                                                CUIT (11 dígitos)
                                             </Label>
                                             <Input
-                                                placeholder="Ej: Lanús / Pilar"
-                                                maxLength={100}
-                                                value={form.localidad}
+                                                placeholder="30-71234567-9"
+                                                maxLength={13}
+                                                value={form.cuit}
                                                 onChange={(e) =>
                                                     setForm((p) => ({
                                                         ...p,
-                                                        localidad:
-                                                            e.target.value,
+                                                        cuit: formatCuitInput(
+                                                            e.target.value
+                                                        ),
                                                     }))
                                                 }
                                                 className={inputCls}
                                             />
+                                            {cuitConflict ? (
+                                                <p className="text-[10px] font-medium text-[#ba584d]">
+                                                    CUIT ya registrado en #
+                                                    {cuitConflict.id_cliente} (
+                                                    {
+                                                        cuitConflict.nombre_razon_social
+                                                    }
+                                                    ).
+                                                </p>
+                                            ) : cuitLengthInvalid ? (
+                                                <p className="text-[10px] font-medium text-[#ba584d]">
+                                                    Completá los 11 dígitos del CUIT.
+                                                </p>
+                                            ) : null}
                                         </div>
 
                                         <div className="space-y-1.5">
                                             <Label className={labelCls}>
-                                                Provincia
+                                                Tipo de documento
                                             </Label>
-                                            <Input
-                                                list="provincias-ar-list"
-                                                placeholder="Ej: Buenos Aires"
-                                                maxLength={100}
-                                                value={form.provincia}
+                                            <select
+                                                value={form.tipo_documento}
                                                 onChange={(e) =>
                                                     setForm((p) => ({
                                                         ...p,
-                                                        provincia:
+                                                        tipo_documento:
                                                             e.target.value,
                                                     }))
                                                 }
-                                                className={inputCls}
-                                            />
-                                            <datalist id="provincias-ar-list">
-                                                {PROVINCIAS_SUGERIDAS.map(
-                                                    (prov) => (
-                                                        <option
-                                                            key={prov}
-                                                            value={prov}
-                                                        />
-                                                    )
-                                                )}
-                                            </datalist>
+                                                className={selectNativeCls}
+                                            >
+                                                <option value="">
+                                                    Sin especificar
+                                                </option>
+                                                {TIPOS_DOCUMENTO.map((td) => (
+                                                    <option key={td} value={td}>
+                                                        {td}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
 
                                         <div className="space-y-1.5">
                                             <Label className={labelCls}>
-                                                Código postal
+                                                Nro. de documento
                                             </Label>
                                             <Input
-                                                placeholder="Ej: B1824"
-                                                maxLength={15}
-                                                value={form.codigo_postal}
+                                                type="text"
+                                                inputMode="numeric"
+                                                placeholder="Ej: 30123456"
+                                                maxLength={20}
+                                                value={form.nro_documento}
                                                 onChange={(e) =>
                                                     setForm((p) => ({
                                                         ...p,
-                                                        codigo_postal:
-                                                            e.target.value,
+                                                        nro_documento: e.target.value
+                                                            .replace(/\D/g, "")
+                                                            .slice(0, 20),
                                                     }))
                                                 }
                                                 className={inputCls}
                                             />
+                                            {docConflict && (
+                                                <p className="text-[10px] font-medium text-[#ba584d]">
+                                                    Documento ya registrado en #
+                                                    {docConflict.id_cliente}.
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Bloque 5: Observaciones */}
-                            <div className="space-y-1.5">
-                                <div className="flex items-center justify-between">
-                                    <Label className={labelCls}>
-                                        Observaciones comerciales / operativas
-                                    </Label>
-                                    <span className="text-[10px] text-[#82979e]">
-                                        {String(form.observaciones ?? "").length}{" "}
-                                        / 500
-                                    </span>
+                                {/* Bloque 3: Contacto */}
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <div className="space-y-1.5">
+                                        <Label className={labelCls}>
+                                            <span className="inline-flex items-center gap-1">
+                                                <Phone size={11} />
+                                                Teléfono
+                                            </span>
+                                        </Label>
+                                        <Input
+                                            type="text"
+                                            inputMode="numeric"
+                                            placeholder="Ej: 01145558900"
+                                            maxLength={15}
+                                            value={form.telefono}
+                                            onChange={(e) =>
+                                                setForm((p) => ({
+                                                    ...p,
+                                                    telefono: e.target.value
+                                                        .replace(/\D/g, "")
+                                                        .slice(0, 15),
+                                                }))
+                                            }
+                                            className={inputCls}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <Label className={labelCls}>
+                                            Email de contacto
+                                        </Label>
+                                        <Input
+                                            type="email"
+                                            placeholder="compras@empresa.com.ar"
+                                            maxLength={150}
+                                            value={form.email}
+                                            onChange={(e) =>
+                                                setForm((p) => ({
+                                                    ...p,
+                                                    email: e.target.value.trimStart(),
+                                                }))
+                                            }
+                                            className={`${inputCls} ${emailInvalid
+                                                ? "border-[#ba584d] focus-visible:ring-[#ba584d]"
+                                                : ""
+                                                }`}
+                                        />
+                                        {emailInvalid && (
+                                            <p className="text-[10px] font-medium text-[#ba584d]">
+                                                Ingresá un email válido. Ej: compras@empresa.com.ar
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                                <Textarea
-                                    placeholder="Horarios de recepción, condiciones comerciales, referencias de entrega..."
-                                    rows={2}
-                                    maxLength={500}
-                                    value={form.observaciones}
-                                    onChange={(e) =>
-                                        setForm((p) => ({
-                                            ...p,
-                                            observaciones: e.target.value,
-                                        }))
-                                    }
-                                    className="border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
-                                />
-                            </div>
 
-                            {/* Bloque 6: Auditoría y Baja/Reactivación en modo edición */}
-                            {cliente && (
-                                <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-[#e1e8ea] bg-[#f8fafb] px-3.5 py-2.5">
-                                    <div className="text-[10.5px] text-[#687e86]">
-                                        <div>
-                                            <strong className="text-[#214451]">
-                                                Alta:
-                                            </strong>{" "}
-                                            {cliente.usu_alta || "—"} (
-                                            {formatDateTime(cliente.fec_alta)})
+                                {/* Bloque 4: Ubicación y Domicilio */}
+                                <div className="rounded-md border border-[#e1e8ea] bg-[#f8fafb] p-3.5">
+                                    <div className="mb-2.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#145c73]">
+                                        <MapPin size={12} />
+                                        <span>Domicilio y localidad</span>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="space-y-1.5">
+                                            <Label className={labelCls}>
+                                                Domicilio (Calle, número, piso,
+                                                parque industrial)
+                                            </Label>
+                                            <Input
+                                                placeholder="Ej: Av. Hipólito Yrigoyen 4520"
+                                                maxLength={200}
+                                                value={form.domicilio}
+                                                onChange={(e) =>
+                                                    setForm((p) => ({
+                                                        ...p,
+                                                        domicilio: e.target.value,
+                                                    }))
+                                                }
+                                                className={inputCls}
+                                            />
                                         </div>
-                                        {cliente.fec_mod && (
+
+                                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                            <div className="space-y-1.5">
+                                                <Label className={labelCls}>
+                                                    Localidad
+                                                </Label>
+                                                <Input
+                                                    placeholder="Ej: Lanús / Pilar"
+                                                    maxLength={100}
+                                                    value={form.localidad}
+                                                    onChange={(e) =>
+                                                        setForm((p) => ({
+                                                            ...p,
+                                                            localidad:
+                                                                e.target.value,
+                                                        }))
+                                                    }
+                                                    className={inputCls}
+                                                />
+                                            </div>
+
+                                            <div className="space-y-1.5">
+                                                <Label className={labelCls}>
+                                                    Provincia
+                                                </Label>
+                                                <Input
+                                                    list="provincias-ar-list"
+                                                    placeholder="Ej: Buenos Aires"
+                                                    maxLength={100}
+                                                    value={form.provincia}
+                                                    onChange={(e) =>
+                                                        setForm((p) => ({
+                                                            ...p,
+                                                            provincia:
+                                                                e.target.value,
+                                                        }))
+                                                    }
+                                                    className={inputCls}
+                                                />
+                                                <datalist id="provincias-ar-list">
+                                                    {PROVINCIAS_SUGERIDAS.map(
+                                                        (prov) => (
+                                                            <option
+                                                                key={prov}
+                                                                value={prov}
+                                                            />
+                                                        )
+                                                    )}
+                                                </datalist>
+                                            </div>
+
+                                            <div className="space-y-1.5">
+                                                <Label className={labelCls}>
+                                                    Código postal
+                                                </Label>
+                                                <Input
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    placeholder="Ej: 1824"
+                                                    maxLength={15}
+                                                    value={form.codigo_postal}
+                                                    onChange={(e) =>
+                                                        setForm((p) => ({
+                                                            ...p,
+                                                            codigo_postal: e.target.value
+                                                                .replace(/\D/g, "")
+                                                                .slice(0, 15),
+                                                        }))
+                                                    }
+                                                    className={inputCls}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Bloque 5: Observaciones */}
+                                <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between">
+                                        <Label className={labelCls}>
+                                            Observaciones comerciales / operativas
+                                        </Label>
+                                        <span className="text-[10px] text-[#82979e]">
+                                            {String(form.observaciones ?? "").length}{" "}
+                                            / 500
+                                        </span>
+                                    </div>
+                                    <Textarea
+                                        placeholder="Horarios de recepción, condiciones comerciales, referencias de entrega..."
+                                        rows={2}
+                                        maxLength={500}
+                                        value={form.observaciones}
+                                        onChange={(e) =>
+                                            setForm((p) => ({
+                                                ...p,
+                                                observaciones: e.target.value,
+                                            }))
+                                        }
+                                        className="border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
+                                    />
+                                </div>
+
+                                {/* Bloque 6: Auditoría y Baja/Reactivación en modo edición */}
+                                {cliente && (
+                                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-[#e1e8ea] bg-[#f8fafb] px-3.5 py-2.5">
+                                        <div className="text-[10.5px] text-[#687e86]">
                                             <div>
                                                 <strong className="text-[#214451]">
-                                                    Última mod.:
+                                                    Alta:
                                                 </strong>{" "}
-                                                {cliente.usu_mod || "—"} (
-                                                {formatDateTime(
-                                                    cliente.fec_mod
-                                                )}
-                                                )
+                                                {cliente.usu_alta || "—"} (
+                                                {formatDateTime(cliente.fec_alta)})
                                             </div>
-                                        )}
-                                    </div>
+                                            {cliente.fec_mod && (
+                                                <div>
+                                                    <strong className="text-[#214451]">
+                                                        Última mod.:
+                                                    </strong>{" "}
+                                                    {cliente.usu_mod || "—"} (
+                                                    {formatDateTime(
+                                                        cliente.fec_mod
+                                                    )}
+                                                    )
+                                                </div>
+                                            )}
+                                        </div>
 
-                                    <div className="flex items-center gap-2">
-                                        {cliente.estado !== "A" && (
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                disabled={
-                                                    loading || changingState
-                                                }
-                                                onClick={() =>
-                                                    handleQuickState("A")
-                                                }
-                                                className="h-8 border-[#cce8da] bg-[#e7f4ed] text-[11px] text-[#256349] hover:bg-[#d5ece0]"
-                                            >
-                                                <RotateCcw
-                                                    size={12}
-                                                    className="mr-1.5"
-                                                />
-                                                Reactivar cliente
-                                            </Button>
-                                        )}
+                                        <div className="flex items-center gap-2">
+                                            {cliente.estado !== "A" && (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    disabled={
+                                                        loading || changingState
+                                                    }
+                                                    onClick={() =>
+                                                        handleQuickState("A")
+                                                    }
+                                                    className="h-8 border-[#cce8da] bg-[#e7f4ed] text-[11px] text-[#256349] hover:bg-[#d5ece0]"
+                                                >
+                                                    <RotateCcw
+                                                        size={12}
+                                                        className="mr-1.5"
+                                                    />
+                                                    Reactivar cliente
+                                                </Button>
+                                            )}
 
-                                        {cliente.estado !== "E" && (
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                disabled={
-                                                    loading || changingState
-                                                }
-                                                onClick={() =>
-                                                    handleQuickState("E")
-                                                }
-                                                className="h-8 border-[#f1cfcb] bg-[#fbe9e7] text-[11px] text-[#ba584d] hover:bg-[#f5d5d1]"
-                                            >
-                                                <Trash2
-                                                    size={12}
-                                                    className="mr-1.5"
-                                                />
-                                                Dar de baja (Eliminar)
-                                            </Button>
-                                        )}
+                                            {cliente.estado !== "E" && (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    disabled={
+                                                        loading || changingState
+                                                    }
+                                                    onClick={() =>
+                                                        setConfirmDeleteOpen(true)
+                                                    }
+                                                    className="h-8 border-[#f1cfcb] bg-[#fbe9e7] text-[11px] text-[#ba584d] hover:bg-[#f5d5d1]"
+                                                >
+                                                    <Trash2
+                                                        size={12}
+                                                        className="mr-1.5"
+                                                    />
+                                                    Dar de baja (Eliminar)
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
+
+                            <DialogFooter className="border-t border-slate-soft bg-white px-6 py-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    disabled={loading || changingState}
+                                    onClick={() => onOpenChange(false)}
+                                    className="h-9 border-[#dce5e8] bg-white text-[11px] text-ink-soft hover:bg-slate-soft"
+                                >
+                                    Cancelar
+                                </Button>
+
+                                <Button
+                                    type="submit"
+                                    disabled={
+                                        loading ||
+                                        changingState ||
+                                        !tipoClienteVal ||
+                                        !nombreRazonVal ||
+                                        cuitLengthInvalid ||
+                                        Boolean(cuitConflict) ||
+                                        Boolean(docConflict) ||
+                                        emailInvalid
+                                    }
+                                    className="h-9 bg-green text-[11px] text-white hover:bg-[#328160]"
+                                >
+                                    <UserCheck size={14} className="mr-1.5" />
+                                    {loading
+                                        ? "Guardando..."
+                                        : cliente
+                                            ? "Guardar cambios"
+                                            : "Dar de alta cliente"}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Confirmación independiente para evitar conflictos entre diálogos */}
+            <Dialog
+                open={confirmDeleteOpen}
+                onOpenChange={(nextOpen) => {
+                    if (!changingState) setConfirmDeleteOpen(nextOpen);
+                }}
+            >
+                <DialogContent className="max-w-[390px] border border-[#e1e8ea] bg-white p-0 shadow-card">
+                    <DialogHeader className="px-5 pt-5 pb-2">
+                        <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-[#fbe9e7] text-[#ba584d]">
+                            <Trash2 size={18} />
                         </div>
+                        <DialogTitle className="font-barlow text-[21px] font-normal text-ink">
+                            ¿Dar de baja al cliente?
+                        </DialogTitle>
+                        <DialogDescription className="text-[12px] leading-relaxed text-muted-ink">
+                            Estás por dar de baja a <strong className="text-ink">
+                                {cliente?.nombre_razon_social || `Cliente #${cliente?.id_cliente ?? ""}`}
+                            </strong>. Esta acción cambiará su estado a baja y dejará de figurar como cliente activo.
+                        </DialogDescription>
+                    </DialogHeader>
 
-                        <DialogFooter className="border-t border-slate-soft bg-white px-6 py-4">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                disabled={loading || changingState}
-                                onClick={() => onOpenChange(false)}
-                                className="h-9 border-[#dce5e8] bg-white text-[11px] text-ink-soft hover:bg-slate-soft"
-                            >
-                                Cancelar
-                            </Button>
+                    <div className="mx-5 rounded-md border border-[#f1cfcb] bg-[#fff8f7] px-3 py-2.5 text-[11px] leading-relaxed text-[#9b5149]">
+                        La baja es lógica: el registro y su historial se conservan. No se elimina físicamente de la base de datos.
+                    </div>
 
-                            <Button
-                                type="submit"
-                                disabled={
-                                    loading ||
-                                    changingState ||
-                                    !tipoClienteVal ||
-                                    !nombreRazonVal ||
-                                    cuitLengthInvalid ||
-                                    Boolean(cuitConflict) ||
-                                    Boolean(docConflict)
-                                }
-                                className="h-9 bg-green text-[11px] text-white hover:bg-[#328160]"
-                            >
-                                <UserCheck size={14} className="mr-1.5" />
-                                {loading
-                                    ? "Guardando..."
-                                    : cliente
-                                        ? "Guardar cambios"
-                                        : "Dar de alta cliente"}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                )}
-            </DialogContent>
-        </Dialog>
+                    <DialogFooter className="px-5 py-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={changingState}
+                            onClick={() => setConfirmDeleteOpen(false)}
+                            className="h-9 border-[#dce5e8] bg-white text-[11px] text-ink-soft hover:bg-slate-soft"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="button"
+                            disabled={changingState}
+                            onClick={() => handleQuickState("E")}
+                            className="h-9 bg-[#ba584d] text-[11px] text-white hover:bg-[#a9473d]"
+                        >
+                            <Trash2 size={13} className="mr-1.5" />
+                            {changingState ? "Dando de baja..." : "Sí, dar de baja"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }

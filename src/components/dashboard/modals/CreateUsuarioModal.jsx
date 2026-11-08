@@ -53,10 +53,14 @@ const stripDefaultDomain = (email = "") => {
 };
 
 const buildFinalEmail = (rawInput = "") => {
-    const trimmed = rawInput.trim().toLowerCase();
-    if (!trimmed) return "";
-    if (trimmed.includes("@")) return trimmed;
-    return `${trimmed}${EMAIL_DOMAIN}`;
+    const username = String(rawInput)
+        .split("@")[0]
+        .trim()
+        .toLowerCase();
+
+    if (!username) return "";
+
+    return `${username}${EMAIL_DOMAIN}`;
 };
 
 export default function CreateUsuarioModal({
@@ -506,7 +510,7 @@ export default function CreateUsuarioModal({
                                         onChange={(e) =>
                                             setForm((prev) => ({
                                                 ...prev,
-                                                nombre: e.target.value,
+                                                nombre: e.target.value.replace(/[0-9]/g, ""),
                                             }))
                                         }
                                         className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
@@ -526,7 +530,7 @@ export default function CreateUsuarioModal({
                                         onChange={(e) =>
                                             setForm((prev) => ({
                                                 ...prev,
-                                                apellido: e.target.value,
+                                                apellido: e.target.value.replace(/[0-9]/g, ""),
                                             }))
                                         }
                                         className="h-9 border-[#dfe7e9] bg-white text-[11px] text-ink-soft"
@@ -579,7 +583,11 @@ export default function CreateUsuarioModal({
                                         value={form.email}
                                         disabled={isReadOnlyTarget}
                                         onChange={(e) => {
-                                            const val = e.target.value;
+                                            const val = e.target.value
+                                                .split("@")[0]
+                                                .toLowerCase()
+                                                .replace(/\s/g, "");
+
                                             setForm((prev) => ({
                                                 ...prev,
                                                 email: val,

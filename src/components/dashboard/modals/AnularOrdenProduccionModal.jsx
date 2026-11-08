@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Ban, AlertTriangle } from "lucide-react";
+import { CircleX, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -53,6 +53,34 @@ const MOTIVOS_FALLBACK = [
     descripcion: "Otro motivo no contemplado anteriormente.",
   },
 ];
+const corregirTexto = (texto) => {
+  if (!texto) return "";
+
+  const correcciones = {
+    "tecnica": "técnica",
+    "tecnico": "técnico",
+    "tecnicamente": "técnicamente",
+    "produccion": "producción",
+    "anulacion": "anulación",
+    "administracion": "Administración",
+    "maquina": "máquina",
+    "maquinaria": "maquinaria",
+    "descripcion": "descripción",
+    "obligatoriamente": "obligatoriamente",
+  };
+
+  return String(texto).replace(
+    /\b(tecnica|tecnico|tecnicamente|produccion|anulacion|administracion|maquina|maquinaria|descripcion|obligatoriamente)\b/gi,
+    (coincidencia) => {
+      const corregido = correcciones[coincidencia.toLowerCase()];
+      if (!corregido) return coincidencia;
+
+      return coincidencia[0] === coincidencia[0].toUpperCase()
+        ? corregido.charAt(0).toUpperCase() + corregido.slice(1)
+        : corregido;
+    }
+  );
+};
 
 const labelCls = "text-[10px] font-bold uppercase tracking-widest text-muted-ink";
 const selectCls =
@@ -171,7 +199,7 @@ export default function AnularOrdenProduccionModal({
         <DialogHeader className="border-b border-slate-soft bg-white px-6 py-4">
           <div className="flex items-center gap-2.5">
             <div className="grid h-9 w-9 place-items-center rounded-lg bg-[#fbe9e7] text-[#ba584d]">
-              <Ban size={18} />
+              <CircleX size={18} />
             </div>
             <div>
               <DialogTitle className="font-barlow text-[22px] font-bold text-[#173c4b]">
@@ -210,7 +238,7 @@ export default function AnularOrdenProduccionModal({
                 </option>
                 {motivos.map((m) => (
                   <option key={m.id_motivo_estado} value={String(m.id_motivo_estado)}>
-                    {m.nombre} ({m.codigo})
+                    {m.nombre}
                   </option>
                 ))}
               </select>

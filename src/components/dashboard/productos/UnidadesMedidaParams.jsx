@@ -6,8 +6,8 @@ export default function UnidadesMedidaParams({ fakeAction }) {
     <CatalogoParametroManager
       eyebrow="05 · CATÁLOGO · PARÁMETROS · UNIDADES DE MEDIDA"
       title="Parámetros · Unidades de Medida"
-      description="Administración de las unidades de medida registradas en produccion.unidad_medida, incluyendo alta, edición y eliminación."
-      panelEyebrow="PRODUCCION.UNIDAD_MEDIDA · GESTIÓN DE UNIDADES"
+      description="Administración de las unidades de medida registradas, incluyendo alta, edición y eliminación."
+      panelEyebrow="GESTIÓN DE UNIDADES"
       panelTitle="Unidades de medida registradas"
       newButtonLabel="Nueva unidad de medida"
       singularLabel="la unidad de medida"

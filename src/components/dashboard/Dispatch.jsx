@@ -714,7 +714,7 @@ export default function Dispatch({ fakeAction, navigate }) {
         String(h.estado_hoja_ruta || "P").trim() === "P" &&
         String(h.fecha_hoja_ruta || "").slice(0, 10) === fechaTarget &&
         String(h.legajo_conductor || "").trim() ===
-          String(selectedLegajoConductor).trim() &&
+        String(selectedLegajoConductor).trim() &&
         (!editingHoja ||
           Number(h.id_hoja_ruta) !== Number(editingHoja.id_hoja_ruta))
     );
@@ -788,8 +788,8 @@ export default function Dispatch({ fakeAction, navigate }) {
           if (errInsHoja || !insHoja) {
             toast.error(
               error.message ||
-                errInsHoja?.message ||
-                "No se pudo guardar la hoja de ruta"
+              errInsHoja?.message ||
+              "No se pudo guardar la hoja de ruta"
             );
             return;
           }
@@ -812,8 +812,8 @@ export default function Dispatch({ fakeAction, navigate }) {
           if (errUpdHoja) {
             toast.error(
               error.message ||
-                errUpdHoja.message ||
-                "No se pudo actualizar la hoja de ruta"
+              errUpdHoja.message ||
+              "No se pudo actualizar la hoja de ruta"
             );
             return;
           }
@@ -939,7 +939,7 @@ export default function Dispatch({ fakeAction, navigate }) {
           if (errDet || !detRow) {
             toast.error(
               errDet?.message ||
-                `No se pudo agregar el pedido #${par.id_pedido} a la hoja de ruta`
+              `No se pudo agregar el pedido #${par.id_pedido} a la hoja de ruta`
             );
             return;
           }
@@ -1064,8 +1064,8 @@ export default function Dispatch({ fakeAction, navigate }) {
         if (errHoja) {
           toast.error(
             error.message ||
-              errHoja.message ||
-              "No se pudo despachar la hoja de ruta"
+            errHoja.message ||
+            "No se pudo despachar la hoja de ruta"
           );
           return;
         }
@@ -1167,8 +1167,8 @@ export default function Dispatch({ fakeAction, navigate }) {
         if (errHoja) {
           toast.error(
             error.message ||
-              errHoja.message ||
-              "No se pudo eliminar la hoja de ruta"
+            errHoja.message ||
+            "No se pudo eliminar la hoja de ruta"
           );
           return;
         }
@@ -1417,9 +1417,8 @@ export default function Dispatch({ fakeAction, navigate }) {
                   return (
                     <Fragment key={hr.id_hoja_ruta}>
                       <tr
-                        className={`transition-colors ${
-                          isExpanded ? "bg-[#f2f7f9]" : "hover:bg-[#f8fbfc]"
-                        }`}
+                        className={`transition-colors ${isExpanded ? "bg-[#f2f7f9]" : "hover:bg-[#f8fbfc]"
+                          }`}
                       >
                         {/* Nº Hoja / Fecha */}
                         <td className="px-3 py-2.5 align-middle">
@@ -1584,11 +1583,10 @@ export default function Dispatch({ fakeAction, navigate }) {
                                     : hr.id_hoja_ruta
                                 )
                               }
-                              className={`h-7 shrink-0 px-2.5 text-[11px] font-semibold ${
-                                isExpanded
-                                  ? "border-brand bg-brand text-white hover:bg-[#114c5f]"
-                                  : "border-[#cfe0e6] bg-[#f4f9fb] text-brand hover:bg-[#e6f2f6]"
-                              }`}
+                              className={`h-7 shrink-0 px-2.5 text-[11px] font-semibold ${isExpanded
+                                ? "border-brand bg-brand text-white hover:bg-[#114c5f]"
+                                : "border-[#cfe0e6] bg-[#f4f9fb] text-brand hover:bg-[#e6f2f6]"
+                                }`}
                             >
                               {isExpanded ? (
                                 <>
@@ -1832,7 +1830,7 @@ export default function Dispatch({ fakeAction, navigate }) {
                 : "Generar Nueva Hoja de Ruta"}
             </DialogTitle>
             <DialogDescription className="mt-0.5 text-[12px] text-[#6b7d85]">
-              Seleccione el vehículo, el chofer habilitado (`id_rol = 17`), incorpore los pedidos en estado `L` y defina el orden del recorrido.
+              Seleccione el vehículo, el chofer habilitado, incorpore los pedidos en estado L (listo) y defina el orden del recorrido.
             </DialogDescription>
           </div>
 
@@ -1870,7 +1868,7 @@ export default function Dispatch({ fakeAction, navigate }) {
                   {/* Vehículo */}
                   <div className="space-y-1">
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
-                      Vehículo (`transporte.vehiculo`) *
+                      Vehículo *
                     </Label>
                     <select
                       required
@@ -1884,11 +1882,11 @@ export default function Dispatch({ fakeAction, navigate }) {
                           (h) =>
                             String(h.estado_hoja_ruta || "P").trim() === "P" &&
                             String(h.fecha_hoja_ruta || "").slice(0, 10) ===
-                              String(fechaHojaInput || "").slice(0, 10) &&
+                            String(fechaHojaInput || "").slice(0, 10) &&
                             Number(h.id_vehiculo) === Number(v.id_vehiculo) &&
                             (!editingHoja ||
                               Number(h.id_hoja_ruta) !==
-                                Number(editingHoja.id_hoja_ruta))
+                              Number(editingHoja.id_hoja_ruta))
                         );
                         const ocupadoMismaFecha = Boolean(
                           hojaConflictoMismaFecha
@@ -1917,7 +1915,7 @@ export default function Dispatch({ fakeAction, navigate }) {
                   {/* Chofer (id_rol = 17 en administracion.recursos_humanos) */}
                   <div className="space-y-1">
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
-                      Chofer (RRHH `id_rol = 17`) *
+                      Chofer *
                     </Label>
                     <select
                       required
@@ -1933,12 +1931,12 @@ export default function Dispatch({ fakeAction, navigate }) {
                           (h) =>
                             String(h.estado_hoja_ruta || "P").trim() === "P" &&
                             String(h.fecha_hoja_ruta || "").slice(0, 10) ===
-                              String(fechaHojaInput || "").slice(0, 10) &&
+                            String(fechaHojaInput || "").slice(0, 10) &&
                             String(h.legajo_conductor || "").trim() ===
-                              String(c.legajo).trim() &&
+                            String(c.legajo).trim() &&
                             (!editingHoja ||
                               Number(h.id_hoja_ruta) !==
-                                Number(editingHoja.id_hoja_ruta))
+                              Number(editingHoja.id_hoja_ruta))
                         );
                         const ocupadoMismaFecha = Boolean(
                           hojaConflictoMismaFecha

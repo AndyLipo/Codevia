@@ -25,6 +25,19 @@ import Badge from "@/components/common/Badge";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/context/AuthContext";
 
+// ======================================================
+// VALIDACIÓN DE PATENTES
+// ======================================================
+
+// Formatos permitidos:
+// AAA123   -> 3 letras + 3 números
+// AA123BB  -> 2 letras + 3 números + 2 letras
+
+const PATENTE_REGEX = /^(?:[A-Z]{3}[0-9]{3}|[A-Z]{2}[0-9]{3}[A-Z]{2})$/;
+
+const limpiarPatente = (valor) =>
+  valor.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 7);
+
 const ESTADO_VEHICULO_META = {
   A: { label: "Activo", tone: "green" },
   I: { label: "Inactivo", tone: "amber" },
@@ -73,13 +86,11 @@ export default function VehiculosParams({ fakeAction }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [estadoFilter, setEstadoFilter] = useState("ALL");
 
-  // Modal de Alta / Edición
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedVehiculo, setSelectedVehiculo] = useState(null);
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
 
-  // Modal de Confirmación de Eliminación
   const [deleteDialogVehiculo, setDeleteDialogVehiculo] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
@@ -91,6 +102,7 @@ export default function VehiculosParams({ fakeAction }) {
     }
 
     setLoading(true);
+
     try {
       const { data, error } = await supabase
         .schema("usuarios")
@@ -101,7 +113,6 @@ export default function VehiculosParams({ fakeAction }) {
         return;
       }
 
-      // Fallback directo sobre transporte.vehiculo
       const { data: tblData, error: tblErr } = await supabase
         .schema("transporte")
         .from("vehiculo")
@@ -132,29 +143,37 @@ export default function VehiculosParams({ fakeAction }) {
   }, [token]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchVehiculos();
   }, [fetchVehiculos]);
 
   const metrics = useMemo(() => {
     const total = vehiculos.length;
+
     const activos = vehiculos.filter(
       (v) => String(v.estado || "").trim() === "A"
     ).length;
+
     const inactivos = vehiculos.filter(
       (v) => String(v.estado || "").trim() === "I"
     ).length;
-    const enRuta = vehiculos.filter((v) => Boolean(v.ocupado_en_ruta)).length;
+
+    const enRuta = vehiculos.filter(
+      (v) => Boolean(v.ocupado_en_ruta)
+    ).length;
+
     return { total, activos, inactivos, enRuta };
   }, [vehiculos]);
 
   const filteredVehiculos = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
+
     return vehiculos.filter((v) => {
       const est = String(v.estado || "A").trim();
+
       if (estadoFilter !== "ALL" && est !== estadoFilter) {
         return false;
       }
+
       if (!q) return true;
 
       return [
@@ -179,34 +198,53 @@ export default function VehiculosParams({ fakeAction }) {
 
   const handleOpenEdit = (vehiculo) => {
     setSelectedVehiculo(vehiculo);
+
     setForm({
       patente: vehiculo.patente || "",
       marca: vehiculo.marca || "",
       modelo: vehiculo.modelo || "",
       anio: vehiculo.anio != null ? String(vehiculo.anio) : "",
       capacidad_kg:
-        vehiculo.capacidad_kg != null ? String(vehiculo.capacidad_kg) : "",
+        vehiculo.capacidad_kg != null
+          ? String(vehiculo.capacidad_kg)
+          : "",
       observaciones: vehiculo.observaciones || "",
       estado: String(vehiculo.estado || "A").trim(),
     });
+
     setModalOpen(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!token) return;
 
-    const patenteClean = form.patente.trim().toUpperCase();
+    const patenteClean = limpiarPatente(form.patente);
+
+    // Validación obligatoria de patente
     if (!patenteClean) {
       toast.error("La patente del vehículo es obligatoria.");
       return;
     }
 
+    if (!PATENTE_REGEX.test(patenteClean)) {
+      toast.error(
+        "Patente inválida. Utilice AAA123 o AA123BB (3 letras y 3 números, o 2 letras, 3 números y 2 letras)."
+      );
+      return;
+    }
+
     const anioNum =
-      form.anio !== "" && form.anio != null ? Number(form.anio) : null;
+      form.anio !== "" && form.anio != null
+        ? Number(form.anio)
+        : null;
+
     if (
       anioNum !== null &&
-      (!Number.isInteger(anioNum) || anioNum < 1900 || anioNum > 2100)
+      (!Number.isInteger(anioNum) ||
+        anioNum < 1900 ||
+        anioNum > 2100)
     ) {
       toast.error("El año del vehículo debe estar entre 1900 y 2100.");
       return;
@@ -216,15 +254,23 @@ export default function VehiculosParams({ fakeAction }) {
       form.capacidad_kg !== "" && form.capacidad_kg != null
         ? Number(form.capacidad_kg)
         : null;
-    if (capNum !== null && (!Number.isFinite(capNum) || capNum <= 0)) {
+
+    if (
+      capNum !== null &&
+      (!Number.isFinite(capNum) || capNum <= 0)
+    ) {
       toast.error("La capacidad en kg debe ser mayor a 0.");
       return;
     }
 
-    const usuLogin = String(user?.usuario_login || "sistema").slice(0, 20);
+    const usuLogin = String(
+      user?.usuario_login || "sistema"
+    ).slice(0, 20);
+
     const nowIso = new Date().toISOString();
 
     setSaving(true);
+
     try {
       if (selectedVehiculo) {
         const { error } = await supabase
@@ -261,14 +307,17 @@ export default function VehiculosParams({ fakeAction }) {
           if (directErr) {
             toast.error(
               error.message ||
-                directErr.message ||
-                "No se pudo actualizar el vehículo"
+              directErr.message ||
+              "No se pudo actualizar el vehículo"
             );
             return;
           }
         }
 
-        toast.success(`Vehículo ${patenteClean} actualizado correctamente`);
+        toast.success(
+          `Vehículo ${patenteClean} actualizado correctamente`
+        );
+
         fakeAction?.(`Vehículo ${patenteClean} actualizado`);
       } else {
         const { error } = await supabase
@@ -285,7 +334,6 @@ export default function VehiculosParams({ fakeAction }) {
           });
 
         if (error) {
-          // Formato exacto solicitado: INSERT INTO transporte.vehiculo (...)
           const { error: directErr } = await supabase
             .schema("transporte")
             .from("vehiculo")
@@ -303,19 +351,23 @@ export default function VehiculosParams({ fakeAction }) {
           if (directErr) {
             toast.error(
               error.message ||
-                directErr.message ||
-                "No se pudo registrar el vehículo"
+              directErr.message ||
+              "No se pudo registrar el vehículo"
             );
             return;
           }
         }
 
-        toast.success(`Vehículo ${patenteClean} registrado correctamente`);
+        toast.success(
+          `Vehículo ${patenteClean} registrado correctamente`
+        );
+
         fakeAction?.(`Vehículo ${patenteClean} registrado`);
       }
 
       setModalOpen(false);
       setSelectedVehiculo(null);
+
       await fetchVehiculos();
     } catch (err) {
       console.error("Error inesperado al guardar vehículo:", err);
@@ -330,9 +382,13 @@ export default function VehiculosParams({ fakeAction }) {
 
     const idVeh = deleteDialogVehiculo.id_vehiculo;
     const patente = deleteDialogVehiculo.patente;
-    const usuLogin = String(user?.usuario_login || "sistema").slice(0, 20);
+
+    const usuLogin = String(
+      user?.usuario_login || "sistema"
+    ).slice(0, 20);
 
     setDeletingId(idVeh);
+
     try {
       const { error } = await supabase
         .schema("usuarios")
@@ -355,15 +411,19 @@ export default function VehiculosParams({ fakeAction }) {
         if (directErr) {
           toast.error(
             error.message ||
-              directErr.message ||
-              "No se pudo eliminar el vehículo"
+            directErr.message ||
+            "No se pudo eliminar el vehículo"
           );
           return;
         }
       }
 
-      toast.success(`Vehículo ${patente} marcado como Eliminado (E)`);
+      toast.success(
+        `Vehículo ${patente} marcado como Eliminado (E)`
+      );
+
       setDeleteDialogVehiculo(null);
+
       await fetchVehiculos();
     } catch (err) {
       console.error("Error al eliminar vehículo:", err);
@@ -375,17 +435,19 @@ export default function VehiculosParams({ fakeAction }) {
 
   return (
     <div>
-      {/* CABECERA COMPACTA + 4 KPIs */}
+      {/* CABECERA */}
       <div className="mb-3 flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
         <div className="min-w-0">
           <div className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#5e6f77]">
             04 · EXPEDICIÓN · PARÁMETROS
           </div>
+
           <h2 className="m-0 font-barlow text-[24px] leading-tight tracking-[0.01em] text-[#163946]">
             Administración de vehículos
           </h2>
+
           <p className="mt-0.5 text-[12px] text-[#6b7d85]">
-            Registro, edición, capacidad de carga y control de estado de la flota de transporte (`transporte.vehiculo`).
+            Registro, edición, capacidad de carga y control de estado de la flota de transporte.
           </p>
         </div>
 
@@ -455,6 +517,7 @@ export default function VehiculosParams({ fakeAction }) {
             <div className="mb-1 text-[9px] font-bold uppercase tracking-[0.16em] text-[#82979e]">
               FLOTA DE TRANSPORTE · PARÁMETROS DE EXPEDICIÓN
             </div>
+
             <h3 className="m-0 font-barlow text-[22px] text-[#173d4b]">
               Vehículos registrados
             </h3>
@@ -482,13 +545,14 @@ export default function VehiculosParams({ fakeAction }) {
           </div>
         </div>
 
-        {/* Barra de filtros en una sola fila */}
+        {/* FILTROS */}
         <div className="mb-3.5 flex flex-wrap items-center gap-2 md:flex-nowrap">
           <div className="relative min-w-50 flex-1">
             <Search
               size={14}
               className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#82979e]"
             />
+
             <input
               type="search"
               value={searchTerm}
@@ -522,7 +586,7 @@ export default function VehiculosParams({ fakeAction }) {
           </Button>
         </div>
 
-        {/* Tabla de Vehículos */}
+        {/* TABLA */}
         <div className="overflow-x-auto rounded-lg border border-[#e3eaec]">
           <table className="w-full border-collapse text-left text-[12px]">
             <thead>
@@ -537,28 +601,24 @@ export default function VehiculosParams({ fakeAction }) {
                 <th className="px-3 py-2.5 text-right">Acciones</th>
               </tr>
             </thead>
+
             <tbody className="divide-y divide-[#edf2f4]">
               {loading ? (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="py-10 text-center text-[12px] text-[#758990]"
-                  >
+                  <td colSpan={8} className="py-10 text-center text-[12px] text-[#758990]">
                     Cargando vehículos registrados...
                   </td>
                 </tr>
               ) : filteredVehiculos.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="py-10 text-center text-[12px] text-[#758990]"
-                  >
+                  <td colSpan={8} className="py-10 text-center text-[12px] text-[#758990]">
                     No se encontraron vehículos registrados con los filtros seleccionados.
                   </td>
                 </tr>
               ) : (
                 filteredVehiculos.map((v) => {
                   const est = String(v.estado || "A").trim();
+
                   const estMeta = ESTADO_VEHICULO_META[est] ?? {
                     label: est,
                     tone: "slate",
@@ -574,6 +634,7 @@ export default function VehiculosParams({ fakeAction }) {
                           <span className="rounded border border-[#cbdce2] bg-[#eef5f8] px-2 py-0.5 font-mono text-[12px] font-bold text-brand">
                             {v.patente}
                           </span>
+
                           <span className="font-mono text-[10.5px] text-[#73878f]">
                             #{v.id_vehiculo}
                           </span>
@@ -606,6 +667,7 @@ export default function VehiculosParams({ fakeAction }) {
                           </strong>{" "}
                           ({formatDateTime(v.fec_alta)})
                         </div>
+
                         {v.usu_mod && (
                           <div>
                             Mod:{" "}
@@ -622,9 +684,11 @@ export default function VehiculosParams({ fakeAction }) {
                           <Badge tone={estMeta.tone}>
                             {est} · {estMeta.label}
                           </Badge>
+
                           {v.ocupado_en_ruta && (
                             <span className="inline-flex items-center gap-1 rounded bg-[#e8f2f6] px-1.5 py-0.5 font-mono text-[9.5px] font-semibold text-brand">
-                              <Truck size={10} /> En ruta {v.nro_hoja_activa || ""}
+                              <Truck size={10} />
+                              En ruta {v.nro_hoja_activa || ""}
                             </span>
                           )}
                         </div>
@@ -677,17 +741,20 @@ export default function VehiculosParams({ fakeAction }) {
               <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#5e6f77]">
                 PARÁMETROS DE TRANSPORTE · FLOTA
               </span>
+
               <Badge tone="blue">
                 {selectedVehiculo ? "Edición" : "Nuevo Registro"}
               </Badge>
             </div>
+
             <DialogTitle className="font-barlow text-[20px] font-bold leading-tight text-[#163946]">
               {selectedVehiculo
                 ? `Editar Vehículo · ${selectedVehiculo.patente}`
                 : "Registrar Nuevo Vehículo"}
             </DialogTitle>
+
             <DialogDescription className="mt-0.5 text-[12px] text-[#6b7d85]">
-              Complete los datos de identificación, capacidad y estado operativo en `transporte.vehiculo`.
+              Complete los datos de identificación, capacidad y estado operativo.
             </DialogDescription>
           </div>
 
@@ -698,29 +765,53 @@ export default function VehiculosParams({ fakeAction }) {
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                     Patente (Dominio) *
                   </Label>
+
                   <Input
                     required
-                    maxLength={15}
+                    type="text"
+                    maxLength={7}
+                    autoComplete="off"
                     value={form.patente}
                     onChange={(e) =>
                       setForm((prev) => ({
                         ...prev,
-                        patente: e.target.value.toUpperCase(),
+                        patente: limpiarPatente(e.target.value),
                       }))
                     }
-                    placeholder="Ej: AB123CD o AA999BB"
+                    placeholder="AAA123 o AA123BB"
                     className="h-9 border-[#dfe7e9] bg-white font-mono text-[12px] font-semibold uppercase text-[#173d4b]"
                   />
+
+                  <p className="text-[10px] leading-relaxed text-[#82979e]">
+                    Formatos permitidos: AAA123 o AA123BB. Solo letras y números.
+                  </p>
+
+                  {form.patente.length > 0 && (
+                    <p
+                      className={`text-[10px] font-medium ${PATENTE_REGEX.test(form.patente)
+                        ? "text-green-600"
+                        : "text-amber-600"
+                        }`}
+                    >
+                      {PATENTE_REGEX.test(form.patente)
+                        ? "Formato de patente válido"
+                        : "Ingrese una patente con el formato correcto"}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                     Estado *
                   </Label>
+
                   <select
                     value={form.estado}
                     onChange={(e) =>
-                      setForm((prev) => ({ ...prev, estado: e.target.value }))
+                      setForm((prev) => ({
+                        ...prev,
+                        estado: e.target.value,
+                      }))
                     }
                     className="h-9 w-full rounded-md border border-[#dfe7e9] bg-white px-2.5 text-[12px] text-[#173d4b] outline-none focus:border-brand"
                   >
@@ -736,11 +827,15 @@ export default function VehiculosParams({ fakeAction }) {
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                     Marca
                   </Label>
+
                   <Input
                     maxLength={50}
                     value={form.marca}
                     onChange={(e) =>
-                      setForm((prev) => ({ ...prev, marca: e.target.value }))
+                      setForm((prev) => ({
+                        ...prev,
+                        marca: e.target.value,
+                      }))
                     }
                     placeholder="Ej: Mercedes-Benz, Iveco, Ford..."
                     className="h-9 border-[#dfe7e9] bg-white text-[12px] text-[#173d4b]"
@@ -751,11 +846,15 @@ export default function VehiculosParams({ fakeAction }) {
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                     Modelo
                   </Label>
+
                   <Input
                     maxLength={50}
                     value={form.modelo}
                     onChange={(e) =>
-                      setForm((prev) => ({ ...prev, modelo: e.target.value }))
+                      setForm((prev) => ({
+                        ...prev,
+                        modelo: e.target.value,
+                      }))
                     }
                     placeholder="Ej: Accelo 815, Daily, Cargo..."
                     className="h-9 border-[#dfe7e9] bg-white text-[12px] text-[#173d4b]"
@@ -768,13 +867,17 @@ export default function VehiculosParams({ fakeAction }) {
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                     Año (1900 - 2100)
                   </Label>
+
                   <Input
                     type="number"
                     min="1900"
                     max="2100"
                     value={form.anio}
                     onChange={(e) =>
-                      setForm((prev) => ({ ...prev, anio: e.target.value }))
+                      setForm((prev) => ({
+                        ...prev,
+                        anio: e.target.value,
+                      }))
                     }
                     placeholder="Ej: 2023"
                     className="h-9 border-[#dfe7e9] bg-white font-mono text-[12px] text-[#173d4b]"
@@ -785,6 +888,7 @@ export default function VehiculosParams({ fakeAction }) {
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                     Capacidad máxima (kg)
                   </Label>
+
                   <Input
                     type="number"
                     min="1"
@@ -806,6 +910,7 @@ export default function VehiculosParams({ fakeAction }) {
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-ink">
                   Observaciones
                 </Label>
+
                 <Textarea
                   rows={2}
                   maxLength={1000}
@@ -832,12 +937,17 @@ export default function VehiculosParams({ fakeAction }) {
               >
                 Cancelar
               </Button>
+
               <Button
                 type="submit"
-                disabled={saving || !form.patente.trim()}
+                disabled={
+                  saving ||
+                  !PATENTE_REGEX.test(limpiarPatente(form.patente))
+                }
                 className="h-9 bg-brand px-4 text-[12px] font-semibold text-white hover:bg-[#114c5f]"
               >
                 <CheckCircle2 size={14} className="mr-1.5" />
+
                 {saving
                   ? "Guardando..."
                   : selectedVehiculo
@@ -849,7 +959,7 @@ export default function VehiculosParams({ fakeAction }) {
         </DialogContent>
       </Dialog>
 
-      {/* MODAL CONFIRMAR ELIMINACIÓN DE VEHÍCULO */}
+      {/* MODAL CONFIRMAR ELIMINACIÓN */}
       <Dialog
         open={Boolean(deleteDialogVehiculo)}
         onOpenChange={(nextOpen) => {
@@ -864,11 +974,14 @@ export default function VehiculosParams({ fakeAction }) {
               <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#5e6f77]">
                 BAJA DE VEHÍCULO · {deleteDialogVehiculo?.patente}
               </span>
+
               <Badge tone="red">Eliminar</Badge>
             </div>
+
             <DialogTitle className="font-barlow text-[20px] font-bold leading-tight text-[#163946]">
               ¿Eliminar vehículo {deleteDialogVehiculo?.patente}?
             </DialogTitle>
+
             <DialogDescription className="mt-0.5 text-[12px] text-[#6b7d85]">
               {[deleteDialogVehiculo?.marca, deleteDialogVehiculo?.modelo]
                 .filter(Boolean)
@@ -879,6 +992,7 @@ export default function VehiculosParams({ fakeAction }) {
           <div className="px-5 py-4">
             <div className="flex items-start gap-2.5 rounded-lg border border-[#f5d48f] bg-[#fff9eb] p-3.5 text-[#8a5a0d]">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#c27b10]" />
+
               <div className="text-[12px] leading-relaxed">
                 El vehículo pasará a estado <strong>E · Eliminado</strong> y dejará de estar disponible para nuevas hojas de ruta.
               </div>
@@ -895,6 +1009,7 @@ export default function VehiculosParams({ fakeAction }) {
             >
               Cancelar
             </Button>
+
             <Button
               type="button"
               disabled={Boolean(deletingId)}
@@ -902,7 +1017,10 @@ export default function VehiculosParams({ fakeAction }) {
               className="h-9 bg-[#ba584d] px-4 text-[12px] font-semibold text-white hover:bg-[#9e443a]"
             >
               <Trash2 size={14} className="mr-1.5" />
-              {deletingId ? "Eliminando..." : "Confirmar Eliminación"}
+
+              {deletingId
+                ? "Eliminando..."
+                : "Confirmar Eliminación"}
             </Button>
           </div>
         </DialogContent>

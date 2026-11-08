@@ -65,28 +65,17 @@ export default function Sidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-20 flex h-dvh w-62 flex-col overflow-hidden border-r border-[#dbe3e6] bg-white px-3.75 pb-3 pt-4 transition-transform duration-200 lg:translate-x-0 ${
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-20 flex h-dvh w-62 flex-col overflow-hidden border-r border-[#dbe3e6] bg-white px-3.75 pb-3 pt-4 transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Brand */}
         <div className="relative flex shrink-0 items-center gap-2.5 px-2.5 pb-3">
-          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-soft">
-            <img
-              src={logo}
-              className="h-6 w-6 object-contain"
-              alt="logo de la empresa"
-            />
-          </div>
-
           <div>
-            <strong className="block font-barlow text-[22px] leading-4.5 tracking-[-0.3px] text-[#153d4c]">
-              brother<span className="text-amber">plast</span>
-            </strong>
-
-            <small className="mt-0.75 block text-[8px] uppercase tracking-[0.12em] text-[#84939a]">
-              gestión industrial
-            </small>
+            <img
+              src="/logo_brotherplast.svg"
+              alt="Brother Plast - Gestión Industrial"
+              className="block h-auto w-37.5 object-contain"
+            />
           </div>
 
           <button
@@ -120,11 +109,10 @@ export default function Sidebar({
                 <button
                   type="button"
                   onClick={() => navigate(item.id)}
-                  className={`flex w-full cursor-pointer items-center gap-2.75 rounded-[7px] border-0 px-3 py-2.75 text-left text-[15px] transition-all duration-150 ${
-                    isActive
-                      ? "bg-brand-soft font-semibold text-brand shadow-[inset_3px_0_0_#145c73]"
-                      : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
-                  }`}
+                  className={`flex w-full cursor-pointer items-center gap-2.75 rounded-[7px] border-0 px-3 py-2.75 text-left text-[15px] transition-all duration-150 ${isActive
+                    ? "bg-brand-soft font-semibold text-brand shadow-[inset_3px_0_0_#145c73]"
+                    : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                    }`}
                 >
                   <Icon size={16} strokeWidth={1.8} />
 
@@ -144,11 +132,10 @@ export default function Sidebar({
                     <button
                       type="button"
                       onClick={() => setDispatchParamsOpen((p) => !p)}
-                      className={`flex w-full cursor-pointer items-center justify-between rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] font-medium transition-colors ${
-                        isDispatchSectionActive
-                          ? "text-[#214451]"
-                          : "text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
-                      }`}
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] font-medium transition-colors ${isDispatchSectionActive
+                        ? "text-[#214451]"
+                        : "text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                        }`}
                     >
                       <span className="flex items-center gap-2">
                         <SlidersHorizontal size={13} />
@@ -157,9 +144,8 @@ export default function Sidebar({
 
                       <ChevronDown
                         size={13}
-                        className={`transition-transform ${
-                          dispatchParamsOpen ? "rotate-180" : ""
-                        }`}
+                        className={`transition-transform ${dispatchParamsOpen ? "rotate-180" : ""
+                          }`}
                       />
                     </button>
 
@@ -168,11 +154,10 @@ export default function Sidebar({
                         <button
                           type="button"
                           onClick={() => navigate("dispatch-params-vehiculos")}
-                          className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${
-                            active === "dispatch-params-vehiculos"
-                              ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
-                              : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
-                          }`}
+                          className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${active === "dispatch-params-vehiculos"
+                            ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
+                            : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                            }`}
                         >
                           Vehículos
                         </button>
@@ -187,11 +172,10 @@ export default function Sidebar({
                     <button
                       type="button"
                       onClick={() => setProductosParamsOpen((p) => !p)}
-                      className={`flex w-full cursor-pointer items-center justify-between rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] font-medium transition-colors ${
-                        isProductosSectionActive
-                          ? "text-[#214451]"
-                          : "text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
-                      }`}
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] font-medium transition-colors ${isProductosSectionActive
+                        ? "text-[#214451]"
+                        : "text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                        }`}
                     >
                       <span className="flex items-center gap-2">
                         <SlidersHorizontal size={13} />
@@ -200,9 +184,8 @@ export default function Sidebar({
 
                       <ChevronDown
                         size={13}
-                        className={`transition-transform ${
-                          productosParamsOpen ? "rotate-180" : ""
-                        }`}
+                        className={`transition-transform ${productosParamsOpen ? "rotate-180" : ""
+                          }`}
                       />
                     </button>
 
@@ -211,11 +194,10 @@ export default function Sidebar({
                         <button
                           type="button"
                           onClick={() => navigate("productos-params-unidades")}
-                          className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${
-                            active === "productos-params-unidades"
-                              ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
-                              : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
-                          }`}
+                          className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${active === "productos-params-unidades"
+                            ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
+                            : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                            }`}
                         >
                           Unidades de Medida
                         </button>
@@ -223,11 +205,10 @@ export default function Sidebar({
                         <button
                           type="button"
                           onClick={() => navigate("productos-params-materiales")}
-                          className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${
-                            active === "productos-params-materiales"
-                              ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
-                              : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
-                          }`}
+                          className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${active === "productos-params-materiales"
+                            ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
+                            : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                            }`}
                         >
                           Materiales
                         </button>
@@ -235,11 +216,10 @@ export default function Sidebar({
                         <button
                           type="button"
                           onClick={() => navigate("productos-params-tipos")}
-                          className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${
-                            active === "productos-params-tipos"
-                              ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
-                              : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
-                          }`}
+                          className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${active === "productos-params-tipos"
+                            ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
+                            : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                            }`}
                         >
                           Tipo de Producto
                         </button>
@@ -254,11 +234,10 @@ export default function Sidebar({
                     <button
                       type="button"
                       onClick={() => setParamsOpen((p) => !p)}
-                      className={`flex w-full cursor-pointer items-center justify-between rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] font-medium transition-colors ${
-                        isItSectionActive
-                          ? "text-[#214451]"
-                          : "text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
-                      }`}
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] font-medium transition-colors ${isItSectionActive
+                        ? "text-[#214451]"
+                        : "text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                        }`}
                     >
                       <span className="flex items-center gap-2">
                         <SlidersHorizontal size={13} />
@@ -267,9 +246,8 @@ export default function Sidebar({
 
                       <ChevronDown
                         size={13}
-                        className={`transition-transform ${
-                          paramsOpen ? "rotate-180" : ""
-                        }`}
+                        className={`transition-transform ${paramsOpen ? "rotate-180" : ""
+                          }`}
                       />
                     </button>
 
@@ -278,11 +256,10 @@ export default function Sidebar({
                         <button
                           type="button"
                           onClick={() => navigate("it-params-roles")}
-                          className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${
-                            active === "it-params-roles"
-                              ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
-                              : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
-                          }`}
+                          className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${active === "it-params-roles"
+                            ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
+                            : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                            }`}
                         >
                           Roles
                         </button>
@@ -290,11 +267,10 @@ export default function Sidebar({
                         <button
                           type="button"
                           onClick={() => navigate("it-params-permisos")}
-                          className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${
-                            active === "it-params-permisos"
-                              ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
-                              : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
-                          }`}
+                          className={`flex w-full cursor-pointer items-center rounded-md border-0 px-2.5 py-1.5 text-left text-[12px] transition-colors ${active === "it-params-permisos"
+                            ? "bg-brand-soft font-semibold text-brand shadow-[inset_2px_0_0_#145c73]"
+                            : "bg-transparent text-[#667b83] hover:bg-[#f4f7f8] hover:text-brand"
+                            }`}
                         >
                           Permisos
                         </button>
