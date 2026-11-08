@@ -304,7 +304,7 @@ export default function Sidebar({
             <button
               type="button"
               onClick={() => setLogged?.(false)}
-              className="border-0 bg-transparent p-1 text-[#91a0a5] hover:text-brand"
+              className="border-0 bg-transparent p-1 text-[#91a0a5] hover:text-brand cursor-pointer"
               aria-label="Cerrar sesión"
             >
               <LogOut size={14} />
